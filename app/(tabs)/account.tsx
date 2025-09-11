@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
-import { User, Edit3, Settings, Bell, CreditCard, HelpCircle, LogOut, ChevronRight, Star, Shield } from 'lucide-react-native';
+import { User, CreditCard as Edit3, Settings, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Shield } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
