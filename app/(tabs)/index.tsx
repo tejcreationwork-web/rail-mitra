@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { router } from 'expo-router';
-import { Brain as Train, MapPin, Clock, CircleCheck as CheckCircle, Wifi, Database } from 'lucide-react-native';
+import { Train, MapPin, Clock, CheckCircle, Wifi, Database } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const services = [
@@ -40,11 +40,13 @@ export default function HomeScreen() {
       
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Train size={28} color="#FFFFFF" />
+          <View style={styles.logoContainer}>
+            <Train size={32} color="#FFFFFF" strokeWidth={2.5} />
+          </View>
           <Text style={styles.headerTitle}>RailEase</Text>
         </View>
-        <Text style={styles.headerSubtitle}>"Simplifying your journey with clarity."</Text>
-        <Text style={styles.accessNote}>🟢 Access PNR status, station layouts, and train schedules as ease</Text>
+        <Text style={styles.headerSubtitle}>Your Smart Railway Companion</Text>
+        <Text style={styles.accessNote}>🚀 Access PNR status, station layouts, and train schedules with ease</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -113,21 +115,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  logoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 12,
+    padding: 8,
+    marginRight: 12,
+  },
   headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontSize: 28,
+    fontWeight: '800',
     color: '#FFFFFF',
-    marginLeft: 10,
+    fontFamily: 'Poppins-Bold',
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#BFDBFE',
     marginBottom: 6,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontFamily: 'Poppins-SemiBold',
   },
   accessNote: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#DBEAFE',
+    fontFamily: 'Inter-Medium',
   },
   content: {
     flex: 1,
@@ -138,10 +149,11 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#1E293B',
     marginBottom: 12,
+    fontFamily: 'Poppins-Bold',
   },
   serviceCard: {
     backgroundColor: '#FFFFFF',
@@ -173,15 +185,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   serviceTitle: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 19,
+    fontWeight: '800',
     color: '#1E293B',
     marginBottom: 6,
+    fontFamily: 'Poppins-Bold',
   },
   serviceSubtitle: {
-    fontSize: 15,
+    fontSize: 16,
     color: '#64748B',
     lineHeight: 22,
+    fontFamily: 'Inter-Medium',
   },
   arrow: {
     fontSize: 24,
@@ -203,9 +217,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   statusText: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#64748B',
     marginBottom: 20,
+    fontFamily: 'Inter-Medium',
   },
   statusGrid: {
     flexDirection: 'row',
@@ -217,10 +232,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusLabel: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#475569',
     marginLeft: 12,
     flex: 1,
-    fontWeight: '500',
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
 });

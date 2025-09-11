@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Calendar, Phone, Settings } from 'lucide-react-native';
+import { Home, MessageSquare, User, Calendar, Settings } from 'lucide-react-native';
+import { View } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -12,9 +13,9 @@ export default function TabLayout() {
           backgroundColor: '#FFFFFF',
           borderTopColor: '#E2E8F0',
           borderTopWidth: 0,
-          paddingTop: 12,
-          paddingBottom: 12,
-          height: 80,
+          paddingTop: 8,
+          paddingBottom: 8,
+          height: 85,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
@@ -22,9 +23,10 @@ export default function TabLayout() {
           elevation: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: '600',
-          marginTop: 6,
+          marginTop: 4,
+          fontFamily: 'Inter-SemiBold',
         },
         tabBarIconStyle: {
           marginTop: 4,
@@ -32,29 +34,52 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ size, color }) => (
+            <User size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="qa"
+        options={{
+          title: 'Q&A',
+          tabBarIcon: ({ size, color }) => (
+            <MessageSquare size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
-            <Home size={size + 2} color={color} />
+            <View style={{
+              backgroundColor: focused ? '#1E40AF' : 'transparent',
+              borderRadius: 25,
+              padding: 12,
+              marginBottom: 8,
+            }}>
+              <Home size={size + 4} color={focused ? '#FFFFFF' : color} />
+            </View>
           ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '700',
+            marginTop: -4,
+            fontFamily: 'Inter-SemiBold',
+          },
         }}
       />
       <Tabs.Screen
         name="booking"
         options={{
-          title: 'My Booking',
+          title: 'Booking',
           tabBarIcon: ({ size, color }) => (
-            <Calendar size={size + 2} color={color} />
+            <Calendar size={size} color={color} />
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="contact"
-        options={{
-          title: 'Contact Us',
-          tabBarIcon: ({ size, color }) => (
-            <Phone size={size + 2} color={color} />
           ),
         }}
       />
@@ -63,7 +88,7 @@ export default function TabLayout() {
         options={{
           title: 'Settings',
           tabBarIcon: ({ size, color }) => (
-            <Settings size={size + 2} color={color} />
+            <Settings size={size} color={color} />
           ),
         }}
       />

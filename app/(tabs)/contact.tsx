@@ -200,10 +200,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 4,
+    fontFamily: 'Poppins-Bold',
   },
   headerSubtitle: {
     fontSize: 14,
     color: '#BFDBFE',
+    fontFamily: 'Inter-Medium',
   },
   content: {
     flex: 1,
@@ -218,6 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E293B',
     marginBottom: 16,
+    fontFamily: 'Poppins-Bold',
   },
   contactCard: {
     backgroundColor: '#FFFFFF',
@@ -248,10 +251,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E293B',
     marginBottom: 4,
+    fontFamily: 'Poppins-SemiBold',
   },
   contactSubtitle: {
     fontSize: 14,
     color: '#64748B',
+    fontFamily: 'Inter-Regular',
   },
   serviceCard: {
     backgroundColor: '#FFFFFF',
@@ -283,10 +288,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1E293B',
     marginBottom: 4,
+    fontFamily: 'Poppins-SemiBold',
   },
   serviceSubtitle: {
     fontSize: 14,
     color: '#64748B',
+    fontFamily: 'Inter-Regular',
   },
   linkArrow: {
     fontSize: 18,
@@ -315,12 +322,14 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     marginLeft: 8,
     flex: 1,
+    fontFamily: 'Poppins-SemiBold',
   },
   officeAddress: {
     fontSize: 14,
     color: '#64748B',
     lineHeight: 20,
     marginBottom: 12,
+    fontFamily: 'Inter-Regular',
   },
   officeDetails: {
     gap: 8,
@@ -333,6 +342,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
     marginLeft: 8,
+    fontFamily: 'Inter-Regular',
   },
   phoneText: {
     color: '#2563EB',
@@ -351,6 +361,7 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     textAlign: 'center',
     marginBottom: 16,
+    fontFamily: 'Poppins-SemiBold',
   },
   emergencyGrid: {
     flexDirection: 'row',
@@ -372,10 +383,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#DC2626',
     marginBottom: 4,
+    fontFamily: 'Poppins-Bold',
   },
   emergencyLabel: {
     fontSize: 12,
     color: '#DC2626',
     fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
 });
