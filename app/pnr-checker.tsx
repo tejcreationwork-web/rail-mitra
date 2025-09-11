@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Status
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 // import { router } from 'expo-router';
-import { ArrowLeft, Search, Train, User, MapPin, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle } from 'lucide-react-native';
 
 const router = useRouter();
 
