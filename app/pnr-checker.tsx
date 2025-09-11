@@ -1,11 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-// import { router } from 'expo-router';
 import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle } from 'lucide-react-native';
-
-const router = useRouter();
-
 
 type Passenger = {
   name: string;
@@ -33,6 +29,7 @@ type PNRData = {
 };
 
 export default function PNRChecker() {
+  const router = useRouter();
   const [pnrNumber, setPnrNumber] = useState('');
   const [pnrData, setPnrData] = useState<PNRData | null>(null);
   const [isLoading, setIsLoading] = useState(false);

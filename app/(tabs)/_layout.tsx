@@ -38,16 +38,6 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Calendar size={size} color={color} />
           ),
-          tabBarIconStyle: {
-            borderRadius: 20,
-            padding: 8,
-          },
-          tabBarLabelStyle: {
-            fontFamily: 'Inter-SemiBold',
-            fontSize: 12,
-            marginTop: 4,
-            color: '#2563EB',
-          },
         }}
       />
       <Tabs.Screen
