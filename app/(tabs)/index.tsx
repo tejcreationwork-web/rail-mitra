@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { router } from 'expo-router';
-import { Train, MapPin, Clock, CheckCircle, Wifi, Database } from 'lucide-react-native';
+import { Brain as Train, MapPin, Clock, CircleCheck as CheckCircle, Wifi, Database } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const services = [
