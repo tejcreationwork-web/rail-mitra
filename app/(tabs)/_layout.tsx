@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { Home, MessageSquare, User, Calendar, Phone, Train } from 'lucide-react-native';
+import { Chrome as Home, MessageSquare, User, Calendar, Phone, Brain as Train } from 'lucide-react-native';
 import { Calendar, Clock, Brain as Train, MapPin, User } from 'lucide-react-native';
 
 export default function BookingScreen() {
@@ -111,6 +111,11 @@ export default function BookingScreen() {
 }
 
 const styles = StyleSheet.create({
+          }
+    )
+    )
+    }
+  )
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
