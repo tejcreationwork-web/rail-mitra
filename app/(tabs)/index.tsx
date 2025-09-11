@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { router } from 'expo-router';
-import { Train, MapPin, Clock, CircleCheck as CheckCircle, Wifi, Database } from 'lucide-react-native';
+import { Train, MapPin, Clock, CircleCheck as CheckCircle, Wifi, Database, Brain } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const services = [
@@ -43,9 +43,9 @@ export default function HomeScreen() {
           <View style={styles.logoContainer}>
             <Train size={32} color="#FFFFFF" strokeWidth={2.5} />
           </View>
-          <Text style={styles.headerTitle}>RailEase</Text>
+          <Text style={styles.headerTitle}>RailMitra</Text>
         </View>
-        <Text style={styles.headerSubtitle}>Your Smart Railway Companion</Text>
+        <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
         <Text style={styles.accessNote}>🚀 Access PNR status, station layouts, and train schedules with ease</Text>
       </View>
 
