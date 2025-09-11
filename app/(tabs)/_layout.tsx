@@ -38,6 +38,7 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Calendar size={size} color={color} />
           ),
+          tabBarIconStyle: {
             borderRadius: 20,
             padding: 8,
           },
