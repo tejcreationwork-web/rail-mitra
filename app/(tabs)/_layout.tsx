@@ -41,11 +41,29 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ size, color }) => (
+            <House size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="qa"
         options={{
           title: 'Q&A',
           tabBarIcon: ({ size, color }) => (
             <MessageSquare size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="contact"
+        options={{
+          title: 'Contact',
+          tabBarIcon: ({ size, color }) => (
+            <Phone size={size} color={color} />
           ),
         }}
       />

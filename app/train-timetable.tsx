@@ -140,9 +140,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#2563EB',
-    paddingTop: 60,
+    paddingTop: 45,
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

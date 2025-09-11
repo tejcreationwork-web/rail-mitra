@@ -18,7 +18,7 @@ export default function HomeScreen() {
       subtitle: 'Explore railway stations with interactive maps',
       icon: MapPin,
       route: '/station-layout',
-      color: '#059669',
+      color: '#2563EB',
     },
     {
       id: 'timetable',
@@ -26,7 +26,7 @@ export default function HomeScreen() {
       subtitle: 'View detailed train schedules and route information',
       icon: Clock,
       route: '/train-timetable',
-      color: '#DC2626',
+      color: '#2563EB',
     },
   ];
 
@@ -104,9 +104,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    paddingTop: 60,
+    paddingTop: 50,
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 12,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
