@@ -49,7 +49,7 @@ export default function AccountScreen() {
       onPress: () => Alert.alert('Language', 'Language selection coming soon'),
     },
     {
-      id: 'settings',
+      id: 'app-settings',
       title: 'App Settings',
       subtitle: 'Notifications, offline mode, dark theme',
       icon: Settings,
