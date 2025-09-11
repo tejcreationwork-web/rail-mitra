@@ -41,10 +41,10 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Train size={28} color="#FFFFFF" />
-          <Text style={styles.headerTitle}>Railway Info Demo</Text>
+          <Text style={styles.headerTitle}>RailEase</Text>
         </View>
-        <Text style={styles.headerSubtitle}>Indian Railways Information Services</Text>
-        <Text style={styles.accessNote}>🟢 Access PNR status, station layouts, and train schedules</Text>
+        <Text style={styles.headerSubtitle}>"Simplifying your journey with clarity."</Text>
+        <Text style={styles.accessNote}>🟢 Access PNR status, station layouts, and train schedules as ease</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

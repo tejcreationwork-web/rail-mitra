@@ -7,8 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "sdkVersion": "51.0.0",
     "ios": {
       "supportsTablet": true
     },
@@ -19,7 +17,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font", 
+      "expo-font",
       "expo-web-browser"
     ],
     "experiments": {

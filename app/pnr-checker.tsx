@@ -1,14 +1,43 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
 import { useState } from 'react';
-import { router } from 'expo-router';
-import { ArrowLeft, Search, CircleCheck as CheckCircle, Brain as Train, User, MapPin } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
+// import { router } from 'expo-router';
+import { ArrowLeft, Search, Train, User, MapPin, CheckCircle } from 'lucide-react-native';
+
+const router = useRouter();
+
+
+type Passenger = {
+  name: string;
+  age: string;
+  gender: string;
+  coach: string;
+  seat: string;
+};
+
+type Journey = {
+  boarding: string;
+  arrival: string;
+};
+
+type PNRData = {
+  pnr: string;
+  trainNumber: string;
+  trainName: string;
+  status: string;
+  from: string;
+  to: string;
+  date: string;
+  passenger: Passenger;
+  journey: Journey;
+};
 
 export default function PNRChecker() {
   const [pnrNumber, setPnrNumber] = useState('');
-  const [pnrData, setPnrData] = useState<any>(null);
+  const [pnrData, setPnrData] = useState<PNRData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mockPNRData = {
+  const mockPNRData: PNRData = {
     pnr: '1234567890',
     trainNumber: '12951',
     trainName: 'Mumbai Rajdhani Express',
@@ -34,14 +63,11 @@ export default function PNRChecker() {
       Alert.alert('Error', 'Please enter PNR number');
       return;
     }
-    
     if (pnrNumber.length !== 10) {
       Alert.alert('Error', 'PNR number should be 10 digits');
       return;
     }
-
     setIsLoading(true);
-    // Simulate API call
     setTimeout(() => {
       setPnrData({ ...mockPNRData, pnr: pnrNumber });
       setIsLoading(false);
@@ -56,7 +82,6 @@ export default function PNRChecker() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-      
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={26} color="#FFFFFF" />
@@ -64,7 +89,6 @@ export default function PNRChecker() {
         <Text style={styles.headerTitle}>PNR Checker</Text>
         <View style={styles.placeholder} />
       </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Enter PNR Number</Text>
@@ -85,7 +109,7 @@ export default function PNRChecker() {
               </TouchableOpacity>
             )}
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
             onPress={handleSearch}
             disabled={isLoading}
@@ -96,7 +120,6 @@ export default function PNRChecker() {
             </Text>
           </TouchableOpacity>
         </View>
-
         {pnrData && (
           <View style={styles.resultContainer}>
             <View style={styles.pnrHeader}>
@@ -106,11 +129,9 @@ export default function PNRChecker() {
                 <Text style={styles.statusText}>{pnrData.status}</Text>
               </View>
             </View>
-
             <Text style={styles.trainInfo}>
               Train: {pnrData.trainNumber} - {pnrData.trainName}
             </Text>
-
             <View style={styles.detailsContainer}>
               <Text style={styles.sectionTitle}>Passenger Details</Text>
               <View style={styles.detailRow}>
@@ -137,7 +158,6 @@ export default function PNRChecker() {
                 <Text style={styles.detailValue}>{pnrData.passenger.seat}</Text>
               </View>
             </View>
-
             <View style={styles.detailsContainer}>
               <Text style={styles.sectionTitle}>Journey Details</Text>
               <View style={styles.journeyRow}>
@@ -168,6 +188,8 @@ export default function PNRChecker() {
     </View>
   );
 }
+
+// ...existing styles...
 
 const styles = StyleSheet.create({
   container: {
