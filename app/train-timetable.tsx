@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, Search, Brain as Train, Clock, MapPin, RefreshCw as Refresh } from 'lucide-react-native';
+import { ArrowLeft, Search, Train, Clock, MapPin, RefreshCw as Refresh } from 'lucide-react-native';
 
 export default function TrainTimetable() {
   const [trainNumber, setTrainNumber] = useState('');

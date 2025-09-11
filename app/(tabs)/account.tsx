@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
-import { User, CreditCard as Edit3, Settings, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Shield } from 'lucide-react-native';
+import { User, CreditCard as Edit3, Settings, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Shield, Globe } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
@@ -33,6 +33,20 @@ export default function AccountScreen() {
       subtitle: 'Manage your notification preferences',
       icon: Bell,
       onPress: () => Alert.alert('Notifications', 'Notification settings'),
+    },
+    {
+      id: 'settings',
+      title: 'App Settings',
+      subtitle: 'Customize your app experience',
+      icon: Settings,
+      onPress: () => Alert.alert('Settings', 'App settings coming soon'),
+    },
+    {
+      id: 'language',
+      title: 'Language',
+      subtitle: 'Change app language',
+      icon: Globe,
+      onPress: () => Alert.alert('Language', 'Language selection coming soon'),
     },
     {
       id: 'help',
