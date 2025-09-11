@@ -58,6 +58,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="contact"
+        options={{
+          title: 'Contact',
+          tabBarIcon: ({ size, color }) => (
+            <Phone size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
