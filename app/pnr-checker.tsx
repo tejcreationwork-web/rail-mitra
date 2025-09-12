@@ -196,9 +196,9 @@ export default function PNRChecker() {
           <View style={styles.resultContainer}>
             <View style={styles.pnrHeader}>
               <Text style={styles.pnrNumber}>PNR: {pnrData.pnrNumber}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pnrData.passengers[0]?.passengerStatus || '') }]}>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pnrData.passengers?.[0]?.passengerStatus || '') }]}>
                 <CheckCircle size={18} color="#FFFFFF" />
-                <Text style={styles.statusText}>{formatStatus(pnrData.passengers[0]?.passengerStatus || 'Unknown')}</Text>
+                <Text style={styles.statusText}>{formatStatus(pnrData.passengers?.[0]?.passengerStatus || 'Unknown')}</Text>
               </View>
             </View>
             <Text style={styles.trainInfo}>
@@ -207,7 +207,7 @@ export default function PNRChecker() {
             <Text style={styles.classInfo}>
               Class: {pnrData.journeyClass} | Date: {pnrData.boardingDate}
             </Text>
-            {pnrData.passengers.map((passenger, index) => (
+            {pnrData.passengers?.map((passenger, index) => (
               <View key={index} style={styles.detailsContainer}>
                 <Text style={styles.sectionTitle}>Passenger {passenger.passengerSerialNumber}</Text>
                 <View style={styles.detailRow}>
