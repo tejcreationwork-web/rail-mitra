@@ -1,12 +1,4 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
-import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react-native';
@@ -42,13 +34,9 @@ export default function StationLayout() {
 
   const [selectedStationId, setSelectedStationId] = useState('thane');
   const [showDropdown, setShowDropdown] = useState(false);
-
-  // Animated values for zoom and pan
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const focalX = useSharedValue(0);
-  const focalY = useSharedValue(0);
+  const [scale, setScale] = useState(1);
+  const [translateX, setTranslateX] = useState(0);
+  const [translateY, setTranslateY] = useState(0);
 
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
@@ -56,75 +44,24 @@ export default function StationLayout() {
     setSelectedStationId(stationId);
     setShowDropdown(false);
     // Reset zoom and pan when changing stations
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
   };
 
   const resetZoom = () => {
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
+    setScale(1);
+    setTranslateX(0);
+    setTranslateY(0);
   };
 
   const zoomIn = () => {
-    scale.value = withSpring(Math.min(scale.value * 1.2, 3));
+    setScale(prev => Math.min(prev * 1.2, 3));
   };
 
   const zoomOut = () => {
-    scale.value = withSpring(Math.max(scale.value * 0.8, 0.5));
+    setScale(prev => Math.max(prev * 0.8, 0.5));
   };
-
-  // Pinch gesture handler
-  const pinchGestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context) => {
-      context.startScale = scale.value;
-    },
-    onActive: (event, context) => {
-      scale.value = Math.min(Math.max(context.startScale * event.scale, 0.5), 3);
-      focalX.value = event.focalX;
-      focalY.value = event.focalY;
-    },
-    onEnd: () => {
-      if (scale.value < 1) {
-        scale.value = withSpring(1);
-        translateX.value = withSpring(0);
-        translateY.value = withSpring(0);
-      }
-    },
-  });
-
-  // Pan gesture handler
-  const panGestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context) => {
-      context.startX = translateX.value;
-      context.startY = translateY.value;
-    },
-    onActive: (event, context) => {
-      const maxTranslateX = (screenWidth * (scale.value - 1)) / 2;
-      const maxTranslateY = (300 * (scale.value - 1)) / 2;
-      
-      translateX.value = Math.min(
-        Math.max(context.startX + event.translationX, -maxTranslateX),
-        maxTranslateX
-      );
-      translateY.value = Math.min(
-        Math.max(context.startY + event.translationY, -maxTranslateY),
-        maxTranslateY
-      );
-    },
-  });
-
-  // Animated style for the image
-  const animatedStyle = useAnimatedStyle(() => {
-    return ({
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-    });
-  });
 
   return (
     <View style={styles.container}>
@@ -190,19 +127,22 @@ export default function StationLayout() {
           <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
           
           <View style={styles.imageContainer}>
-            <PanGestureHandler onGestureEvent={panGestureHandler}>
-              <Animated.View style={styles.gestureContainer}>
-                <PinchGestureHandler onGestureEvent={pinchGestureHandler}>
-                  <Animated.View style={animatedStyle}>
-                    <Image
-                      source={selectedStation.image}
-                      style={styles.stationImage}
-                      resizeMode="contain"
-                    />
-                  </Animated.View>
-                </PinchGestureHandler>
-              </Animated.View>
-            </PanGestureHandler>
+            <View style={styles.gestureContainer}>
+              <Image
+                source={selectedStation.image}
+                style={[
+                  styles.stationImage,
+                  {
+                    transform: [
+                      { translateX },
+                      { translateY },
+                      { scale },
+                    ],
+                  },
+                ]}
+                resizeMode="contain"
+              />
+            </View>
           </View>
 
           {/* Control Buttons */}
