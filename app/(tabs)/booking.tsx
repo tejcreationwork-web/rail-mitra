@@ -348,7 +348,7 @@ export default function BookingScreen() {
               {/* First passenger - always shown */}
               <View style={styles.passengerCard}>
                 <Text style={styles.passengerTitle}>
-                  Passenger 1{booking.passengers[0]?.name ? ` - ${booking.passengers[0].name}` : ''}
+                  Passenger 1
                 </Text>
                 
                 <View style={styles.detailRow}>
@@ -401,7 +401,7 @@ export default function BookingScreen() {
               {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
                 <View key={index} style={styles.passengerCard}>
                   <Text style={styles.passengerTitle}>
-                    Passenger {index + 2}{passenger.name ? ` - ${passenger.name}` : ''}
+                    Passenger {index + 2}
                   </Text>
                   
                   <View style={styles.detailRow}>

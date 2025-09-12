@@ -148,7 +148,7 @@ export default function PNRChecker() {
           journeyClass: pnrData.journeyClass,
           boardingPoint: pnrData.boardingPoint,
           passengers: pnrData.passengerList?.map(p => ({
-            name: `Passenger ${p.passengerSerialNumber}`,
+            name: '',
             age: 0,
             status: p.currentStatus || p.bookingStatus || 'Unknown',
             coach: p.currentCoachId || '-',
