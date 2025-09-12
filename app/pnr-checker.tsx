@@ -3,60 +3,60 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
 
-type Passenger = {
-  name: string;
-  age: string;
-  gender: string;
-  coach: string;
-  seat: string;
+type APIPassenger = {
+  passengerSerialNumber: number;
+  passengerName: string;
+  passengerAge: number;
+  passengerGender: string;
+  passengerCoachPosition: string;
+  passengerBerthNumber: string;
+  passengerStatus: string;
 };
 
-type Journey = {
-  boarding: string;
-  arrival: string;
-};
-
-type PNRData = {
-  pnr: string;
-  trainNumber: string;
-  trainName: string;
-  status: string;
-  from: string;
-  to: string;
-  date: string;
-  passenger: Passenger;
-  journey: Journey;
+type APIResponse = {
+  success: boolean;
+  data?: {
+    pnrNumber: string;
+    trainNumber: string;
+    trainName: string;
+    boardingStationName: string;
+    reservationUptoName: string;
+    boardingDate: string;
+    journeyClass: string;
+    passengers: APIPassenger[];
+  };
+  message?: string;
 };
 
 export default function PNRChecker() {
   const router = useRouter();
   const [pnrNumber, setPnrNumber] = useState('');
-  const [pnrData, setPnrData] = useState<PNRData | null>(null);
+  const [pnrData, setPnrData] = useState<APIResponse['data'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const mockPNRData: PNRData = {
-    pnr: '1234567890',
-    trainNumber: '12951',
-    trainName: 'Mumbai Rajdhani Express',
-    status: 'Confirmed',
-    from: 'Mumbai Central (MMCT)',
-    to: 'New Delhi (NDLS)',
-    date: '17:55',
-    passenger: {
-      name: 'Rajesh Kumar Singh',
-      age: '35 years',
-      gender: 'Male',
-      coach: 'S4',
-      seat: '23',
-    },
-    journey: {
-      boarding: '17:55',
-      arrival: '08:35+1',
-    },
+  const fetchPNRStatus = async (pnr: string): Promise<APIResponse> => {
+    const url = `https://irctc-indian-railway-pnr-status.p.rapidapi.com/getPNRStatus/${pnr}`;
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': 'dc102d5e60msh5947347b2e8df5bp14ddebjsnd8a83e21de4c',
+        'x-rapidapi-host': 'irctc-indian-railway-pnr-status.p.rapidapi.com'
+      }
+    };
+
+    const response = await fetch(url, options);
+    const result = await response.text();
+    
+    try {
+      return JSON.parse(result);
+    } catch (parseError) {
+      throw new Error('Invalid response format from API');
+    }
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!pnrNumber.trim()) {
       Alert.alert('Error', 'Please enter PNR number');
       return;
@@ -65,11 +65,27 @@ export default function PNRChecker() {
       Alert.alert('Error', 'PNR number should be 10 digits');
       return;
     }
+    
     setIsLoading(true);
-    setTimeout(() => {
-      setPnrData({ ...mockPNRData, pnr: pnrNumber });
+    setError(null);
+    setPnrData(null);
+    
+    try {
+      const response = await fetchPNRStatus(pnrNumber);
+      
+      if (response.success && response.data) {
+        setPnrData(response.data);
+      } else {
+        setError(response.message || 'Failed to fetch PNR status');
+        Alert.alert('Error', response.message || 'Failed to fetch PNR status');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
+      setError(errorMessage);
+      Alert.alert('Error', errorMessage);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleSavePNR = () => {
@@ -99,6 +115,40 @@ export default function PNRChecker() {
   const clearData = () => {
     setPnrData(null);
     setPnrNumber('');
+    setError(null);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'cnf':
+      case 'confirmed':
+        return '#059669';
+      case 'wl':
+      case 'waitlisted':
+        return '#F59E0B';
+      case 'rac':
+        return '#2563EB';
+      case 'can':
+      case 'cancelled':
+        return '#DC2626';
+      default:
+        return '#64748B';
+    }
+  };
+
+  const formatStatus = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'cnf':
+        return 'Confirmed';
+      case 'wl':
+        return 'Waitlisted';
+      case 'rac':
+        return 'RAC';
+      case 'can':
+        return 'Cancelled';
+      default:
+        return status;
+    }
   };
 
   return (
@@ -145,41 +195,52 @@ export default function PNRChecker() {
         {pnrData && (
           <View style={styles.resultContainer}>
             <View style={styles.pnrHeader}>
-              <Text style={styles.pnrNumber}>PNR: {pnrData.pnr}</Text>
-              <View style={styles.statusBadge}>
+              <Text style={styles.pnrNumber}>PNR: {pnrData.pnrNumber}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pnrData.passengers[0]?.passengerStatus || '') }]}>
                 <CheckCircle size={18} color="#FFFFFF" />
-                <Text style={styles.statusText}>{pnrData.status}</Text>
+                <Text style={styles.statusText}>{formatStatus(pnrData.passengers[0]?.passengerStatus || 'Unknown')}</Text>
               </View>
             </View>
             <Text style={styles.trainInfo}>
               Train: {pnrData.trainNumber} - {pnrData.trainName}
             </Text>
-            <View style={styles.detailsContainer}>
-              <Text style={styles.sectionTitle}>Passenger Details</Text>
-              <View style={styles.detailRow}>
-                <User size={18} color="#64748B" />
-                <View style={styles.detailContent}>
-                  <Text style={styles.detailLabel}>Name</Text>
-                  <Text style={styles.detailValue}>{pnrData.passenger.name}</Text>
+            <Text style={styles.classInfo}>
+              Class: {pnrData.journeyClass} | Date: {pnrData.boardingDate}
+            </Text>
+            {pnrData.passengers.map((passenger, index) => (
+              <View key={index} style={styles.detailsContainer}>
+                <Text style={styles.sectionTitle}>Passenger {passenger.passengerSerialNumber}</Text>
+                <View style={styles.detailRow}>
+                  <User size={18} color="#64748B" />
+                  <View style={styles.detailContent}>
+                    <Text style={styles.detailLabel}>Name</Text>
+                    <Text style={styles.detailValue}>{passenger.passengerName}</Text>
+                  </View>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Age</Text>
+                  <Text style={styles.detailValue}>{passenger.passengerAge} years</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Gender</Text>
+                  <Text style={styles.detailValue}>{passenger.passengerGender}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Status</Text>
+                  <Text style={[styles.detailValue, { color: getStatusColor(passenger.passengerStatus) }]}>
+                    {formatStatus(passenger.passengerStatus)}
+                  </Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Coach</Text>
+                  <Text style={styles.detailValue}>{passenger.passengerCoachPosition}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Seat/Berth</Text>
+                  <Text style={styles.detailValue}>{passenger.passengerBerthNumber}</Text>
                 </View>
               </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Age</Text>
-                <Text style={styles.detailValue}>{pnrData.passenger.age}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Gender</Text>
-                <Text style={styles.detailValue}>{pnrData.passenger.gender}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Coach</Text>
-                <Text style={styles.detailValue}>{pnrData.passenger.coach}</Text>
-              </View>
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Seat/Berth</Text>
-                <Text style={styles.detailValue}>{pnrData.passenger.seat}</Text>
-              </View>
-            </View>
+            ))}
             <View style={styles.detailsContainer}>
               <Text style={styles.sectionTitle}>Journey Details</Text>
               <View style={styles.journeyRow}>
@@ -187,8 +248,7 @@ export default function PNRChecker() {
                   <MapPin size={18} color="#1E40AF" />
                   <View style={styles.journeyInfo}>
                     <Text style={styles.journeyLabel}>From</Text>
-                    <Text style={styles.journeyValue}>{pnrData.from}</Text>
-                    <Text style={styles.journeyTime}>{pnrData.journey.boarding}</Text>
+                    <Text style={styles.journeyValue}>{pnrData.boardingStationName}</Text>
                   </View>
                 </View>
                 <View style={styles.journeyArrow}>
@@ -198,8 +258,7 @@ export default function PNRChecker() {
                   <MapPin size={18} color="#DC2626" />
                   <View style={styles.journeyInfo}>
                     <Text style={styles.journeyLabel}>To</Text>
-                    <Text style={styles.journeyValue}>{pnrData.to}</Text>
-                    <Text style={styles.journeyTime}>{pnrData.journey.arrival}</Text>
+                    <Text style={styles.journeyValue}>{pnrData.reservationUptoName}</Text>
                   </View>
                 </View>
               </View>
@@ -222,12 +281,23 @@ export default function PNRChecker() {
             </View>
           </View>
         )}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>Error</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity 
+              style={styles.retryButton}
+              onPress={() => handleSearch()}
+            >
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
 }
-
-// ...existing styles...
 
 const styles = StyleSheet.create({
   container: {
@@ -357,6 +427,12 @@ const styles = StyleSheet.create({
   trainInfo: {
     fontSize: 16,
     color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  classInfo: {
+    fontSize: 14,
+    color: '#64748B',
     marginBottom: 24,
     fontWeight: '500',
   },
@@ -458,5 +534,37 @@ const styles = StyleSheet.create({
     color: '#64748B',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  errorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#DC2626',
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#DC2626',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#DC2626',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
