@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, Brain as Train, MapPin, User, RefreshCw, Trash2, Plus } from 'lucide-react-native';
+import { Calendar, Clock, Brain as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -62,6 +62,7 @@ type APIResponse = {
 
 export default function BookingScreen() {
   const [savedPNRs, setSavedPNRs] = useState<SavedPNR[]>([]);
+  const [expandedPNRs, setExpandedPNRs] = useState<Set<string>>(new Set());
 
   // Load saved PNRs from storage
   const loadSavedPNRs = async () => {
@@ -119,6 +120,33 @@ export default function BookingScreen() {
         return '#2563EB';
       default:
         return '#64748B';
+    }
+  };
+
+  const toggleExpanded = (pnrId: string) => {
+    setExpandedPNRs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(pnrId)) {
+        newSet.delete(pnrId);
+      } else {
+        newSet.add(pnrId);
+      }
+      return newSet;
+    });
+  };
+
+  const formatStatus = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'cnf':
+        return 'Confirmed';
+      case 'wl':
+        return 'Waitlisted';
+      case 'rac':
+        return 'RAC';
+      case 'can':
+        return 'Cancelled';
+      default:
+        return status;
     }
   };
 
@@ -295,57 +323,154 @@ export default function BookingScreen() {
             activeOpacity={0.7}
             onPress={() => handleViewDetails(booking)}
           >
-            <View style={styles.bookingHeader}>
-              <View style={styles.trainInfo}>
-                <Train size={18} color="#2563EB" />
-                <Text style={styles.trainNumber}>
-                  {booking.trainNumber} - {booking.trainName}
+            {/* Header */}
+            <View style={styles.pnrHeader}>
+              <Text style={styles.pnrNumber}>PNR : {booking.pnr}</Text>
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: getStatusColor(
+                      booking.passengers[0]?.status || ''
+                    ),
+                  },
+                ]}
+              >
+                <CheckCircle size={18} color="#FFFFFF" />
+                <Text style={styles.statusText}>
+                  {formatStatus(booking.passengers[0]?.status || 'Unknown')}
                 </Text>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || 'Unknown') }]}>
-                <Text style={styles.statusText}>{booking.passengers[0]?.status || 'Unknown'}</Text>
-              </View>
             </View>
 
-            <View style={styles.pnrSection}>
-              <Text style={styles.pnrLabel}>PNR: {booking.pnr}</Text>
-              <Text style={styles.passengerName}>{booking.passengers[0]?.name || 'No passenger info'}</Text>
-            </View>
+            {/* Train Info */}
+            <Text style={styles.trainInfo}>
+              Train : {booking.trainNumber} - {booking.trainName}
+            </Text>
+            <Text style={styles.classInfo}>
+              Class : {booking.journeyClass} | Date : {booking.date}
+            </Text>
+            <Text style={styles.boardingInfo}>
+              Boarding Point : {booking.boardingPoint}
+            </Text>
 
-            <View style={styles.journeyInfo}>
-              <View style={styles.journeyPoint}>
-                <MapPin size={16} color="#2563EB" />
-                <View style={styles.locationInfo}>
-                  <Text style={styles.locationName}>{booking.from}</Text>
-                  <View style={styles.timeInfo}>
-                    <Calendar size={14} color="#64748B" />
-                    <Text style={styles.timeText}>{booking.date}</Text>
+            {/* Passenger List */}
+            {booking.passengers && booking.passengers.length > 0 && (
+              <View style={styles.passengersContainer}>
+                {/* First passenger - always shown */}
+                <View style={styles.passengerCard}>
+                  <Text style={styles.passengerTitle}>
+                    Passenger 1 {booking.passengers[0]?.name ? `- ${booking.passengers[0].name}` : ''}
+                  </Text>
+                  
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Status : </Text>
+                    <Text
+                      style={[
+                        styles.detailValue,
+                        { color: getStatusColor(booking.passengers[0]?.status || '') },
+                      ]}
+                    >
+                      {formatStatus(booking.passengers[0]?.status || 'Unknown')}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Coach : </Text>
+                    <Text style={styles.detailValue}>
+                      {booking.passengers[0]?.coach || '-'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Seat : </Text>
+                    <Text style={styles.detailValue}>
+                      {booking.passengers[0]?.seat || '-'}
+                    </Text>
                   </View>
                 </View>
+
+                {/* Toggle button for multiple passengers */}
+                {booking.passengers.length > 1 && (
+                  <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={() => toggleExpanded(booking.id)}
+                  >
+                    <Text style={styles.toggleText}>
+                      {expandedPNRs.has(booking.id) 
+                        ? `Hide ${booking.passengers.length - 1} other passengers` 
+                        : `Show ${booking.passengers.length - 1} more passengers`}
+                    </Text>
+                    {expandedPNRs.has(booking.id) ? (
+                      <ChevronUp size={16} color="#2563EB" />
+                    ) : (
+                      <ChevronDown size={16} color="#2563EB" />
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                {/* Additional passengers - shown when expanded */}
+                {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
+                  <View key={index + 1} style={styles.passengerCard}>
+                    <Text style={styles.passengerTitle}>
+                      Passenger {index + 2} {passenger.name ? `- ${passenger.name}` : ''}
+                    </Text>
+                    
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Status : </Text>
+                      <Text
+                        style={[
+                          styles.detailValue,
+                          { color: getStatusColor(passenger.status || '') },
+                        ]}
+                      >
+                        {formatStatus(passenger.status || 'Unknown')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Coach : </Text>
+                      <Text style={styles.detailValue}>
+                        {passenger.coach || '-'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Seat : </Text>
+                      <Text style={styles.detailValue}>
+                        {passenger.seat || '-'}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
               </View>
-              
-              <View style={styles.arrow}>
-                <Text style={styles.arrowText}>→</Text>
-              </View>
-              
-              <View style={styles.journeyPoint}>
-                <MapPin size={16} color="#DC2626" />
-                <View style={styles.locationInfo}>
-                  <Text style={styles.locationName}>{booking.to}</Text>
-                  <View style={styles.timeInfo}>
-                    <Text style={styles.timeText}>{booking.journeyClass}</Text>
+            )}
+
+            {/* Journey Details */}
+            <View style={styles.journeyContainer}>
+              <Text style={styles.journeyTitle}>Journey Details</Text>
+              <View style={styles.journeyRow}>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#153cb9ff" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>From</Text>
+                    <Text style={styles.journeyValue}>
+                      {booking.from}
+                    </Text>
                   </View>
                 </View>
-              </View>
-            </View>
-
-            <View style={styles.seatInfo}>
-              <View style={styles.seatDetail}>
-                <User size={16} color="#64748B" />
-                <Text style={styles.seatText}>Coach: {booking.passengers[0]?.coach || '-'}</Text>
-              </View>
-              <View style={styles.seatDetail}>
-                <Text style={styles.seatText}>Seat: {booking.passengers[0]?.seat || '-'}</Text>
+                <View style={styles.journeyArrow}>
+                  <Text style={styles.arrowText}>→</Text>
+                </View>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#DC2626" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>To</Text>
+                    <Text style={styles.journeyValue}>
+                      {booking.to}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
 
@@ -494,109 +619,152 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  bookingHeader: {
+  pnrHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  trainInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  trainNumber: {
-    fontSize: 16,
-    fontWeight: '600',
+  pnrNumber: {
+    fontSize: 20,
+    fontWeight: '700',
     color: '#1E293B',
-    marginLeft: 8,
-    flex: 1,
-    fontFamily: 'Poppins-SemiBold',
+    fontFamily: 'Poppins-Bold',
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: '#059669',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 24,
   },
   statusText: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 6,
     fontFamily: 'Inter-SemiBold',
   },
-  pnrSection: {
-    marginBottom: 16,
-  },
-  pnrLabel: {
-    fontSize: 14,
+  trainInfo: {
+    fontSize: 16,
     color: '#64748B',
+    marginBottom: 8,
     fontWeight: '500',
     fontFamily: 'Inter-Medium',
   },
-  passengerName: {
+  classInfo: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '500',
+    fontFamily: 'Inter-Regular',
+  },
+  boardingInfo: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 24,
+    fontWeight: '500',
+    fontFamily: 'Inter-Regular',
+  },
+  passengersContainer: {
+    marginBottom: 24,
+  },
+  passengerCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+  },
+  passengerTitle: {
     fontSize: 16,
+    fontWeight: '700',
     color: '#1E293B',
-    fontWeight: '600',
-    marginTop: 4,
+    marginBottom: 12,
     fontFamily: 'Poppins-SemiBold',
   },
-  journeyInfo: {
+  detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 6,
+  },
+  detailLabel: {
+    fontSize: 15,
+    color: '#64748B',
+    minWidth: 80,
+    fontWeight: '500',
+    fontFamily: 'Inter-Medium',
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    flex: 1,
+    fontFamily: 'Poppins-SemiBold',
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#EBF4FF',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  toggleText: {
+    fontSize: 14,
+    color: '#2563EB',
+    fontWeight: '600',
+    marginRight: 8,
+    fontFamily: 'Inter-SemiBold',
+  },
+  journeyContainer: {
     marginBottom: 16,
+  },
+  journeyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 16,
+    fontFamily: 'Poppins-Bold',
+  },
+  journeyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   journeyPoint: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  locationInfo: {
-    marginLeft: 8,
-    flex: 1,
-  },
-  locationName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 4,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  timeInfo: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
-  timeText: {
+  journeyInfo: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  journeyLabel: {
     fontSize: 12,
     color: '#64748B',
-    marginLeft: 4,
-    fontFamily: 'Inter-Regular',
+    fontWeight: '500',
+    fontFamily: 'Inter-Medium',
   },
-  arrow: {
+  journeyValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginTop: 4,
+    fontFamily: 'Poppins-SemiBold',
+  },
+  journeyArrow: {
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingHorizontal: 16,
   },
   arrowText: {
-    fontSize: 18,
+    fontSize: 24,
     color: '#64748B',
     fontWeight: 'bold',
-  },
-  seatInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    marginBottom: 16,
-  },
-  seatDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  seatText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-    marginLeft: 4,
-    fontFamily: 'Inter-Medium',
   },
   actionBar: {
     flexDirection: 'row',
