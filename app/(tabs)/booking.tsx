@@ -235,6 +235,9 @@ export default function BookingScreen() {
   };
 
   const handleDeletePNR = (pnrId: string) => {
+    console.log('Delete called with pnrId:', pnrId);
+    console.log('Current savedPNRs:', savedPNRs.map(p => ({ id: p.id, pnr: p.pnr })));
+    
     Alert.alert(
       'Delete PNR',
       'Are you sure you want to remove this PNR from your saved list?',
@@ -244,10 +247,13 @@ export default function BookingScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            console.log('Delete confirmed for pnrId:', pnrId);
             try {
               const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
+              console.log('Updated PNRs after filter:', updatedPNRs.length);
               setSavedPNRs(updatedPNRs);
               await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+              console.log('Successfully saved to AsyncStorage');
             } catch (error) {
               console.error('Error deleting PNR:', error);
               loadSavedPNRs();
