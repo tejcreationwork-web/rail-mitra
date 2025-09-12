@@ -373,7 +373,6 @@ export default function BookingScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-          </View>
           </TouchableOpacity>
         ))}
 
