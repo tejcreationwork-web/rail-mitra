@@ -135,7 +135,7 @@ export default function PNRChecker() {
     
     setIsSaving(true);
     
-    const savePNRToStorage = async () => {
+    setTimeout(async () => {
       try {
         const savedPNR: SavedPNR = {
           id: Date.now().toString(),
@@ -179,7 +179,7 @@ export default function PNRChecker() {
         setIsSaving(false);
         Alert.alert(
           'PNR Saved',
-          'This PNR has been saved to your bookings for future reference and status updates.',
+          '✅ PNR has been successfully saved to your bookings for future reference and status updates.',
           [
             { text: 'OK' },
             { 
@@ -193,11 +193,9 @@ export default function PNRChecker() {
         );
       } catch (error) {
         setIsSaving(false);
-        Alert.alert('Error', 'Failed to save PNR. Please try again.');
+        Alert.alert('❌ Save Failed', 'Failed to save PNR. Please try again.');
       }
-    };
-    
-    savePNRToStorage();
+    }, 1000); // 1 second delay to show saving animation
   };
 
   const handleSavePNROld = () => {
