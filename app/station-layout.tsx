@@ -2,7 +2,14 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react-native';
-import { Image, Dimensions } from 'react-native';
+import { Image, Dimensions, Platform } from 'react-native';
+import { GestureHandlerRootView, PinchGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
+import Animated, { 
+  useAnimatedStyle, 
+  useSharedValue, 
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -34,33 +41,121 @@ export default function StationLayout() {
 
   const [selectedStationId, setSelectedStationId] = useState('thane');
   const [showDropdown, setShowDropdown] = useState(false);
-  const [scale, setScale] = useState(1);
-  const [translateX, setTranslateX] = useState(0);
-  const [translateY, setTranslateY] = useState(0);
+  
+  // Animated values for gestures
+  const scale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const baseScale = useSharedValue(1);
+  const pinchScale = useSharedValue(1);
+  const lastScale = useSharedValue(1);
 
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
   const handleStationSelect = (stationId: string) => {
     setSelectedStationId(stationId);
     setShowDropdown(false);
-    // Reset zoom and pan when changing stations
-    setScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
+    resetZoom();
   };
 
+  const onPinchGestureEvent = (event: any) => {
+    'worklet';
+    pinchScale.value = event.scale;
+    scale.value = baseScale.value * pinchScale.value;
+  };
+
+  const onPinchHandlerStateChange = (event: any) => {
+    'worklet';
+    if (event.oldState === State.ACTIVE) {
+      lastScale.value = scale.value;
+      baseScale.value = scale.value;
+      pinchScale.value = 1;
+      
+      // Constrain scale
+      if (scale.value < 0.5) {
+        scale.value = withSpring(0.5);
+        baseScale.value = 0.5;
+        lastScale.value = 0.5;
+      } else if (scale.value > 3) {
+        scale.value = withSpring(3);
+        baseScale.value = 3;
+        lastScale.value = 3;
+      }
+    }
+  };
+
+  const onPanGestureEvent = (event: any) => {
+    'worklet';
+    translateX.value = event.translationX;
+    translateY.value = event.translationY;
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+      ],
+    };
+  });
+
   const resetZoom = () => {
-    setScale(1);
-    setTranslateX(0);
-    setTranslateY(0);
+    scale.value = withSpring(1);
+    translateX.value = withSpring(0);
+    translateY.value = withSpring(0);
+    baseScale.value = 1;
+    pinchScale.value = 1;
+    lastScale.value = 1;
   };
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev * 1.2, 3));
+    const newScale = Math.min(scale.value * 1.2, 3);
+    scale.value = withSpring(newScale);
+    baseScale.value = newScale;
+    lastScale.value = newScale;
   };
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev * 0.8, 0.5));
+    const newScale = Math.max(scale.value * 0.8, 0.5);
+    scale.value = withSpring(newScale);
+    baseScale.value = newScale;
+    lastScale.value = newScale;
+  };
+
+  const renderImageWithGestures = () => {
+    if (Platform.OS === 'web') {
+      // Web fallback - no gestures, just zoom buttons
+      return (
+        <Image
+          source={selectedStation.image}
+          style={styles.stationImage}
+          resizeMode="contain"
+        />
+      );
+    }
+
+    // Mobile - with gesture support
+    return (
+      <GestureHandlerRootView style={styles.gestureContainer}>
+        <PanGestureHandler onGestureEvent={onPanGestureEvent}>
+          <Animated.View>
+            <PinchGestureHandler
+              onGestureEvent={onPinchGestureEvent}
+              onHandlerStateChange={onPinchHandlerStateChange}
+            >
+              <Animated.View>
+                <Animated.Image
+                  source={selectedStation.image}
+                  style={[styles.stationImage, animatedStyle]}
+                  resizeMode="contain"
+                />
+              </Animated.View>
+            </PinchGestureHandler>
+          </Animated.View>
+        </PanGestureHandler>
+      </GestureHandlerRootView>
+    );
   };
 
   return (
@@ -127,22 +222,7 @@ export default function StationLayout() {
           <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
           
           <View style={styles.imageContainer}>
-            <View style={styles.gestureContainer}>
-              <Image
-                source={selectedStation.image}
-                style={[
-                  styles.stationImage,
-                  {
-                    transform: [
-                      { translateX },
-                      { translateY },
-                      { scale },
-                    ],
-                  },
-                ]}
-                resizeMode="contain"
-              />
-            </View>
+            {renderImageWithGestures()}
           </View>
 
           {/* Control Buttons */}
@@ -331,7 +411,7 @@ const styles = StyleSheet.create({
   gestureContainer: {
     flex: 1,
     width: '100%',
-    height: '100%',
+    height: 300,
     alignItems: 'center',
     justifyContent: 'center',
   },
