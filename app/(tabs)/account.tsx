@@ -1,12 +1,10 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
-import { User, CreditCard as Edit3, Settings, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Shield, Globe, Moon, Download } from 'lucide-react-native';
+import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
-    name: 'Rajesh Kumar Singh',
-    email: 'rajesh.kumar@email.com',
-    phone: '+91 98765 43210',
+    name: 'Hi Traveller',
     memberSince: 'January 2023',
     totalBookings: 24,
     points: 1250,
@@ -14,60 +12,71 @@ export default function AccountScreen() {
 
   const accountOptions = [
     {
-      id: 'profile',
-      title: 'Edit Profile',
-      subtitle: 'Update your personal information',
-      icon: Edit3,
-      onPress: () => Alert.alert('Edit Profile', 'Profile editing coming soon'),
-    },
-    {
       id: 'bookings',
       title: 'My Bookings',
       subtitle: 'View all your train bookings',
       icon: CreditCard,
-      onPress: () => Alert.alert('Bookings', 'View bookings functionality'),
+      onPress: () => {
+        // Navigate to bookings tab
+        Alert.alert('My Bookings', 'Navigating to your bookings...');
+      },
     },
     {
       id: 'notifications',
       title: 'Notifications',
       subtitle: 'Manage your notification preferences',
       icon: Bell,
-      onPress: () => Alert.alert('Notifications', 'Notification settings'),
+      onPress: () => {
+        Alert.alert('Notifications', 'Push notifications: Enabled\nEmail notifications: Enabled\nSMS alerts: Disabled', [
+          { text: 'OK' }
+        ]);
+      },
     },
     {
       id: 'settings',
       title: 'App Settings',
       subtitle: 'Customize your app experience',
       icon: Settings,
-      onPress: () => Alert.alert('Settings', 'App settings coming soon'),
+      onPress: () => {
+        Alert.alert('App Settings', 'Theme: Light\nLanguage: English\nOffline mode: Disabled\nAuto-refresh: Enabled', [
+          { text: 'OK' }
+        ]);
+      },
     },
     {
       id: 'language',
       title: 'Language',
       subtitle: 'Change app language',
       icon: Globe,
-      onPress: () => Alert.alert('Language', 'Language selection coming soon'),
-    },
-    {
-      id: 'app-settings',
-      title: 'App Settings',
-      subtitle: 'Notifications, offline mode, dark theme',
-      icon: Settings,
-      onPress: () => Alert.alert('Settings', 'App settings coming soon'),
+      onPress: () => {
+        Alert.alert('Language Selection', 'Available languages:\n• English (Current)\n• हिंदी\n• বাংলা\n• தமிழ்\n• తెలుగు', [
+          { text: 'OK' }
+        ]);
+      },
     },
     {
       id: 'help',
       title: 'Help & Support',
       subtitle: 'Get help with your account',
       icon: HelpCircle,
-      onPress: () => Alert.alert('Help', 'Support center coming soon'),
+      onPress: () => {
+        Alert.alert('Help & Support', 'Contact Support:\n📞 139 (Railway Helpline)\n📧 support@railease.com\n💬 Live Chat: Available 24/7', [
+          { text: 'Contact Support' },
+          { text: 'OK' }
+        ]);
+      },
     },
     {
       id: 'privacy',
       title: 'Privacy & Security',
       subtitle: 'Manage your privacy settings',
       icon: Shield,
-      onPress: () => Alert.alert('Privacy', 'Privacy settings'),
+      onPress: () => {
+        Alert.alert('Privacy & Security', 'Data Protection: Enabled\nTwo-factor Authentication: Disabled\nData Sharing: Limited\nLocation Services: Enabled', [
+          { text: 'Manage Settings' },
+          { text: 'OK' }
+        ]);
+      },
     },
   ];
 
@@ -89,12 +98,8 @@ export default function AccountScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
               <Text style={styles.memberSince}>Member since {user.memberSince}</Text>
             </View>
-            <TouchableOpacity style={styles.editButton}>
-              <Edit3 size={20} color="#2563EB" />
-            </TouchableOpacity>
           </View>
 
           {/* Stats */}
@@ -145,18 +150,6 @@ export default function AccountScreen() {
             );
           })}
         </View>
-
-        {/* Logout Button */}
-        <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={() => Alert.alert('Logout', 'Are you sure you want to logout?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Logout', style: 'destructive' }
-          ])}
-        >
-          <LogOut size={20} color="#DC2626" />
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
       </ScrollView>
     </View>
   );
@@ -237,9 +230,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94A3B8',
     fontFamily: 'Inter-Regular',
-  },
-  editButton: {
-    padding: 8,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -327,23 +317,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#64748B',
     fontFamily: 'Inter-Regular',
-  },
-  logoutButton: {
-    backgroundColor: '#FFFFFF',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#DC2626',
-    marginLeft: 8,
-    fontFamily: 'Poppins-SemiBold',
   },
 });
