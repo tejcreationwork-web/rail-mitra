@@ -102,26 +102,6 @@ export default function AccountScreen() {
             </View>
           </View>
 
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{user.totalBookings}</Text>
-              <Text style={styles.statLabel}>Total Bookings</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statNumber}>{user.points}</Text>
-              <Text style={styles.statLabel}>Reward Points</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <View style={styles.ratingContainer}>
-                <Star size={16} color="#F59E0B" fill="#F59E0B" />
-                <Text style={styles.statNumber}>4.8</Text>
-              </View>
-              <Text style={styles.statLabel}>Rating</Text>
-            </View>
-          </View>
         </View>
 
         {/* Account Options */}
@@ -264,16 +244,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  optionsContainer: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 16,
-    fontFamily: 'Poppins-Bold',
   },
   optionItem: {
     backgroundColor: '#FFFFFF',
