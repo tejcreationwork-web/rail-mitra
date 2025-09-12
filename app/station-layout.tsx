@@ -1,12 +1,46 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react-native';
 import { Image } from 'react-native';
 
+type Station = {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  image: any;
+};
+
 export default function StationLayout() {
-  const [selectedStation, setSelectedStation] = useState('Thane Railway Station (TNA)');
+  const stations: Station[] = [
+    {
+      id: 'thane',
+      name: 'Thane Railway Station',
+      code: 'TNA',
+      description: 'Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.',
+      image: require('@/assets/images/thane.png'),
+    },
+    {
+      id: 'dadar',
+      name: 'Dadar Railway Station',
+      code: 'DR',
+      description: 'One of the busiest railway stations in Mumbai, serving both Central and Western Railway lines.',
+      image: require('@/assets/images/Dadar Station Layout.png'),
+    },
+  ];
+
+  const [selectedStationId, setSelectedStationId] = useState('thane');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+
+  const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
+
+  const handleStationSelect = (stationId: string) => {
+    setSelectedStationId(stationId);
+    setShowDropdown(false);
+    setZoomLevel(1); // Reset zoom when changing stations
+  };
 
   return (
     <View style={styles.container}>
@@ -25,20 +59,55 @@ export default function StationLayout() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.stationSelector}>
           <Text style={styles.sectionLabel}>Select Railway Station</Text>
-          <TouchableOpacity style={styles.dropdown}>
+          <TouchableOpacity 
+            style={styles.dropdown}
+            onPress={() => setShowDropdown(!showDropdown)}
+          >
             <MapPin size={22} color="#1E40AF" />
-            <Text style={styles.dropdownText}>{selectedStation}</Text>
-            <ChevronDown size={22} color="#64748B" />
+            <Text style={styles.dropdownText}>
+              {selectedStation.name} ({selectedStation.code})
+            </Text>
+            <ChevronDown 
+              size={22} 
+              color="#64748B" 
+              style={[styles.chevron, showDropdown && styles.chevronRotated]}
+            />
           </TouchableOpacity>
+
+          {showDropdown && (
+            <View style={styles.dropdownMenu}>
+              {stations.map((station) => (
+                <TouchableOpacity
+                  key={station.id}
+                  style={[
+                    styles.dropdownItem,
+                    selectedStationId === station.id && styles.dropdownItemSelected
+                  ]}
+                  onPress={() => handleStationSelect(station.id)}
+                >
+                  <MapPin size={18} color={selectedStationId === station.id ? "#1E40AF" : "#64748B"} />
+                  <Text style={[
+                    styles.dropdownItemText,
+                    selectedStationId === station.id && styles.dropdownItemTextSelected
+                  ]}>
+                    {station.name} ({station.code})
+                  </Text>
+                  {selectedStationId === station.id && (
+                    <Check size={18} color="#1E40AF" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Station Layout Image */}
         <View style={styles.layoutContainer}>
-          <Text style={styles.layoutTitle}>Thane Railway Station Layout</Text>
+          <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
           
           <View style={styles.imageContainer}>
             <Image
-              source={require('@/assets/images/thane.png')}
+              source={selectedStation.image}
               style={[styles.stationImage, { transform: [{ scale: zoomLevel }] }]}
               resizeMode="contain"
             />
@@ -70,9 +139,11 @@ export default function StationLayout() {
           </View>
           
           <View style={styles.stationInfo}>
-            <Text style={styles.stationInfoTitle}>Thane Railway Station (TNA)</Text>
+            <Text style={styles.stationInfoTitle}>
+              {selectedStation.name} ({selectedStation.code})
+            </Text>
             <Text style={styles.stationInfoText}>
-              Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.
+              {selectedStation.description}
             </Text>
           </View>
         </View>
@@ -146,6 +217,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E293B',
     fontWeight: '500',
+  },
+  chevron: {
+    transition: 'transform 0.2s',
+  },
+  chevronRotated: {
+    transform: [{ rotate: '180deg' }],
+  },
+  dropdownMenu: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  dropdownItemSelected: {
+    backgroundColor: '#EBF4FF',
+  },
+  dropdownItemText: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 15,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  dropdownItemTextSelected: {
+    color: '#1E40AF',
+    fontWeight: '600',
   },
   infoLink: {
     flexDirection: 'row',
