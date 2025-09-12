@@ -5,25 +5,45 @@ import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCi
 
 type APIPassenger = {
   passengerSerialNumber: number;
-  passengerName: string;
-  passengerAge: number;
-  passengerGender: string;
-  passengerCoachPosition: string;
-  passengerBerthNumber: string;
-  passengerStatus: string;
+  passengerFoodChoice: string;
+  concessionOpted: boolean;
+  forGoConcessionOpted: boolean;
+  passengerIcardFlag: boolean;
+  childBerthFlag: boolean;
+  passengerNationality: string;
+  passengerQuota: string;
+  passengerCoachPosition: number;
+  waitListType: number;
+  bookingStatus: string;
+  bookingBerthNo: number;
+  bookingStatusDetails: string;
+  currentStatus: string;
+  currentCoachId: string;
+  currentBerthNo: number;
+  currentStatusDetails: string;
 };
 
 type APIResponse = {
   success: boolean;
   data?: {
     pnrNumber: string;
+    dateOfJourney: string;
     trainNumber: string;
     trainName: string;
-    boardingStationName: string;
-    reservationUptoName: string;
-    boardingDate: string;
+    sourceStation: string;
+    destinationStation: string;
+    reservationUpto: string;
+    boardingPoint: string;
     journeyClass: string;
-    passengers: APIPassenger[];
+    numberOfpassenger: number;
+    chartStatus: string;
+    passengerList: APIPassenger[];
+    bookingFare: number;
+    ticketFare: number;
+    quota: string;
+    bookingDate: string;
+    arrivalDate: string;
+    distance: number;
   };
   message?: string;
 };
@@ -152,151 +172,186 @@ export default function PNRChecker() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>PNR Checker</Text>
-        <View style={styles.placeholder} />
-      </View>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Enter PNR Number</Text>
-          <View style={styles.inputWrapper}>
-            <Train size={22} color="#64748B" style={styles.inputIcon} />
-            <TextInput
-              style={styles.textInput}
-              value={pnrNumber}
-              onChangeText={setPnrNumber}
-              placeholder="1234567890"
-              placeholderTextColor="#94A3B8"
-              keyboardType="numeric"
-              maxLength={10}
-            />
-            {pnrNumber.length > 0 && (
-              <TouchableOpacity onPress={clearData}>
-                <Text style={styles.clearButton}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity
-            style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
-            onPress={handleSearch}
-            disabled={isLoading}
-          >
-            <Search size={22} color="#FFFFFF" />
-            <Text style={styles.searchButtonText}>
-              {isLoading ? 'Checking...' : 'Check Status'}
-            </Text>
-          </TouchableOpacity>
+  <View style={styles.container}>
+    <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <ArrowLeft size={26} color="#FFFFFF" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>PNR Checker</Text>
+      <View style={styles.placeholder} />
+    </View>
+    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      {/* Input Section */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Enter PNR Number</Text>
+        <View style={styles.inputWrapper}>
+          <Train size={22} color="#64748B" style={styles.inputIcon} />
+          <TextInput
+            style={styles.textInput}
+            value={pnrNumber}
+            onChangeText={setPnrNumber}
+            placeholder="Enter 10-digit PNR"
+            placeholderTextColor="#94A3B8"
+            keyboardType="numeric"
+            maxLength={10}
+          />
+          {pnrNumber.length > 0 && (
+            <TouchableOpacity onPress={clearData}>
+              <Text style={styles.clearButton}>✕</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        {pnrData && (
-          <View style={styles.resultContainer}>
-            <View style={styles.pnrHeader}>
-              <Text style={styles.pnrNumber}>PNR: {pnrData.pnrNumber}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(pnrData.passengers?.[0]?.passengerStatus || '') }]}>
-                <CheckCircle size={18} color="#FFFFFF" />
-                <Text style={styles.statusText}>{formatStatus(pnrData.passengers?.[0]?.passengerStatus || 'Unknown')}</Text>
-              </View>
-            </View>
-            <Text style={styles.trainInfo}>
-              Train: {pnrData.trainNumber} - {pnrData.trainName}
-            </Text>
-            <Text style={styles.classInfo}>
-              Class: {pnrData.journeyClass} | Date: {pnrData.boardingDate}
-            </Text>
-            {pnrData.passengers?.map((passenger, index) => (
-              <View key={index} style={styles.detailsContainer}>
-                <Text style={styles.sectionTitle}>Passenger {passenger.passengerSerialNumber}</Text>
-                <View style={styles.detailRow}>
-                  <User size={18} color="#64748B" />
-                  <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>Name</Text>
-                    <Text style={styles.detailValue}>{passenger.passengerName}</Text>
-                  </View>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Age</Text>
-                  <Text style={styles.detailValue}>{passenger.passengerAge} years</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Gender</Text>
-                  <Text style={styles.detailValue}>{passenger.passengerGender}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Status</Text>
-                  <Text style={[styles.detailValue, { color: getStatusColor(passenger.passengerStatus) }]}>
-                    {formatStatus(passenger.passengerStatus)}
-                  </Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Coach</Text>
-                  <Text style={styles.detailValue}>{passenger.passengerCoachPosition}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Seat/Berth</Text>
-                  <Text style={styles.detailValue}>{passenger.passengerBerthNumber}</Text>
-                </View>
-              </View>
-            ))}
-            <View style={styles.detailsContainer}>
-              <Text style={styles.sectionTitle}>Journey Details</Text>
-              <View style={styles.journeyRow}>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={18} color="#1E40AF" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>From</Text>
-                    <Text style={styles.journeyValue}>{pnrData.boardingStationName}</Text>
-                  </View>
-                </View>
-                <View style={styles.journeyArrow}>
-                  <Text style={styles.arrowText}>→</Text>
-                </View>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={18} color="#DC2626" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>To</Text>
-                    <Text style={styles.journeyValue}>{pnrData.reservationUptoName}</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-            
-            <View style={styles.saveSection}>
-              <TouchableOpacity
-                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-                onPress={handleSavePNR}
-                disabled={isSaving}
-              >
-                <BookmarkPlus size={20} color="#FFFFFF" />
-                <Text style={styles.saveButtonText}>
-                  {isSaving ? 'Saving...' : 'Save to My Bookings'}
-                </Text>
-              </TouchableOpacity>
-              <Text style={styles.saveHint}>
-                Save this PNR to track status changes and access it quickly later
+        <TouchableOpacity
+          style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
+          onPress={handleSearch}
+          disabled={isLoading}
+        >
+          <Search size={22} color="#FFFFFF" />
+          <Text style={styles.searchButtonText}>
+            {isLoading ? 'Checking...' : 'Check Status'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* PNR Data Section */}
+      {pnrData && (
+        <View style={styles.resultContainer}>
+          {/* Header */}
+          <View style={styles.pnrHeader}>
+            <Text style={styles.pnrNumber}>PNR : {pnrData.pnrNumber}</Text>
+            <View
+              style={[
+                styles.statusBadge,
+                {
+                  backgroundColor: getStatusColor(
+                    pnrData.passengerList?.[0]?.currentStatus || ''
+                  ),
+                },
+              ]}
+            >
+              <CheckCircle size={18} color="#FFFFFF" />
+              <Text style={styles.statusText}>
+                {formatStatus(
+                  pnrData.passengerList?.[0]?.currentStatus || 'Unknown'
+                )}
               </Text>
             </View>
           </View>
-        )}
 
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorTitle}>Error</Text>
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity 
-              style={styles.retryButton}
-              onPress={() => handleSearch()}
-            >
-              <Text style={styles.retryButtonText}>Try Again</Text>
-            </TouchableOpacity>
+          {/* Train Info */}
+          <Text style={styles.trainInfo}>
+            Train : {pnrData.trainNumber} - {pnrData.trainName}
+          </Text>
+          <Text style={styles.classInfo}>
+            Class : {pnrData.journeyClass} | Date : {pnrData.dateOfJourney}
+          </Text>
+          <Text style={styles.BoardingInfo}>
+            Boarding Point : {pnrData.boardingPoint}
+          </Text>
+
+          {/* Passenger List */}
+          {pnrData.passengerList?.map((passenger, index) => (
+            <View key={index} style={styles.detailsContainer}>
+              <Text style={styles.sectionTitle}>
+                Passenger {passenger.passengerSerialNumber}
+              </Text>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Booking Status : </Text>
+                <Text style={styles.detailValue}>
+                  {passenger.bookingStatusDetails}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Current Status : </Text>
+                <Text
+                  style={[
+                    styles.detailValue,
+                    { color: getStatusColor(passenger.currentStatus) },
+                  ]}
+                >
+                  {formatStatus(passenger.currentStatus)}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Coach</Text>
+                <Text style={styles.detailValue}>
+                  {passenger.currentCoachId || '-'}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Berth</Text>
+                <Text style={styles.detailValue}>
+                  {passenger.currentBerthNo || '-'}
+                </Text>
+              </View>
+            </View>
+          ))}
+
+          {/* Journey Details */}
+          <View style={styles.detailsContainer}>
+            <Text style={styles.sectionTitle}>Journey Details</Text>
+            <View style={styles.journeyRow}>
+              <View style={styles.journeyPoint}>
+                <MapPin size={30} color="#153cb9ff" />
+                <View style={styles.journeyInfo}>
+                  <Text style={styles.journeyLabel}>From</Text>
+                  <Text style={styles.journeyValue}>
+                    {pnrData.sourceStation}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.journeyArrow}>
+                <Text style={styles.arrowText}>→</Text>
+              </View>
+              <View style={styles.journeyPoint}>
+                <MapPin size={30} color="#DC2626" />
+                <View style={styles.journeyInfo}>
+                  <Text style={styles.journeyLabel}>To</Text>
+                  <Text style={styles.journeyValue}>
+                    {pnrData.destinationStation}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
-        )}
-      </ScrollView>
-    </View>
-  );
+
+          {/* Save Section */}
+          <View style={styles.saveSection}>
+            <TouchableOpacity
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+              onPress={handleSavePNR}
+              disabled={isSaving}
+            >
+              <BookmarkPlus size={20} color="#FFFFFF" />
+              <Text style={styles.saveButtonText}>
+                {isSaving ? 'Saving...' : 'Save to My Bookings'}
+              </Text>
+            </TouchableOpacity>
+            <Text style={styles.saveHint}>
+              Save this PNR to track status changes and access it quickly later
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorTitle}>Error</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={() => handleSearch()}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </ScrollView>
+  </View>
+);
 }
 
 const styles = StyleSheet.create({
@@ -433,6 +488,12 @@ const styles = StyleSheet.create({
   classInfo: {
     fontSize: 14,
     color: '#64748B',
+    marginBottom:8,
+    fontWeight: '500',
+  },
+  BoardingInfo: {
+    fontSize: 14,
+    color: '#64748B',
     marginBottom: 24,
     fontWeight: '500',
   },
@@ -470,27 +531,32 @@ const styles = StyleSheet.create({
   },
   journeyRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginTop: 15,
   },
   journeyPoint: {
     flex: 1,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   journeyInfo: {
-    marginLeft: 12,
+    marginLeft: 30,
     flex: 1,
   },
   journeyLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#64748B',
     fontWeight: '500',
+    marginTop: 0, 
   },
   journeyValue: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
+    marginLeft: -3,
     marginVertical: 4,
+    marginTop: 0,
   },
   journeyTime: {
     fontSize: 16,
@@ -498,7 +564,10 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
   },
   journeyArrow: {
-    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+    marginLeft: -50,
+    paddingHorizontal: 60,
   },
   arrowText: {
     fontSize: 24,
