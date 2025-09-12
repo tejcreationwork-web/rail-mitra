@@ -117,13 +117,13 @@ export default function StationLayout() {
 
   // Animated style for the image
   const animatedStyle = useAnimatedStyle(() => {
-    return {
+    return ({
       transform: [
         { translateX: translateX.value },
         { translateY: translateY.value },
         { scale: scale.value },
       ],
-    };
+    });
   });
 
   return (
