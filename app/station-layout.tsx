@@ -124,7 +124,7 @@ export default function StationLayout() {
         { scale: scale.value },
       ],
     };
-  };
+  });
 
   return (
     <View style={styles.container}>
