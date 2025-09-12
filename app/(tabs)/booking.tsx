@@ -392,62 +392,6 @@ export default function BookingScreen() {
                   </View>
                 </View>
 
-                {/* Toggle button for multiple passengers */}
-                {booking.passengers.length > 1 && (
-                  <TouchableOpacity
-                    style={styles.toggleButton}
-                    onPress={() => toggleExpanded(booking.id)}
-                  >
-                    <Text style={styles.toggleText}>
-                      {expandedPNRs.has(booking.id) 
-                        ? `Hide ${booking.passengers.length - 1} other passengers` 
-                        : `Show ${booking.passengers.length - 1} more passengers`}
-                    </Text>
-                    {expandedPNRs.has(booking.id) ? (
-                      <ChevronUp size={16} color="#2563EB" />
-                    ) : (
-                      <ChevronDown size={16} color="#2563EB" />
-                    )}
-                  </TouchableOpacity>
-                )}
-
-                {/* Additional passengers - shown when expanded */}
-                {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
-                  <View key={index + 1} style={styles.passengerCard}>
-                    <Text style={styles.passengerTitle}>
-                      Passenger {index + 2} {passenger.name ? `- ${passenger.name}` : ''}
-                    </Text>
-                    
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Status : </Text>
-                      <Text
-                        style={[
-                          styles.detailValue,
-                          { color: getStatusColor(passenger.status || '') },
-                        ]}
-                      >
-                        {formatStatus(passenger.status || 'Unknown')}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Coach : </Text>
-                      <Text style={styles.detailValue}>
-                        {passenger.coach || '-'}
-                      </Text>
-                    </View>
-
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Seat : </Text>
-                      <Text style={styles.detailValue}>
-                        {passenger.seat || '-'}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              ))}
-            </View>
-          )}
             {/* Journey Details */}
             <View style={styles.journeyContainer}>
               <Text style={styles.journeyTitle}>Journey Details</Text>
