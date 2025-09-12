@@ -103,6 +103,7 @@ export default function BookingScreen() {
       throw new Error('Invalid response format from API');
     }
   };
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Confirmed':
@@ -301,8 +302,6 @@ export default function BookingScreen() {
                   {booking.trainNumber} - {booking.trainName}
                 </Text>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) }]}>
-                <Text style={styles.statusText}>{booking.status}</Text>
               <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || 'Unknown') }]}>
                 <Text style={styles.statusText}>{booking.passengers[0]?.status || 'Unknown'}</Text>
               </View>
