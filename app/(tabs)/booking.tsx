@@ -244,15 +244,21 @@ export default function BookingScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
-            // Remove from storage
-            const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
             try {
+              // Remove from state first
+              const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
+              setSavedPNRs(updatedPNRs);
+              
+              // Then update storage
               await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+              
+              Alert.alert('Success', 'PNR has been deleted successfully');
             } catch (error) {
               console.error('Error deleting PNR:', error);
+              Alert.alert('Error', 'Failed to delete PNR. Please try again.');
+              // Reload data if storage update failed
+              loadSavedPNRs();
             }
-            // Remove from state
-            setSavedPNRs(prev => prev.filter(pnr => pnr.id !== pnrId));
           },
         },
       ]
