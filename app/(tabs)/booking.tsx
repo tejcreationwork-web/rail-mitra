@@ -304,63 +304,65 @@ export default function BookingScreen() {
             <Text style={styles.statNumber}>
               {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Waitlisted' || p.status === 'WL')).length}
             </Text>
-            <Text style={styles.statLabel}>Waitlisted</Text>
-          </View>
-        </View>
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Saved PNRs</Text>
-          <TouchableOpacity style={styles.addButton} onPress={handleAddNewPNR}>
-            <Plus size={20} color="#FFFFFF" />
-            <Text style={styles.addButtonText}>Add PNR</Text>
-          </TouchableOpacity>
-        </View>
-
-        {savedPNRs.map((booking) => (
-          <TouchableOpacity 
-            key={booking.id} 
-            style={styles.bookingCard} 
-            activeOpacity={0.7}
-            onPress={() => handleViewDetails(booking)}
-          >
-            {/* Header */}
-            <View style={styles.pnrHeader}>
-              <Text style={styles.pnrNumber}>PNR : {booking.pnr}</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor: getStatusColor(
-                      booking.passengers[0]?.status || ''
-                    ),
-                  },
-                ]}
-              >
-                <CheckCircle size={18} color="#FFFFFF" />
-                <Text style={styles.statusText}>
-                  {formatStatus(booking.passengers[0]?.status || 'Unknown')}
+              <Text style={styles.sectionTitle}>Passenger Details</Text>
+              
+              {/* First passenger - always shown */}
+              <View style={styles.passengerCard}>
+                <Text style={styles.passengerTitle}>
+                  Passenger 1{booking.passengers[0]?.name ? ` - ${booking.passengers[0].name}` : ''}
                 </Text>
+                
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Status : </Text>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      { color: getStatusColor(booking.passengers[0]?.status || '') },
+                    ]}
+                  >
+                    {formatStatus(booking.passengers[0]?.status || 'Unknown')}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Coach : </Text>
+                  <Text style={styles.detailValue}>
+                    {booking.passengers[0]?.coach || '-'}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Seat : </Text>
+                  <Text style={styles.detailValue}>
+                    {booking.passengers[0]?.seat || '-'}
+                  </Text>
+                </View>
               </View>
-            </View>
 
-            {/* Train Info */}
-            <Text style={styles.trainInfo}>
-              Train : {booking.trainNumber} - {booking.trainName}
-            </Text>
-            <Text style={styles.classInfo}>
-              Class : {booking.journeyClass} | Date : {booking.date}
-            </Text>
-            <Text style={styles.boardingInfo}>
-              Boarding Point : {booking.boardingPoint}
-            </Text>
+              {/* Toggle button for multiple passengers */}
+              {booking.passengers.length > 1 && (
+                <TouchableOpacity
+                  style={styles.toggleButton}
+                  onPress={() => toggleExpanded(booking.id)}
+                >
+                  <Text style={styles.toggleText}>
+                    {expandedPNRs.has(booking.id) 
+                      ? `Hide ${booking.passengers.length - 1} other passengers` 
+                      : `Show ${booking.passengers.length - 1} more passengers`}
+                  </Text>
+                  {expandedPNRs.has(booking.id) ? (
+                    <ChevronUp size={16} color="#2563EB" />
+                  ) : (
+                    <ChevronDown size={16} color="#2563EB" />
+                  )}
+                </TouchableOpacity>
+              )}
 
-            {/* Passenger List */}
-            {booking.passengers && booking.passengers.length > 0 && (
-              <View style={styles.passengersContainer}>
-                {/* First passenger - always shown */}
+              {/* Additional passengers - shown when expanded */}
+              {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
                 <View style={styles.passengerCard}>
                   <Text style={styles.passengerTitle}>
-                    Passenger 1 {booking.passengers[0]?.name ? `- ${booking.passengers[0].name}` : ''}
+                    Passenger {index + 2}{passenger.name ? ` - ${passenger.name}` : ''}
                   </Text>
                   
                   <View style={styles.detailRow}>
@@ -443,9 +445,9 @@ export default function BookingScreen() {
                     </View>
                   </View>
                 ))}
-              </View>
-            )}
-
+              ))}
+            </View>
+          )}
             {/* Journey Details */}
             <View style={styles.journeyContainer}>
               <Text style={styles.journeyTitle}>Journey Details</Text>
@@ -674,7 +676,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 16,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   passengerTitle: {
     fontSize: 16,
@@ -686,7 +688,8 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 4,
+    marginBottom: 4,
   },
   detailLabel: {
     fontSize: 15,
@@ -706,11 +709,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     backgroundColor: '#EBF4FF',
     borderRadius: 8,
-    marginTop: 8,
+    marginBottom: 8,
   },
   toggleText: {
     fontSize: 14,
