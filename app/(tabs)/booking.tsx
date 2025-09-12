@@ -172,7 +172,7 @@ export default function BookingScreen() {
           journeyClass: response.data.journeyClass,
           boardingPoint: response.data.boardingPoint,
           passengers: response.data.passengerList?.map(p => ({
-            name: `Passenger ${p.passengerSerialNumber}`,
+            name: '',
             age: 0,
             status: p.currentStatus || p.bookingStatus || 'Unknown',
             coach: p.currentCoachId || '-',
