@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
 
 type Passenger = {
   name: string;
@@ -33,6 +33,7 @@ export default function PNRChecker() {
   const [pnrNumber, setPnrNumber] = useState('');
   const [pnrData, setPnrData] = useState<PNRData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const mockPNRData: PNRData = {
     pnr: '1234567890',
@@ -71,6 +72,30 @@ export default function PNRChecker() {
     }, 1500);
   };
 
+  const handleSavePNR = () => {
+    if (!pnrData) return;
+    
+    setIsSaving(true);
+    
+    // Simulate saving to storage/database
+    setTimeout(() => {
+      setIsSaving(false);
+      Alert.alert(
+        'PNR Saved',
+        'This PNR has been saved to your bookings for future reference and status updates.',
+        [
+          { text: 'OK' },
+          { 
+            text: 'View Bookings', 
+            onPress: () => {
+              router.back();
+              router.push('/(tabs)/booking');
+            }
+          }
+        ]
+      );
+    }, 1000);
+  };
   const clearData = () => {
     setPnrData(null);
     setPnrNumber('');
@@ -178,6 +203,22 @@ export default function PNRChecker() {
                   </View>
                 </View>
               </View>
+            </View>
+            
+            <View style={styles.saveSection}>
+              <TouchableOpacity
+                style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+                onPress={handleSavePNR}
+                disabled={isSaving}
+              >
+                <BookmarkPlus size={20} color="#FFFFFF" />
+                <Text style={styles.saveButtonText}>
+                  {isSaving ? 'Saving...' : 'Save to My Bookings'}
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.saveHint}>
+                Save this PNR to track status changes and access it quickly later
+              </Text>
             </View>
           </View>
         )}
@@ -387,5 +428,35 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#64748B',
     fontWeight: 'bold',
+  },
+  saveSection: {
+    marginTop: 24,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  saveButton: {
+    backgroundColor: '#059669',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  saveButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  saveHint: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });
