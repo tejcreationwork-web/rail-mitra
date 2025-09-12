@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Calendar, Clock, Brain as Train, MapPin, User, RefreshCw, Trash2, Plus } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type SavedPNR = {
   id: string;
@@ -11,58 +12,107 @@ type SavedPNR = {
   from: string;
   to: string;
   date: string;
-  time: string;
-  status: string;
-  coach: string;
-  seat: string;
-  passengerName: string;
+  journeyClass: string;
+  boardingPoint: string;
+  passengers: {
+    name: string;
+    age: number;
+    status: string;
+    coach: string;
+    seat: string;
+  }[];
   lastChecked: string;
+  savedAt: string;
   isRefreshing?: boolean;
 };
 
-export default function BookingScreen() {
-  const [savedPNRs, setSavedPNRs] = useState<SavedPNR[]>([
-    {
-      id: '1',
-      pnr: '1234567890',
-      trainNumber: '12951',
-      trainName: 'Mumbai Rajdhani Express',
-      from: 'Mumbai Central',
-      to: 'New Delhi',
-      date: '15 Dec 2023',
-      time: '17:55',
-      status: 'Confirmed',
-      coach: 'S4',
-      seat: '23',
-      passengerName: 'Rajesh Kumar Singh',
-      lastChecked: '2 hours ago',
-      isRefreshing: false,
-    },
-    {
-      id: '2',
-      pnr: '9876543210',
-      trainNumber: '12002',
-      trainName: 'Bhopal Shatabdi',
-      from: 'New Delhi',
-      to: 'Bhopal',
-      date: '20 Dec 2023',
-      time: '06:00',
-      status: 'Waitlisted',
-      coach: 'C1',
-      seat: 'WL/45',
-      passengerName: 'Priya Sharma',
-      lastChecked: '5 hours ago',
-      isRefreshing: false,
-    },
-  ]);
+type APIResponse = {
+  success: boolean;
+  data?: {
+    pnrNumber: string;
+    dateOfJourney: string;
+    trainNumber: string;
+    trainName: string;
+    sourceStation: string;
+    destinationStation: string;
+    reservationUpto: string;
+    boardingPoint: string;
+    journeyClass: string;
+    numberOfpassenger: number;
+    chartStatus: string;
+    passengers: {
+      passengerSerialNumber: number;
+      passengerName: string;
+      passengerAge: number;
+      passengerGender: string;
+      passengerStatus: string;
+      passengerCoach: string;
+      passengerSeatNumber: number;
+      passengerQuota: string;
+    }[];
+    bookingFare: number;
+    ticketFare: number;
+    quota: string;
+    bookingDate: string;
+    arrivalDate: string;
+    distance: number;
+  };
+  message?: string;
+};
 
+export default function BookingScreen() {
+  const [savedPNRs, setSavedPNRs] = useState<SavedPNR[]>([]);
+
+  // Load saved PNRs from storage
+  const loadSavedPNRs = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('savedPNRs');
+      if (savedData) {
+        const pnrs: SavedPNR[] = JSON.parse(savedData);
+        setSavedPNRs(pnrs);
+      }
+    } catch (error) {
+      console.error('Error loading saved PNRs:', error);
+    }
+  };
+
+  // Load PNRs when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedPNRs();
+    }, [])
+  );
+
+  // Fetch PNR status from API
+  const fetchPNRStatus = async (pnr: string): Promise<APIResponse> => {
+    const url = `https://irctc-indian-railway-pnr-status.p.rapidapi.com/getPNRStatus/${pnr}`;
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': 'dc102d5e60msh5947347b2e8df5bp14ddebjsnd8a83e21de4c',
+        'x-rapidapi-host': 'irctc-indian-railway-pnr-status.p.rapidapi.com'
+      }
+    };
+
+    const response = await fetch(url, options);
+    const result = await response.text();
+    
+    try {
+      return JSON.parse(result);
+    } catch (parseError) {
+      throw new Error('Invalid response format from API');
+    }
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Confirmed':
+      case 'CNF':
         return '#059669';
       case 'Waitlisted':
+      case 'WL':
         return '#F59E0B';
       case 'Cancelled':
+      case 'CAN':
         return '#DC2626';
       case 'RAC':
         return '#2563EB';
@@ -72,6 +122,63 @@ export default function BookingScreen() {
   };
 
   const handleRefreshPNR = async (pnrId: string) => {
+    const pnrToRefresh = savedPNRs.find(p => p.id === pnrId);
+    if (!pnrToRefresh) return;
+
+    setSavedPNRs(prev => prev.map(pnr => 
+      pnr.id === pnrId ? { ...pnr, isRefreshing: true } : pnr
+    ));
+
+    try {
+      const response = await fetchPNRStatus(pnrToRefresh.pnr);
+      
+      if (response.success && response.data) {
+        const updatedPNR: SavedPNR = {
+          ...pnrToRefresh,
+          trainNumber: response.data.trainNumber,
+          trainName: response.data.trainName,
+          from: response.data.sourceStation,
+          to: response.data.destinationStation,
+          date: response.data.dateOfJourney,
+          journeyClass: response.data.journeyClass,
+          boardingPoint: response.data.boardingPoint,
+          passengers: response.data.passengers?.map(p => ({
+            name: p.passengerName,
+            age: p.passengerAge,
+            status: p.passengerStatus,
+            coach: p.passengerCoach || '-',
+            seat: p.passengerSeatNumber?.toString() || '-',
+          })) || [],
+          lastChecked: new Date().toLocaleString(),
+          isRefreshing: false,
+        };
+
+        // Update in state
+        setSavedPNRs(prev => prev.map(pnr => 
+          pnr.id === pnrId ? updatedPNR : pnr
+        ));
+
+        // Update in storage
+        const updatedPNRs = savedPNRs.map(pnr => 
+          pnr.id === pnrId ? updatedPNR : pnr
+        );
+        await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+
+        Alert.alert('Status Updated', 'PNR status has been refreshed successfully');
+      } else {
+        throw new Error(response.message || 'Failed to fetch PNR status');
+      }
+    } catch (error) {
+      setSavedPNRs(prev => prev.map(pnr => 
+        pnr.id === pnrId ? { ...pnr, isRefreshing: false } : pnr
+      ));
+      
+      const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
+      Alert.alert('Refresh Failed', errorMessage);
+    }
+  };
+
+  const handleRefreshPNROld = async (pnrId: string) => {
     setSavedPNRs(prev => prev.map(pnr => 
       pnr.id === pnrId ? { ...pnr, isRefreshing: true } : pnr
     ));
@@ -86,8 +193,8 @@ export default function BookingScreen() {
           
           return {
             ...pnr,
-            status: randomStatus,
-            lastChecked: 'Just now',
+            passengers: pnr.passengers.map(p => ({ ...p, status: randomStatus })),
+            lastChecked: new Date().toLocaleString(),
             isRefreshing: false,
           };
         }
@@ -107,7 +214,15 @@ export default function BookingScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
+            // Remove from storage
+            const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
+            try {
+              await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+            } catch (error) {
+              console.error('Error deleting PNR:', error);
+            }
+            // Remove from state
             setSavedPNRs(prev => prev.filter(pnr => pnr.id !== pnrId));
           },
         },
@@ -120,9 +235,14 @@ export default function BookingScreen() {
   };
 
   const handleViewDetails = (pnr: SavedPNR) => {
+    const primaryPassenger = pnr.passengers[0];
+    const passengerInfo = primaryPassenger 
+      ? `Passenger: ${primaryPassenger.name}\nStatus: ${primaryPassenger.status}\nCoach: ${primaryPassenger.coach}, Seat: ${primaryPassenger.seat}`
+      : 'No passenger information available';
+
     Alert.alert(
       'PNR Details',
-      `PNR: ${pnr.pnr}\nTrain: ${pnr.trainNumber} - ${pnr.trainName}\nPassenger: ${pnr.passengerName}\nStatus: ${pnr.status}\nCoach: ${pnr.coach}, Seat: ${pnr.seat}\nLast Checked: ${pnr.lastChecked}`,
+      `PNR: ${pnr.pnr}\nTrain: ${pnr.trainNumber} - ${pnr.trainName}\n${passengerInfo}\nLast Checked: ${pnr.lastChecked}`,
       [
         { text: 'OK' },
         { text: 'Refresh', onPress: () => handleRefreshPNR(pnr.id) },
@@ -146,14 +266,14 @@ export default function BookingScreen() {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {savedPNRs.filter(pnr => pnr.status === 'Confirmed').length}
+              {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Confirmed' || p.status === 'CNF')).length}
             </Text>
             <Text style={styles.statLabel}>Confirmed</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {savedPNRs.filter(pnr => pnr.status === 'Waitlisted').length}
+              {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Waitlisted' || p.status === 'WL')).length}
             </Text>
             <Text style={styles.statLabel}>Waitlisted</Text>
           </View>
@@ -183,12 +303,14 @@ export default function BookingScreen() {
               </View>
               <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.status) }]}>
                 <Text style={styles.statusText}>{booking.status}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || 'Unknown') }]}>
+                <Text style={styles.statusText}>{booking.passengers[0]?.status || 'Unknown'}</Text>
               </View>
             </View>
 
             <View style={styles.pnrSection}>
               <Text style={styles.pnrLabel}>PNR: {booking.pnr}</Text>
-              <Text style={styles.passengerName}>{booking.passengerName}</Text>
+              <Text style={styles.passengerName}>{booking.passengers[0]?.name || 'No passenger info'}</Text>
             </View>
 
             <View style={styles.journeyInfo}>
@@ -212,8 +334,7 @@ export default function BookingScreen() {
                 <View style={styles.locationInfo}>
                   <Text style={styles.locationName}>{booking.to}</Text>
                   <View style={styles.timeInfo}>
-                    <Clock size={14} color="#64748B" />
-                    <Text style={styles.timeText}>{booking.time}</Text>
+                    <Text style={styles.timeText}>{booking.journeyClass}</Text>
                   </View>
                 </View>
               </View>
@@ -222,10 +343,10 @@ export default function BookingScreen() {
             <View style={styles.seatInfo}>
               <View style={styles.seatDetail}>
                 <User size={16} color="#64748B" />
-                <Text style={styles.seatText}>Coach: {booking.coach}</Text>
+                <Text style={styles.seatText}>Coach: {booking.passengers[0]?.coach || '-'}</Text>
               </View>
               <View style={styles.seatDetail}>
-                <Text style={styles.seatText}>Seat: {booking.seat}</Text>
+                <Text style={styles.seatText}>Seat: {booking.passengers[0]?.seat || '-'}</Text>
               </View>
             </View>
 

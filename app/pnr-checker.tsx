@@ -1,7 +1,8 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type APIPassenger = {
   passengerSerialNumber: number;
@@ -46,6 +47,27 @@ type APIResponse = {
     distance: number;
   };
   message?: string;
+};
+
+type SavedPNR = {
+  id: string;
+  pnr: string;
+  trainNumber: string;
+  trainName: string;
+  from: string;
+  to: string;
+  date: string;
+  journeyClass: string;
+  boardingPoint: string;
+  passengers: {
+    name: string;
+    age: number;
+    status: string;
+    coach: string;
+    seat: string;
+  }[];
+  lastChecked: string;
+  savedAt: string;
 };
 
 export default function PNRChecker() {
@@ -109,6 +131,76 @@ export default function PNRChecker() {
   };
 
   const handleSavePNR = () => {
+    if (!pnrData) return;
+    
+    setIsSaving(true);
+    
+    const savePNRToStorage = async () => {
+      try {
+        const savedPNR: SavedPNR = {
+          id: Date.now().toString(),
+          pnr: pnrData.pnrNumber,
+          trainNumber: pnrData.trainNumber,
+          trainName: pnrData.trainName,
+          from: pnrData.sourceStation,
+          to: pnrData.destinationStation,
+          date: pnrData.dateOfJourney,
+          journeyClass: pnrData.journeyClass,
+          boardingPoint: pnrData.boardingPoint,
+          passengers: pnrData.passengers?.map(p => ({
+            name: p.passengerName,
+            age: p.passengerAge,
+            status: p.passengerStatus,
+            coach: p.passengerCoach || '-',
+            seat: p.passengerSeatNumber?.toString() || '-',
+          })) || [],
+          lastChecked: new Date().toLocaleString(),
+          savedAt: new Date().toLocaleString(),
+        };
+
+        // Get existing saved PNRs
+        const existingSavedPNRs = await AsyncStorage.getItem('savedPNRs');
+        const savedPNRs: SavedPNR[] = existingSavedPNRs ? JSON.parse(existingSavedPNRs) : [];
+        
+        // Check if PNR already exists
+        const existingIndex = savedPNRs.findIndex(p => p.pnr === pnrData.pnrNumber);
+        
+        if (existingIndex >= 0) {
+          // Update existing PNR
+          savedPNRs[existingIndex] = { ...savedPNRs[existingIndex], ...savedPNR, lastChecked: savedPNR.lastChecked };
+        } else {
+          // Add new PNR
+          savedPNRs.unshift(savedPNR);
+        }
+        
+        // Save to storage
+        await AsyncStorage.setItem('savedPNRs', JSON.stringify(savedPNRs));
+        
+        setIsSaving(false);
+        Alert.alert(
+          'PNR Saved',
+          'This PNR has been saved to your bookings for future reference and status updates.',
+          [
+            { text: 'OK' },
+            { 
+              text: 'View Bookings', 
+              onPress: () => {
+                router.back();
+                router.push('/(tabs)/booking');
+              }
+            }
+          ]
+        );
+      } catch (error) {
+        setIsSaving(false);
+        Alert.alert('Error', 'Failed to save PNR. Please try again.');
+      }
+    };
+    
+    savePNRToStorage();
+  };
+
+  const handleSavePNROld = () => {
     if (!pnrData) return;
     
     setIsSaving(true);
