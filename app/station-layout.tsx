@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-});
+  platformItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
@@ -287,23 +287,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginTop: 4,
     fontWeight: '500',
-  },
-  controlButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  controlButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 6,
-    alignItems: 'center',
-  },
-  controlButtonText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    fontWeight: '600',
   },
 });
