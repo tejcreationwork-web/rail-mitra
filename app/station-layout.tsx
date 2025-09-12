@@ -163,7 +163,7 @@ export default function StationLayout() {
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
       
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')} style={styles.backButton}>
           <ArrowLeft size={26} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Station Layout</Text>
