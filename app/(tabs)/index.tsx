@@ -6,24 +6,24 @@ export default function HomeScreen() {
   const services = [
     {
       id: 'pnr',
-      title: 'PNR Checker',
-      subtitle: 'Check your train status and passenger details instantly',
+      title: 'PNR Status',
+      subtitle: 'Check your Train Status and Passenger Details Instantly',
       icon: CheckCircle,
       route: '/pnr-checker',
       color: '#2563EB',
     },
     {
       id: 'station',
-      title: 'Station Layout Info',
-      subtitle: 'Explore railway stations with interactive maps',
+      title: 'Station Amenities',
+      subtitle: 'Explore Railway Stations with Interactive Maps',
       icon: MapPin,
       route: '/station-layout',
       color: '#2563EB',
     },
     {
       id: 'timetable',
-      title: 'Train Timetable Sheet',
-      subtitle: 'View detailed train schedules and route information',
+      title: 'Train Timetable',
+      subtitle: 'View detailed Train Schedules and Route information',
       icon: Clock,
       route: '/train-timetable',
       color: '#2563EB',
@@ -43,7 +43,7 @@ export default function HomeScreen() {
           <View style={styles.logoContainer}>
             <Train size={32} color="#FFFFFF" strokeWidth={2.5} />
           </View>
-          <Text style={styles.headerTitle}>RailMitra</Text>
+          <Text style={styles.headerTitle}>RailEase</Text>
         </View>
         <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
         <Text style={styles.accessNote}>🚀 Access PNR status, station layouts, and train schedules with ease</Text>
@@ -51,7 +51,7 @@ export default function HomeScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.servicesContainer}>
-          <Text style={styles.sectionTitle}>Railway Services</Text>
+          <Text style={styles.sectionTitle}>Services</Text>
           
           {services.map((service) => {
             const IconComponent = service.icon;
