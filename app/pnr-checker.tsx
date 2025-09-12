@@ -147,12 +147,12 @@ export default function PNRChecker() {
           date: pnrData.dateOfJourney,
           journeyClass: pnrData.journeyClass,
           boardingPoint: pnrData.boardingPoint,
-          passengers: pnrData.passengers?.map(p => ({
-            name: p.passengerName,
-            age: p.passengerAge,
-            status: p.passengerStatus,
-            coach: p.passengerCoach || '-',
-            seat: p.passengerSeatNumber?.toString() || '-',
+          passengers: pnrData.passengerList?.map(p => ({
+            name: `Passenger ${p.passengerSerialNumber}`,
+            age: 0,
+            status: p.currentStatus || p.bookingStatus || 'Unknown',
+            coach: p.currentCoachId || '-',
+            seat: p.currentBerthNo?.toString() || '-',
           })) || [],
           lastChecked: new Date().toLocaleString(),
           savedAt: new Date().toLocaleString(),

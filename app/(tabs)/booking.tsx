@@ -171,12 +171,12 @@ export default function BookingScreen() {
           date: response.data.dateOfJourney,
           journeyClass: response.data.journeyClass,
           boardingPoint: response.data.boardingPoint,
-          passengers: response.data.passengers?.map(p => ({
-            name: p.passengerName,
-            age: p.passengerAge,
-            status: p.passengerStatus,
-            coach: p.passengerCoach || '-',
-            seat: p.passengerSeatNumber?.toString() || '-',
+          passengers: response.data.passengerList?.map(p => ({
+            name: `Passenger ${p.passengerSerialNumber}`,
+            age: 0,
+            status: p.currentStatus || p.bookingStatus || 'Unknown',
+            coach: p.currentCoachId || '-',
+            seat: p.currentBerthNo?.toString() || '-',
           })) || [],
           lastChecked: new Date().toLocaleString(),
           isRefreshing: false,
