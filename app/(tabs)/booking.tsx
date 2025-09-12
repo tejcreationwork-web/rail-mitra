@@ -304,6 +304,45 @@ export default function BookingScreen() {
             <Text style={styles.statNumber}>
               {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Waitlisted' || p.status === 'WL')).length}
             </Text>
+            <Text style={styles.statLabel}>Waitlisted</Text>
+          </View>
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Bookings</Text>
+          <TouchableOpacity style={styles.addButton} onPress={handleAddNewPNR}>
+            <Plus size={16} color="#FFFFFF" />
+            <Text style={styles.addButtonText}>Add PNR</Text>
+          </TouchableOpacity>
+        </View>
+
+        {savedPNRs.map((booking) => (
+          <TouchableOpacity
+            key={booking.id}
+            style={styles.bookingCard}
+            onPress={() => handleViewDetails(booking)}
+          >
+            <View style={styles.pnrHeader}>
+              <Text style={styles.pnrNumber}>PNR: {booking.pnr}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || '') }]}>
+                <CheckCircle size={14} color="#FFFFFF" />
+                <Text style={styles.statusText}>
+                  {formatStatus(booking.passengers[0]?.status || 'Unknown')}
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.trainInfo}>
+              {booking.trainNumber} - {booking.trainName}
+            </Text>
+            <Text style={styles.classInfo}>
+              Class: {booking.journeyClass} | Date: {booking.date}
+            </Text>
+            <Text style={styles.boardingInfo}>
+              Boarding: {booking.boardingPoint}
+            </Text>
+
+            <View style={styles.passengersContainer}>
               <Text style={styles.sectionTitle}>Passenger Details</Text>
               
               {/* First passenger - always shown */}
@@ -360,7 +399,7 @@ export default function BookingScreen() {
 
               {/* Additional passengers - shown when expanded */}
               {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
-                <View style={styles.passengerCard}>
+                <View key={index} style={styles.passengerCard}>
                   <Text style={styles.passengerTitle}>
                     Passenger {index + 2}{passenger.name ? ` - ${passenger.name}` : ''}
                   </Text>
@@ -370,27 +409,29 @@ export default function BookingScreen() {
                     <Text
                       style={[
                         styles.detailValue,
-                        { color: getStatusColor(booking.passengers[0]?.status || '') },
+                        { color: getStatusColor(passenger.status || '') },
                       ]}
                     >
-                      {formatStatus(booking.passengers[0]?.status || 'Unknown')}
+                      {formatStatus(passenger.status || 'Unknown')}
                     </Text>
                   </View>
 
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Coach : </Text>
                     <Text style={styles.detailValue}>
-                      {booking.passengers[0]?.coach || '-'}
+                      {passenger.coach || '-'}
                     </Text>
                   </View>
 
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Seat : </Text>
                     <Text style={styles.detailValue}>
-                      {booking.passengers[0]?.seat || '-'}
+                      {passenger.seat || '-'}
                     </Text>
                   </View>
                 </View>
+              ))}
+            </View>
 
             {/* Journey Details */}
             <View style={styles.journeyContainer}>
