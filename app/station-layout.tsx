@@ -1,35 +1,12 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Zap, Coffee, Utensils, Car, Users, Info } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react-native';
+import { Image } from 'react-native';
 
 export default function StationLayout() {
-  const [selectedStation, setSelectedStation] = useState('Mumbai Chhatrapati Shivaji Terminus (CSTM)');
-  const [selectedPlatform, setSelectedPlatform] = useState('Platform 1');
-
-  const platforms = [
-    {
-      id: 'platform1',
-      name: 'Platform 1',
-      description: 'Heritage platform serving long-distance trains to Delhi, Bangalore and other major cities.',
-      operating: '24/7',
-      tips: [
-        '• UNESCO World heritage building with Victorian architecture',
-        '• Washrooms and Cafeterias (Vending)',
-        '• Premium waiting lounges available',
-        '• Direct access to local train networks'
-      ]
-    }
-  ];
-
-  const platformAmenities = [
-    { icon: Coffee, label: 'Cafeteria', color: '#8B5CF6' },
-    { icon: Car, label: 'Platform', color: '#2563EB' },
-    { icon: Users, label: 'Waiting', color: '#2563EB' },
-    { icon: Utensils, label: 'Food Court', color: '#F59E0B' },
-    { icon: MapPin, label: 'Parking', color: '#8B5CF6' },
-    { icon: Zap, label: 'Charging', color: '#059669' },
-  ];
+  const [selectedStation, setSelectedStation] = useState('Thane Railway Station (TNA)');
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   return (
     <View style={styles.container}>
@@ -53,81 +30,50 @@ export default function StationLayout() {
             <Text style={styles.dropdownText}>{selectedStation}</Text>
             <ChevronDown size={22} color="#64748B" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.infoLink}>
-            <MapPin size={18} color="#1E40AF" />
-            <Text style={styles.infoLinkText}>Mumbai Chhatrapati... Top markers on info</Text>
-          </TouchableOpacity>
         </View>
 
-        {/* Interactive Platform Layout */}
+        {/* Station Layout Image */}
         <View style={styles.layoutContainer}>
-          <View style={styles.platformGrid}>
-            {platformAmenities.map((amenity, index) => {
-              const IconComponent = amenity.icon;
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[styles.amenityButton, { backgroundColor: amenity.color }]}
-                  activeOpacity={0.8}
-                >
-                  <IconComponent size={28} color="#FFFFFF" />
-                  <Text style={styles.amenityLabel}>{amenity.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
+          <Text style={styles.layoutTitle}>Thane Railway Station Layout</Text>
+          
+          <View style={styles.imageContainer}>
+            <Image
+              source={require('@/assets/images/thane.png')}
+              style={[styles.stationImage, { transform: [{ scale: zoomLevel }] }]}
+              resizeMode="contain"
+            />
           </View>
-
-          {/* Platform Detail Card */}
-          <TouchableOpacity style={styles.platformCard}>
-            <View style={styles.platformHeader}>
-              <View style={styles.platformIcon}>
-                <MapPin size={26} color="#FFFFFF" />
-              </View>
-              <View style={styles.platformInfo}>
-                <Text style={styles.platformTitle}>Platform 1</Text>
-                <Text style={styles.platformSubtitle}>PLATFORM</Text>
-              </View>
-              <Text style={styles.closeButton}>✕</Text>
-            </View>
-
-            <View style={styles.platformDetails}>
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>🔍 Description</Text>
-                <Text style={styles.detailText}>
-                  Heritage platform serving long-distance trains to Delhi, Bangalore and other major cities.
-                </Text>
-              </View>
-
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>🚂 Platform</Text>
-                <Text style={styles.detailText}>Platform 1</Text>
-              </View>
-
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>⏰ Operating Hours</Text>
-                <Text style={styles.detailText}>24/7</Text>
-              </View>
-
-              <View style={styles.detailSection}>
-                <Text style={styles.detailTitle}>💡 Navigation Tips</Text>
-                {platforms[0].tips.map((tip, index) => (
-                  <Text key={index} style={styles.tipText}>{tip}</Text>
-                ))}
-              </View>
-            </View>
-          </TouchableOpacity>
 
           {/* Control Buttons */}
           <View style={styles.controlButtons}>
-            <TouchableOpacity style={styles.controlButton}>
-              <Text style={styles.controlButtonText}>🔍 Zoom In</Text>
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => setZoomLevel(prev => Math.min(prev + 0.2, 2))}
+            >
+              <ZoomIn size={16} color="#1E40AF" />
+              <Text style={styles.controlButtonText}>Zoom In</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
-              <Text style={styles.controlButtonText}>🔍 Zoom Out</Text>
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => setZoomLevel(prev => Math.max(prev - 0.2, 0.5))}
+            >
+              <ZoomOut size={16} color="#1E40AF" />
+              <Text style={styles.controlButtonText}>Zoom Out</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
-              <Text style={styles.controlButtonText}>🔄 Reset</Text>
+            <TouchableOpacity 
+              style={styles.controlButton}
+              onPress={() => setZoomLevel(1)}
+            >
+              <RotateCcw size={16} color="#1E40AF" />
+              <Text style={styles.controlButtonText}>Reset</Text>
             </TouchableOpacity>
+          </View>
+          
+          <View style={styles.stationInfo}>
+            <Text style={styles.stationInfoTitle}>Thane Railway Station (TNA)</Text>
+            <Text style={styles.stationInfoText}>
+              Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -212,36 +158,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   layoutContainer: {
-    backgroundColor: '#E2E8F0',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-  },
-  platformGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 28,
-  },
-  amenityButton: {
-    width: '31%',
-    aspectRatio: 1,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  amenityLabel: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  platformCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
     marginBottom: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -249,7 +168,70 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  platformHeader: {
+  layoutTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  imageContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 20,
+    overflow: 'hidden',
+    minHeight: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stationImage: {
+    width: '100%',
+    height: 300,
+  },
+  controlButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  controlButton: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+    flex: 1,
+    marginHorizontal: 4,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  controlButtonText: {
+    fontSize: 14,
+    color: '#1E40AF',
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  stationInfo: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 20,
+  },
+  stationInfoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  stationInfoText: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+});
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
