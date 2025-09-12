@@ -245,18 +245,11 @@ export default function BookingScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // Remove from state first
               const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
               setSavedPNRs(updatedPNRs);
-              
-              // Then update storage
               await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
-              
-              Alert.alert('Success', 'PNR has been deleted successfully');
             } catch (error) {
               console.error('Error deleting PNR:', error);
-              Alert.alert('Error', 'Failed to delete PNR. Please try again.');
-              // Reload data if storage update failed
               loadSavedPNRs();
             }
           },
@@ -486,6 +479,7 @@ export default function BookingScreen() {
                 <TouchableOpacity
                   style={styles.deleteButton}
                   onPress={() => handleDeletePNR(booking.id)}
+                 activeOpacity={0.7}
                 >
                   <Trash2 size={16} color="#DC2626" />
                 </TouchableOpacity>
