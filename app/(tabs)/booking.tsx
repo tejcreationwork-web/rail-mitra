@@ -245,7 +245,7 @@ export default function BookingScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
+              const updatedPNRs = savedPNRs.filter(pnr => pnr.pnrNumber !==   pnrId);
               setSavedPNRs(updatedPNRs);
               await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
             } catch (error) {
