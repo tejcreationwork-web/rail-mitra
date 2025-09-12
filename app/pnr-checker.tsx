@@ -178,7 +178,7 @@ export default function PNRChecker() {
       <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
         <ArrowLeft size={26} color="#FFFFFF" />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>PNR Checker</Text>
+      <Text style={styles.headerTitle}>PNR Status</Text>
       <View style={styles.placeholder} />
     </View>
     <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
