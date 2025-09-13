@@ -77,21 +77,6 @@ export default function HomeScreen() {
           })}
         </View>
 
-        <View style={styles.statusContainer}>
-          <Text style={styles.sectionTitle}>System Status: Online</Text>
-          <Text style={styles.statusText}>Last updated: 11/12/2023 1:39</Text>
-          
-          <View style={styles.statusGrid}>
-            <View style={styles.statusItem}>
-              <Database size={24} color="#059669" />
-              <Text style={styles.statusLabel}>Offline Data Available</Text>
-            </View>
-            <View style={styles.statusItem}>
-              <Wifi size={24} color="#2563EB" />
-              <Text style={styles.statusLabel}>App Version v1.3.0</Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -201,42 +186,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#CBD5E1',
     fontWeight: '300',
-  },
-  statusContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  statusText: {
-    fontSize: 15,
-    color: '#64748B',
-    marginBottom: 20,
-    fontFamily: 'Inter-Medium',
-  },
-  statusGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statusItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  statusLabel: {
-    fontSize: 15,
-    color: '#475569',
-    marginLeft: 12,
-    flex: 1,
-    fontWeight: '600',
-    fontFamily: 'Inter-SemiBold',
   },
 });
