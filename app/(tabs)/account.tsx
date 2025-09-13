@@ -4,7 +4,7 @@ import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRigh
 
 export default function AccountScreen() {
   const [user] = useState({
-    name: 'Hi Traveller',
+    name: 'Hi Traveller !',
     memberSince: 'January 2023',
     totalBookings: 24,
     points: 1250,
@@ -21,17 +21,17 @@ export default function AccountScreen() {
         Alert.alert('My Bookings', 'Navigating to your bookings...');
       },
     },
-    {
-      id: 'notifications',
-      title: 'Notifications',
-      subtitle: 'Manage your notification preferences',
-      icon: Bell,
-      onPress: () => {
-        Alert.alert('Notifications', 'Push notifications: Enabled\nEmail notifications: Enabled\nSMS alerts: Disabled', [
-          { text: 'OK' }
-        ]);
-      },
-    },
+    // {
+    //   id: 'notifications',
+    //   title: 'Notifications',
+    //   subtitle: 'Manage your notification preferences',
+    //   icon: Bell,
+    //   onPress: () => {
+    //     Alert.alert('Notifications', 'Push notifications: Enabled\nEmail notifications: Enabled\nSMS alerts: Disabled', [
+    //       { text: 'OK' }
+    //     ]);
+    //   },
+    // },
     {
       id: 'settings',
       title: 'App Settings',
@@ -98,7 +98,7 @@ export default function AccountScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.memberSince}>Member since {user.memberSince}</Text>
+              <Text style={styles.memberSince}>Your smart travel companion </Text>
             </View>
           </View>
 
@@ -106,7 +106,7 @@ export default function AccountScreen() {
 
         {/* Account Options */}
         <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Account Settings</Text>
+          <Text style={styles.sectionTitle}>Account Section</Text>
           {accountOptions.map((option) => {
             const IconComponent = option.icon;
             return (
@@ -139,6 +139,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  optionsContainer : {
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#57585ae3',
+    marginBottom: 10,
+    fontFamily: 'Poppins-Bold',
   },
   header: {
     backgroundColor: '#2563EB',
