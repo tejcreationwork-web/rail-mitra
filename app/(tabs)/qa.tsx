@@ -1,32 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
 import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X } from 'lucide-react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-type Answer = {
-  id: string;
-  content: string;
-  author: string;
-  timestamp: string;
-  likes: number;
-  dislikes: number;
-  isLiked?: boolean;
-  isDisliked?: boolean;
-};
-
-type Question = {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  timestamp: string;
-  likes: number;
-  dislikes: number;
-  answers: Answer[];
-  tags: string[];
-  isLiked?: boolean;
-  isDisliked?: boolean;
-};
+import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 
 export default function QAScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,6 +11,8 @@ export default function QAScreen() {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalAnswers, setTotalAnswers] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
@@ -47,113 +24,97 @@ export default function QAScreen() {
   const [answerContent, setAnswerContent] = useState('');
   const [answerAuthor, setAnswerAuthor] = useState('');
 
-  // Load questions from storage
+  // Load questions from Supabase
   const loadQuestions = async () => {
     try {
-      const savedQuestions = await AsyncStorage.getItem('qaQuestions');
-      if (savedQuestions) {
-        const parsedQuestions: Question[] = JSON.parse(savedQuestions);
-        setQuestions(parsedQuestions);
-        setTotalQuestions(parsedQuestions.length);
-        setTotalAnswers(parsedQuestions.reduce((total, q) => total + q.answers.length, 0));
-      }
+      setIsLoading(true);
+      const fetchedQuestions = await qaService.getQuestions();
+      setQuestions(fetchedQuestions);
+      setTotalQuestions(fetchedQuestions.length);
+      setTotalAnswers(fetchedQuestions.reduce((total, q) => total + (q.answers?.length || 0), 0));
     } catch (error) {
       console.error('Error loading questions:', error);
-    }
-  };
-
-  // Save questions to storage
-  const saveQuestions = async (updatedQuestions: Question[]) => {
-    try {
-      await AsyncStorage.setItem('qaQuestions', JSON.stringify(updatedQuestions));
-      setQuestions(updatedQuestions);
-      setTotalQuestions(updatedQuestions.length);
-      setTotalAnswers(updatedQuestions.reduce((total, q) => total + q.answers.length, 0));
-    } catch (error) {
-      console.error('Error saving questions:', error);
+      Alert.alert('Error', 'Failed to load questions. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     loadQuestions();
+
+    // Subscribe to real-time updates
+    const subscription = qaService.subscribeToQuestions((updatedQuestions) => {
+      setQuestions(updatedQuestions);
+      setTotalQuestions(updatedQuestions.length);
+      setTotalAnswers(updatedQuestions.reduce((total, q) => total + (q.answers?.length || 0), 0));
+    });
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
   }, []);
 
   const handleLike = async (questionId: string, answerId?: string) => {
-    const updatedQuestions = questions.map(q => {
-      if (q.id === questionId) {
-        if (answerId) {
-          // Like/unlike answer
-          const updatedAnswers = q.answers.map(a => {
-            if (a.id === answerId) {
-              const wasLiked = a.isLiked;
-              const wasDisliked = a.isDisliked;
-              return {
-                ...a,
-                isLiked: !wasLiked,
-                isDisliked: false,
-                likes: wasLiked ? a.likes - 1 : a.likes + 1,
-                dislikes: wasDisliked ? a.dislikes - 1 : a.dislikes,
-              };
-            }
-            return a;
-          });
-          return { ...q, answers: updatedAnswers };
-        } else {
-          // Like/unlike question
-          const wasLiked = q.isLiked;
-          const wasDisliked = q.isDisliked;
-          return {
-            ...q,
-            isLiked: !wasLiked,
-            isDisliked: false,
-            likes: wasLiked ? q.likes - 1 : q.likes + 1,
-            dislikes: wasDisliked ? q.dislikes - 1 : q.dislikes,
-          };
-        }
+    try {
+      if (answerId) {
+        // Like/unlike answer
+        const question = questions.find(q => q.id === questionId);
+        const answer = question?.answers?.find(a => a.id === answerId);
+        if (!answer) return;
+
+        const newLikes = answer.likes + 1;
+        const newDislikes = answer.dislikes;
+        
+        await qaService.updateAnswerLikes(answerId, newLikes, newDislikes);
+      } else {
+        // Like/unlike question
+        const question = questions.find(q => q.id === questionId);
+        if (!question) return;
+
+        const newLikes = question.likes + 1;
+        const newDislikes = question.dislikes;
+        
+        await qaService.updateQuestionLikes(questionId, newLikes, newDislikes);
       }
-      return q;
-    });
-    
-    await saveQuestions(updatedQuestions);
+      
+      // Reload questions to get updated data
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error updating likes:', error);
+      Alert.alert('Error', 'Failed to update likes. Please try again.');
+    }
   };
 
   const handleDislike = async (questionId: string, answerId?: string) => {
-    const updatedQuestions = questions.map(q => {
-      if (q.id === questionId) {
-        if (answerId) {
-          // Dislike answer
-          const updatedAnswers = q.answers.map(a => {
-            if (a.id === answerId) {
-              const wasLiked = a.isLiked;
-              const wasDisliked = a.isDisliked;
-              return {
-                ...a,
-                isLiked: false,
-                isDisliked: !wasDisliked,
-                likes: wasLiked ? a.likes - 1 : a.likes,
-                dislikes: wasDisliked ? a.dislikes - 1 : a.dislikes + 1,
-              };
-            }
-            return a;
-          });
-          return { ...q, answers: updatedAnswers };
-        } else {
-          // Dislike question
-          const wasLiked = q.isLiked;
-          const wasDisliked = q.isDisliked;
-          return {
-            ...q,
-            isLiked: false,
-            isDisliked: !wasDisliked,
-            likes: wasLiked ? q.likes - 1 : q.likes,
-            dislikes: wasDisliked ? q.dislikes - 1 : q.dislikes + 1,
-          };
-        }
+    try {
+      if (answerId) {
+        // Dislike answer
+        const question = questions.find(q => q.id === questionId);
+        const answer = question?.answers?.find(a => a.id === answerId);
+        if (!answer) return;
+
+        const newLikes = answer.likes;
+        const newDislikes = answer.dislikes + 1;
+        
+        await qaService.updateAnswerLikes(answerId, newLikes, newDislikes);
+      } else {
+        // Dislike question
+        const question = questions.find(q => q.id === questionId);
+        if (!question) return;
+
+        const newLikes = question.likes;
+        const newDislikes = question.dislikes + 1;
+        
+        await qaService.updateQuestionLikes(questionId, newLikes, newDislikes);
       }
-      return q;
-    });
-    
-    await saveQuestions(updatedQuestions);
+      
+      // Reload questions to get updated data
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error updating dislikes:', error);
+      Alert.alert('Error', 'Failed to update dislikes. Please try again.');
+    }
   };
 
   const handleShare = (question: Question) => {
@@ -169,31 +130,32 @@ export default function QAScreen() {
       return;
     }
 
-    const newQuestion: Question = {
-      id: Date.now().toString(),
-      title: questionTitle.trim(),
-      content: questionContent.trim(),
-      author: authorName.trim(),
-      timestamp: new Date().toLocaleString(),
-      likes: 0,
-      dislikes: 0,
-      answers: [],
-      tags: questionTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-      isLiked: false,
-      isDisliked: false,
-    };
+    setIsSubmitting(true);
+    try {
+      await qaService.createQuestion({
+        title: questionTitle.trim(),
+        content: questionContent.trim(),
+        author: authorName.trim(),
+        tags: questionTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+      });
 
-    const updatedQuestions = [newQuestion, ...questions];
-    await saveQuestions(updatedQuestions);
+      // Reset form
+      setQuestionTitle('');
+      setQuestionContent('');
+      setQuestionTags('');
+      setAuthorName('');
+      setShowQuestionModal(false);
 
-    // Reset form
-    setQuestionTitle('');
-    setQuestionContent('');
-    setQuestionTags('');
-    setAuthorName('');
-    setShowQuestionModal(false);
-
-    Alert.alert('Success', 'Your question has been posted successfully!');
+      Alert.alert('Success', 'Your question has been posted successfully!');
+      
+      // Reload questions
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error creating question:', error);
+      Alert.alert('Error', 'Failed to post question. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddAnswer = async () => {
@@ -202,36 +164,30 @@ export default function QAScreen() {
       return;
     }
 
-    const newAnswer: Answer = {
-      id: Date.now().toString(),
-      content: answerContent.trim(),
-      author: answerAuthor.trim(),
-      timestamp: new Date().toLocaleString(),
-      likes: 0,
-      dislikes: 0,
-      isLiked: false,
-      isDisliked: false,
-    };
+    setIsSubmitting(true);
+    try {
+      await qaService.createAnswer({
+        question_id: selectedQuestionId,
+        content: answerContent.trim(),
+        author: answerAuthor.trim(),
+      });
 
-    const updatedQuestions = questions.map(q => {
-      if (q.id === selectedQuestionId) {
-        return {
-          ...q,
-          answers: [...q.answers, newAnswer],
-        };
-      }
-      return q;
-    });
+      // Reset form
+      setAnswerContent('');
+      setAnswerAuthor('');
+      setSelectedQuestionId(null);
+      setShowAnswerModal(false);
 
-    await saveQuestions(updatedQuestions);
-
-    // Reset form
-    setAnswerContent('');
-    setAnswerAuthor('');
-    setSelectedQuestionId(null);
-    setShowAnswerModal(false);
-
-    Alert.alert('Success', 'Your answer has been posted successfully!');
+      Alert.alert('Success', 'Your answer has been posted successfully!');
+      
+      // Reload questions
+      await loadQuestions();
+    } catch (error) {
+      console.error('Error creating answer:', error);
+      Alert.alert('Error', 'Failed to post answer. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openAnswerModal = (questionId: string) => {
@@ -239,11 +195,29 @@ export default function QAScreen() {
     setShowAnswerModal(true);
   };
 
+  const formatTimestamp = (timestamp: string) => {
+    return new Date(timestamp).toLocaleString();
+  };
+
   const filteredQuestions = questions.filter(q => 
     q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     q.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
     q.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Q&A Community</Text>
+          <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
+        </View>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading questions...</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -282,7 +256,7 @@ export default function QAScreen() {
             <Text style={styles.statLabel}>Answers</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{questions.length > 0 ? Math.floor(totalAnswers / totalQuestions * 100) / 100 : 0}</Text>
+            <Text style={styles.statNumber}>{totalQuestions > 0 ? Math.floor(totalAnswers / totalQuestions * 100) / 100 : 0}</Text>
             <Text style={styles.statLabel}>Avg Answers</Text>
           </View>
         </View>
@@ -315,7 +289,7 @@ export default function QAScreen() {
                     <Text style={styles.authorName}>{question.author}</Text>
                     <View style={styles.timestampContainer}>
                       <Clock size={12} color="#94A3B8" />
-                      <Text style={styles.timestamp}>{question.timestamp}</Text>
+                      <Text style={styles.timestamp}>{formatTimestamp(question.created_at)}</Text>
                     </View>
                   </View>
                 </View>
@@ -336,23 +310,19 @@ export default function QAScreen() {
 
               <View style={styles.questionActions}>
                 <TouchableOpacity 
-                  style={[styles.actionButton, question.isLiked && styles.actionButtonActive]}
+                  style={styles.actionButton}
                   onPress={() => handleLike(question.id)}
                 >
-                  <ThumbsUp size={16} color={question.isLiked ? '#FFFFFF' : '#64748B'} />
-                  <Text style={[styles.actionText, question.isLiked && styles.actionTextActive]}>
-                    {question.likes}
-                  </Text>
+                  <ThumbsUp size={16} color="#64748B" />
+                  <Text style={styles.actionText}>{question.likes}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={[styles.actionButton, question.isDisliked && styles.actionButtonDislike]}
+                  style={styles.actionButton}
                   onPress={() => handleDislike(question.id)}
                 >
-                  <ThumbsDown size={16} color={question.isDisliked ? '#FFFFFF' : '#64748B'} />
-                  <Text style={[styles.actionText, question.isDisliked && styles.actionTextDislike]}>
-                    {question.dislikes}
-                  </Text>
+                  <ThumbsDown size={16} color="#64748B" />
+                  <Text style={styles.actionText}>{question.dislikes}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -360,7 +330,7 @@ export default function QAScreen() {
                   onPress={() => openAnswerModal(question.id)}
                 >
                   <MessageSquare size={16} color="#64748B" />
-                  <Text style={styles.actionText}>{question.answers.length}</Text>
+                  <Text style={styles.actionText}>{question.answers?.length || 0}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
@@ -373,7 +343,7 @@ export default function QAScreen() {
               </View>
 
               {/* Answers Section */}
-              {question.answers.length > 0 && (
+              {question.answers && question.answers.length > 0 && (
                 <View style={styles.answersSection}>
                   <Text style={styles.answersTitle}>Answers ({question.answers.length})</Text>
                   {question.answers.map((answer) => (
@@ -385,29 +355,25 @@ export default function QAScreen() {
                           </View>
                           <View>
                             <Text style={styles.answerAuthor}>{answer.author}</Text>
-                            <Text style={styles.answerTimestamp}>{answer.timestamp}</Text>
+                            <Text style={styles.answerTimestamp}>{formatTimestamp(answer.created_at)}</Text>
                           </View>
                         </View>
                       </View>
                       <Text style={styles.answerContent}>{answer.content}</Text>
                       <View style={styles.answerActions}>
                         <TouchableOpacity 
-                          style={[styles.actionButtonSmall, answer.isLiked && styles.actionButtonActive]}
+                          style={styles.actionButtonSmall}
                           onPress={() => handleLike(question.id, answer.id)}
                         >
-                          <ThumbsUp size={14} color={answer.isLiked ? '#FFFFFF' : '#64748B'} />
-                          <Text style={[styles.actionTextSmall, answer.isLiked && styles.actionTextActive]}>
-                            {answer.likes}
-                          </Text>
+                          <ThumbsUp size={14} color="#64748B" />
+                          <Text style={styles.actionTextSmall}>{answer.likes}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                          style={[styles.actionButtonSmall, answer.isDisliked && styles.actionButtonDislike]}
+                          style={styles.actionButtonSmall}
                           onPress={() => handleDislike(question.id, answer.id)}
                         >
-                          <ThumbsDown size={14} color={answer.isDisliked ? '#FFFFFF' : '#64748B'} />
-                          <Text style={[styles.actionTextSmall, answer.isDisliked && styles.actionTextDislike]}>
-                            {answer.dislikes}
-                          </Text>
+                          <ThumbsDown size={14} color="#64748B" />
+                          <Text style={styles.actionTextSmall}>{answer.dislikes}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -472,9 +438,15 @@ export default function QAScreen() {
               placeholderTextColor="#94A3B8"
             />
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleCreateQuestion}>
+            <TouchableOpacity 
+              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
+              onPress={handleCreateQuestion}
+              disabled={isSubmitting}
+            >
               <Send size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Post Question</Text>
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? 'Posting...' : 'Post Question'}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -515,9 +487,15 @@ export default function QAScreen() {
               numberOfLines={6}
             />
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleAddAnswer}>
+            <TouchableOpacity 
+              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
+              onPress={handleAddAnswer}
+              disabled={isSubmitting}
+            >
               <Send size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Post Answer</Text>
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? 'Posting...' : 'Post Answer'}
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -549,6 +527,16 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: '#BFDBFE',
+    fontFamily: 'Inter-Medium',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#64748B',
     fontFamily: 'Inter-Medium',
   },
   searchContainer: {
@@ -757,24 +745,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F8FAFC',
   },
-  actionButtonActive: {
-    backgroundColor: '#2563EB',
-  },
-  actionButtonDislike: {
-    backgroundColor: '#DC2626',
-  },
   actionText: {
     fontSize: 12,
     color: '#64748B',
     marginLeft: 4,
     fontWeight: '500',
     fontFamily: 'Inter-Medium',
-  },
-  actionTextActive: {
-    color: '#FFFFFF',
-  },
-  actionTextDislike: {
-    color: '#FFFFFF',
   },
   answersSection: {
     marginTop: 20,
@@ -893,6 +869,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 32,
     marginBottom: 40,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#94A3B8',
   },
   submitButtonText: {
     color: '#FFFFFF',
