@@ -926,6 +926,9 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: 'Inter-Regular',
   },
+  optionsButton: {
+    padding: 8,
+  },
   questionTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -1083,14 +1086,40 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-  deleteButton: {
-    padding: 8,
-    backgroundColor: '#FEF2F2',
+    fontSize: 16,
+    color: '#1E293B',
+    fontFamily: 'Inter-Regular',
+  },
+  textArea: {
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  submitButton: {
+    backgroundColor: '#2563EB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
     borderRadius: 8,
+    marginTop: 24,
+    marginBottom: 40,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#94A3B8',
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
   },
   deleteButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
     padding: 8,
-    borderRadius: 8,
     backgroundColor: '#FEF2F2',
+    borderRadius: 8,
   },
 });
