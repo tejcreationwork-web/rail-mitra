@@ -371,6 +371,13 @@ const confirmDeletePNR = async () => {
                   </View>
 
                   <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Berth : </Text>
+                    <Text style={styles.detailValue}>
+                      {booking.passengers[0]?.berth || '-'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Seat : </Text>
                     <Text style={styles.detailValue}>
                       {booking.passengers[0]?.seat || '-'}
@@ -420,6 +427,13 @@ const confirmDeletePNR = async () => {
                       <Text style={styles.detailLabel}>Coach : </Text>
                       <Text style={styles.detailValue}>
                         {passenger.coach || '-'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Berth : </Text>
+                      <Text style={styles.detailValue}>
+                        {booking.passengers[0]?.berth || '-'}
                       </Text>
                     </View>
 
