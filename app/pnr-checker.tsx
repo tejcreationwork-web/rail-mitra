@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Search, Brain as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
+import { ArrowLeft, Search, TrainFront as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type APIPassenger = {
@@ -17,6 +17,8 @@ type APIPassenger = {
   waitListType: number;
   bookingStatus: string;
   bookingBerthNo: number;
+  bookingCoachId : string;
+  bookingBerthCode: string;
   bookingStatusDetails: string;
   currentStatus: string;
   currentCoachId: string;
@@ -64,7 +66,8 @@ type SavedPNR = {
     age: number;
     status: string;
     coach: string;
-    seat: string;
+    berth : string;
+    seat: number | string;
   }[];
   lastChecked: string;
   savedAt: string;
@@ -151,9 +154,10 @@ export default function PNRChecker() {
             name: '',
             age: 0,
             status: p.currentStatus || p.bookingStatus || 'Unknown',
-            coach: p.currentCoachId || '-',
-            seat: p.currentBerthNo?.toString() || '-',
-          })) || [],
+            coach: p.currentCoachId || p.bookingCoachId || '-',
+            berth: p.bookingBerthCode || '-',  // ✅ added
+            seat: p.currentBerthNo || p.bookingBerthNo || '-',
+          })) || '',
           lastChecked: new Date().toLocaleString(),
           savedAt: new Date().toLocaleString(),
         };
@@ -276,7 +280,7 @@ export default function PNRChecker() {
       <View style={styles.inputContainer}>
         <Text style={styles.inputLabel}>Enter PNR Number</Text>
         <View style={styles.inputWrapper}>
-          <Train size={22} color="#64748B" style={styles.inputIcon} />
+          <Train size={22} color="#525861ff" style={styles.inputIcon} />
           <TextInput
             style={styles.textInput}
             value={pnrNumber}
@@ -339,6 +343,12 @@ export default function PNRChecker() {
           <Text style={styles.BoardingInfo}>
             Boarding Point : {pnrData.boardingPoint}
           </Text>
+          <Text style={styles.BookingQuota}>
+            Booking Quata : {pnrData.quota}
+          </Text>
+          <Text style={styles.TicketFare}>
+            Ticket Fare : {pnrData.ticketFare} INR
+          </Text>
 
           {/* Passenger List */}
           {pnrData.passengerList?.map((passenger, index) => (
@@ -355,7 +365,7 @@ export default function PNRChecker() {
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Current Status : </Text>
+                <Text style={styles.detailLabel}>Current Status   : </Text>
                 <Text
                   style={[
                     styles.detailValue,
@@ -367,16 +377,23 @@ export default function PNRChecker() {
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Coach</Text>
+                <Text style={styles.detailLabel}>Coach                : </Text>
                 <Text style={styles.detailValue}>
-                  {passenger.currentCoachId || '-'}
+                  {passenger.currentCoachId || passenger.bookingCoachId || '    -'}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Berth</Text>
+                <Text style={styles.detailLabel}>Berth                 : </Text>
                 <Text style={styles.detailValue}>
-                  {passenger.currentBerthNo || '-'}
+                  {passenger.currentBerthNo || passenger.bookingBerthCode ||'     -'}
+                </Text>
+              </View>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Seat                    : </Text>
+                <Text style={styles.detailValue}>
+                  {passenger.currentBerthNo || passenger.bookingBerthNo ||'     -'}
                 </Text>
               </View>
             </View>
@@ -547,13 +564,15 @@ const styles = StyleSheet.create({
   pnrHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: 12,
   },
   pnrNumber: {
     fontSize: 20,
     fontWeight: '700',
+    marginTop: 28,
     color: '#1E293B',
+    fontFamily: 'Poppins-Bold',
   },
   statusBadge: {
     backgroundColor: '#059669',
@@ -582,6 +601,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   BoardingInfo: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  BookingQuota: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  TicketFare: {
     fontSize: 14,
     color: '#64748B',
     marginBottom: 24,

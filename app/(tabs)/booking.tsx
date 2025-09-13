@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, Brain as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { Calendar, Clock, TrainFrontIcon as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -19,6 +19,7 @@ type SavedPNR = {
     age: number;
     status: string;
     coach: string;
+    berth : string;
     seat: string;
   }[];
   lastChecked: string;
@@ -40,14 +41,15 @@ type APIResponse = {
     journeyClass: string;
     numberOfpassenger: number;
     chartStatus: string;
-    passengers: {
+    passengerList: {
       passengerSerialNumber: number;
       passengerName: string;
       passengerAge: number;
       passengerGender: string;
       passengerStatus: string;
-      passengerCoach: string;
-      passengerSeatNumber: number;
+      bookingCoachId: string;
+      bookingBerthNo: number;
+      bookingBerthCode : string,
       passengerQuota: string;
     }[];
     bookingFare: number;
@@ -174,12 +176,14 @@ export default function BookingScreen() {
           journeyClass: response.data.journeyClass,
           boardingPoint: response.data.boardingPoint,
           passengers: response.data.passengerList?.map(p => ({
-            name: '',
-            age: 0,
-            status: p.currentStatus || p.bookingStatus || 'Unknown',
-            coach: p.currentCoachId || '-',
-            seat: p.currentBerthNo?.toString() || '-',
+            name: p.passengerName || '-',
+            age: p.passengerAge || 0,
+            status: p.passengerStatus || 'Unknown',
+            coach: p.bookingCoachId || '-',
+            seat: p.bookingBerthNo?.toString() || '-',
+            berth : p.bookingBerthCode || '-'
           })) || [],
+
           lastChecked: new Date().toLocaleString(),
           isRefreshing: false,
         };
@@ -263,7 +267,7 @@ const confirmDeletePNR = async () => {
   const handleViewDetails = (pnr: SavedPNR) => {
     const primaryPassenger = pnr.passengers[0];
     const passengerInfo = primaryPassenger 
-      ? `Passenger: ${primaryPassenger.name}\nStatus: ${primaryPassenger.status}\nCoach: ${primaryPassenger.coach}, Seat: ${primaryPassenger.seat}`
+      ? `Passenger: ${primaryPassenger.name}\nStatus: ${primaryPassenger.status}\nCoach: ${primaryPassenger.coach},Berth: ${primaryPassenger.berth} Seat: ${primaryPassenger.seat}`
       : 'No passenger information available';
 
     Alert.alert(
