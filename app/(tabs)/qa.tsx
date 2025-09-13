@@ -2,7 +2,13 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { useState, useEffect } from 'react';
 import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X } from 'lucide-react-native';
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+type UserVote = {
+  questionId?: string;
+  answerId?: string;
+  voteType: 'like' | 'dislike';
+};
 export default function QAScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -13,6 +19,7 @@ export default function QAScreen() {
   const [totalAnswers, setTotalAnswers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
@@ -24,6 +31,45 @@ export default function QAScreen() {
   const [answerContent, setAnswerContent] = useState('');
   const [answerAuthor, setAnswerAuthor] = useState('');
 
+  // Load user votes from storage
+  const loadUserVotes = async () => {
+    try {
+      const savedVotes = await AsyncStorage.getItem('userVotes');
+      if (savedVotes) {
+        setUserVotes(JSON.parse(savedVotes));
+      }
+    } catch (error) {
+      console.error('Error loading user votes:', error);
+    }
+  };
+
+  // Save user votes to storage
+  const saveUserVotes = async (votes: UserVote[]) => {
+    try {
+      await AsyncStorage.setItem('userVotes', JSON.stringify(votes));
+      setUserVotes(votes);
+    } catch (error) {
+      console.error('Error saving user votes:', error);
+    }
+  };
+
+  // Check if user has voted on a question/answer
+  const getUserVote = (questionId: string, answerId?: string): 'like' | 'dislike' | null => {
+    const vote = userVotes.find(v => 
+      v.questionId === questionId && v.answerId === answerId
+    );
+    return vote ? vote.voteType : null;
+  };
+
+  // Check if user has liked a question/answer
+  const hasUserLiked = (questionId: string, answerId?: string): boolean => {
+    return getUserVote(questionId, answerId) === 'like';
+  };
+
+  // Check if user has disliked a question/answer
+  const hasUserDisliked = (questionId: string, answerId?: string): boolean => {
+    return getUserVote(questionId, answerId) === 'dislike';
+  };
   // Load questions from Supabase
   const loadQuestions = async () => {
     try {
@@ -41,6 +87,7 @@ export default function QAScreen() {
   };
 
   useEffect(() => {
+    loadUserVotes();
     loadQuestions();
 
     // Subscribe to real-time updates
@@ -57,26 +104,61 @@ export default function QAScreen() {
 
   const handleLike = async (questionId: string, answerId?: string) => {
     try {
+      const currentVote = getUserVote(questionId, answerId);
+      let newVotes = [...userVotes];
+      
+      // Remove existing vote if any
+      newVotes = newVotes.filter(v => !(v.questionId === questionId && v.answerId === answerId));
+      
       if (answerId) {
         // Like/unlike answer
         const question = questions.find(q => q.id === questionId);
         const answer = question?.answers?.find(a => a.id === answerId);
         if (!answer) return;
 
-        const newLikes = answer.likes + 1;
-        const newDislikes = answer.dislikes;
+        let newLikes = answer.likes;
+        let newDislikes = answer.dislikes;
         
+        if (currentVote === 'like') {
+          // Remove like
+          newLikes = Math.max(0, answer.likes - 1);
+        } else {
+          // Add like
+          newLikes = answer.likes + 1;
+          // Remove dislike if it exists
+          if (currentVote === 'dislike') {
+            newDislikes = Math.max(0, answer.dislikes - 1);
+          }
+          // Add new vote
+          newVotes.push({ questionId, answerId, voteType: 'like' });
+        }
         await qaService.updateAnswerLikes(answerId, newLikes, newDislikes);
       } else {
         // Like/unlike question
         const question = questions.find(q => q.id === questionId);
         if (!question) return;
 
-        const newLikes = question.likes + 1;
-        const newDislikes = question.dislikes;
+        let newLikes = question.likes;
+        let newDislikes = question.dislikes;
         
+        if (currentVote === 'like') {
+          // Remove like
+          newLikes = Math.max(0, question.likes - 1);
+        } else {
+          // Add like
+          newLikes = question.likes + 1;
+          // Remove dislike if it exists
+          if (currentVote === 'dislike') {
+            newDislikes = Math.max(0, question.dislikes - 1);
+          }
+          // Add new vote
+          newVotes.push({ questionId, voteType: 'like' });
+        }
         await qaService.updateQuestionLikes(questionId, newLikes, newDislikes);
       }
+      
+      // Save updated votes
+      await saveUserVotes(newVotes);
       
       // Reload questions to get updated data
       await loadQuestions();
@@ -88,26 +170,61 @@ export default function QAScreen() {
 
   const handleDislike = async (questionId: string, answerId?: string) => {
     try {
+      const currentVote = getUserVote(questionId, answerId);
+      let newVotes = [...userVotes];
+      
+      // Remove existing vote if any
+      newVotes = newVotes.filter(v => !(v.questionId === questionId && v.answerId === answerId));
+      
       if (answerId) {
         // Dislike answer
         const question = questions.find(q => q.id === questionId);
         const answer = question?.answers?.find(a => a.id === answerId);
         if (!answer) return;
 
-        const newLikes = answer.likes;
-        const newDislikes = answer.dislikes + 1;
+        let newLikes = answer.likes;
+        let newDislikes = answer.dislikes;
         
+        if (currentVote === 'dislike') {
+          // Remove dislike
+          newDislikes = Math.max(0, answer.dislikes - 1);
+        } else {
+          // Add dislike
+          newDislikes = answer.dislikes + 1;
+          // Remove like if it exists
+          if (currentVote === 'like') {
+            newLikes = Math.max(0, answer.likes - 1);
+          }
+          // Add new vote
+          newVotes.push({ questionId, answerId, voteType: 'dislike' });
+        }
         await qaService.updateAnswerLikes(answerId, newLikes, newDislikes);
       } else {
         // Dislike question
         const question = questions.find(q => q.id === questionId);
         if (!question) return;
 
-        const newLikes = question.likes;
-        const newDislikes = question.dislikes + 1;
+        let newLikes = question.likes;
+        let newDislikes = question.dislikes;
         
+        if (currentVote === 'dislike') {
+          // Remove dislike
+          newDislikes = Math.max(0, question.dislikes - 1);
+        } else {
+          // Add dislike
+          newDislikes = question.dislikes + 1;
+          // Remove like if it exists
+          if (currentVote === 'like') {
+            newLikes = Math.max(0, question.likes - 1);
+          }
+          // Add new vote
+          newVotes.push({ questionId, voteType: 'dislike' });
+        }
         await qaService.updateQuestionLikes(questionId, newLikes, newDislikes);
       }
+      
+      // Save updated votes
+      await saveUserVotes(newVotes);
       
       // Reload questions to get updated data
       await loadQuestions();
@@ -310,18 +427,30 @@ export default function QAScreen() {
 
               <View style={styles.questionActions}>
                 <TouchableOpacity 
-                  style={styles.actionButton}
+                  style={[
+                    styles.actionButton,
+                    hasUserLiked(question.id) && styles.actionButtonActive
+                  ]}
                   onPress={() => handleLike(question.id)}
                 >
-                  <ThumbsUp size={16} color="#64748B" />
+                  <ThumbsUp 
+                    size={16} 
+                    color={hasUserLiked(question.id) ? "#2563EB" : "#64748B"} 
+                  />
                   <Text style={styles.actionText}>{question.likes}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                  style={styles.actionButton}
+                  style={[
+                    styles.actionButton,
+                    hasUserDisliked(question.id) && styles.actionButtonActive
+                  ]}
                   onPress={() => handleDislike(question.id)}
                 >
-                  <ThumbsDown size={16} color="#64748B" />
+                  <ThumbsDown 
+                    size={16} 
+                    color={hasUserDisliked(question.id) ? "#DC2626" : "#64748B"} 
+                  />
                   <Text style={styles.actionText}>{question.dislikes}</Text>
                 </TouchableOpacity>
 
@@ -362,17 +491,29 @@ export default function QAScreen() {
                       <Text style={styles.answerContent}>{answer.content}</Text>
                       <View style={styles.answerActions}>
                         <TouchableOpacity 
-                          style={styles.actionButtonSmall}
+                          style={[
+                            styles.actionButtonSmall,
+                            hasUserLiked(question.id, answer.id) && styles.actionButtonSmallActive
+                          ]}
                           onPress={() => handleLike(question.id, answer.id)}
                         >
-                          <ThumbsUp size={14} color="#64748B" />
+                          <ThumbsUp 
+                            size={14} 
+                            color={hasUserLiked(question.id, answer.id) ? "#2563EB" : "#64748B"} 
+                          />
                           <Text style={styles.actionTextSmall}>{answer.likes}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                          style={styles.actionButtonSmall}
+                          style={[
+                            styles.actionButtonSmall,
+                            hasUserDisliked(question.id, answer.id) && styles.actionButtonSmallActive
+                          ]}
                           onPress={() => handleDislike(question.id, answer.id)}
                         >
-                          <ThumbsDown size={14} color="#64748B" />
+                          <ThumbsDown 
+                            size={14} 
+                            color={hasUserDisliked(question.id, answer.id) ? "#DC2626" : "#64748B"} 
+                          />
                           <Text style={styles.actionTextSmall}>{answer.dislikes}</Text>
                         </TouchableOpacity>
                       </View>
@@ -745,6 +886,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: '#F8FAFC',
   },
+  actionButtonActive: {
+    backgroundColor: '#EBF4FF',
+  },
   actionText: {
     fontSize: 12,
     color: '#64748B',
@@ -804,6 +948,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     backgroundColor: '#FFFFFF',
+  },
+  actionButtonSmallActive: {
+    backgroundColor: '#EBF4FF',
   },
   actionTextSmall: {
     fontSize: 11,
