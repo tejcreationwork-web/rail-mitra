@@ -21,6 +21,7 @@ export default function QAScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   const [userQuestions, setUserQuestions] = useState<string[]>([]);
+  const [showQuestionOptions, setShowQuestionOptions] = useState<string | null>(null);
   
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
