@@ -112,6 +112,17 @@ export const qaService = {
     }
   },
 
+  // Delete a question (and all its answers due to CASCADE)
+  async deleteQuestion(questionId: string): Promise<void> {
+    const { error } = await supabase
+      .from('questions')
+      .delete()
+      .eq('id', questionId);
+
+    if (error) {
+      throw new Error(`Failed to delete question: ${error.message}`);
+    }
+  },
   // Subscribe to real-time changes
   subscribeToQuestions(callback: (questions: Question[]) => void) {
     return supabase

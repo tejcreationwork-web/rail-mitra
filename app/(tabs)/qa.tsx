@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
-import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X } from 'lucide-react-native';
+import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoreVertical } from 'lucide-react-native';
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -20,6 +20,8 @@ export default function QAScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
+  const [userQuestions, setUserQuestions] = useState<string[]>([]);
+  const [showQuestionOptions, setShowQuestionOptions] = useState<string | null>(null);
   
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
@@ -43,6 +45,27 @@ export default function QAScreen() {
     }
   };
 
+  // Load user's posted questions from storage
+  const loadUserQuestions = async () => {
+    try {
+      const savedQuestions = await AsyncStorage.getItem('userQuestions');
+      if (savedQuestions) {
+        setUserQuestions(JSON.parse(savedQuestions));
+      }
+    } catch (error) {
+      console.error('Error loading user questions:', error);
+    }
+  };
+
+  // Save user's posted questions to storage
+  const saveUserQuestions = async (questionIds: string[]) => {
+    try {
+      await AsyncStorage.setItem('userQuestions', JSON.stringify(questionIds));
+      setUserQuestions(questionIds);
+    } catch (error) {
+      console.error('Error saving user questions:', error);
+    }
+  };
   // Save user votes to storage
   const saveUserVotes = async (votes: UserVote[]) => {
     try {
@@ -71,6 +94,10 @@ export default function QAScreen() {
     return getUserVote(questionId, answerId) === 'dislike';
   };
   // Load questions from Supabase
+  // Check if user can delete a question (they posted it)
+  const canDeleteQuestion = (questionId: string): boolean => {
+    return userQuestions.includes(questionId);
+  };
   const loadQuestions = async () => {
     try {
       setIsLoading(true);
@@ -88,6 +115,7 @@ export default function QAScreen() {
 
   useEffect(() => {
     loadUserVotes();
+    loadUserQuestions();
     loadQuestions();
 
     // Subscribe to real-time updates
@@ -241,6 +269,41 @@ export default function QAScreen() {
     ]);
   };
 
+  const handleDeleteQuestion = async (questionId: string) => {
+    Alert.alert(
+      'Delete Question',
+      'Are you sure you want to delete this question? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await qaService.deleteQuestion(questionId);
+              
+              // Remove from user's posted questions
+              const updatedUserQuestions = userQuestions.filter(id => id !== questionId);
+              await saveUserQuestions(updatedUserQuestions);
+              
+              // Remove any votes for this question
+              const updatedVotes = userVotes.filter(vote => vote.questionId !== questionId);
+              await saveUserVotes(updatedVotes);
+              
+              setShowQuestionOptions(null);
+              Alert.alert('Success', 'Question deleted successfully');
+              
+              // Reload questions
+              await loadQuestions();
+            } catch (error) {
+              console.error('Error deleting question:', error);
+              Alert.alert('Error', 'Failed to delete question. Please try again.');
+            }
+          },
+        },
+      ]
+    );
+  };
   const handleCreateQuestion = async () => {
     if (!questionTitle.trim() || !questionContent.trim() || !authorName.trim()) {
       Alert.alert('Error', 'Please fill in all required fields');
@@ -249,13 +312,16 @@ export default function QAScreen() {
 
     setIsSubmitting(true);
     try {
-      await qaService.createQuestion({
+      const newQuestion = await qaService.createQuestion({
         title: questionTitle.trim(),
         content: questionContent.trim(),
         author: authorName.trim(),
         tags: questionTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
       });
 
+      // Add this question to user's posted questions
+      const updatedUserQuestions = [...userQuestions, newQuestion.id];
+      await saveUserQuestions(updatedUserQuestions);
       // Reset form
       setQuestionTitle('');
       setQuestionContent('');
@@ -410,8 +476,27 @@ export default function QAScreen() {
                     </View>
                   </View>
                 </View>
+                {canDeleteQuestion(question.id) && (
+                  <TouchableOpacity
+                    style={styles.optionsButton}
+                    onPress={() => setShowQuestionOptions(showQuestionOptions === question.id ? null : question.id)}
+                  >
+                    <MoreVertical size={20} color="#64748B" />
+                  </TouchableOpacity>
+                )}
               </View>
 
+              {showQuestionOptions === question.id && canDeleteQuestion(question.id) && (
+                <View style={styles.optionsMenu}>
+                  <TouchableOpacity
+                    style={styles.deleteOption}
+                    onPress={() => handleDeleteQuestion(question.id)}
+                  >
+                    <Trash2 size={16} color="#DC2626" />
+                    <Text style={styles.deleteOptionText}>Delete Question</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               <Text style={styles.questionTitle}>{question.title}</Text>
               <Text style={styles.questionContent}>{question.content}</Text>
 
@@ -1023,6 +1108,35 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
+  },
+  optionsButton: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  optionsMenu: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  deleteOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  deleteOptionText: {
+    fontSize: 14,
+    color: '#DC2626',
     fontWeight: '600',
     marginLeft: 8,
     fontFamily: 'Inter-SemiBold',
