@@ -21,7 +21,6 @@ export default function QAScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   const [userQuestions, setUserQuestions] = useState<string[]>([]);
-  const [showQuestionOptions, setShowQuestionOptions] = useState<string | null>(null);
   
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
@@ -290,7 +289,6 @@ export default function QAScreen() {
               const updatedVotes = userVotes.filter(vote => vote.questionId !== questionId);
               await saveUserVotes(updatedVotes);
               
-              setShowQuestionOptions(null);
               Alert.alert('Success', 'Question deleted successfully');
               
               // Reload questions
@@ -885,11 +883,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   questionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
   },
   authorInfo: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   avatar: {
     width: 32,
@@ -1112,33 +1114,9 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontFamily: 'Inter-SemiBold',
   },
-  optionsButton: {
+  deleteButton: {
     padding: 8,
     borderRadius: 8,
-  },
-  optionsMenu: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  deleteOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  deleteOptionText: {
-    fontSize: 14,
-    color: '#DC2626',
-    fontWeight: '600',
-    marginLeft: 8,
-    fontFamily: 'Inter-SemiBold',
+    backgroundColor: '#FEF2F2',
   },
 });
