@@ -46,7 +46,7 @@ export default function HomeScreen() {
           <Text style={styles.headerTitle}>RailEase</Text>
         </View>
         <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
-        <Text style={styles.accessNote}>🚀 Access PNR status, station layouts, and train schedules with ease</Text>
+        <Text style={styles.accessNote}>🚀 Your smart companion for PNR, stations, and train journeys.</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -89,9 +89,9 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    paddingTop: 50,
+    paddingTop: 15,
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 8,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
