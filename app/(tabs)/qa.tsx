@@ -486,15 +486,12 @@ export default function QAScreen() {
               </View>
 
               {showQuestionOptions === question.id && canDeleteQuestion(question.id) && (
-                <View style={styles.optionsMenu}>
-                  <TouchableOpacity
-                    style={styles.deleteOption}
-                    onPress={() => handleDeleteQuestion(question.id)}
-                  >
-                    <Trash2 size={16} color="#DC2626" />
-                    <Text style={styles.deleteOptionText}>Delete Question</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteQuestion(question.id)}
+                >
+                  <Trash2 size={18} color="#DC2626" />
+                </TouchableOpacity>
               )}
               <Text style={styles.questionTitle}>{question.title}</Text>
               <Text style={styles.questionContent}>{question.content}</Text>
@@ -1086,34 +1083,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 16,
-    color: '#1E293B',
-    backgroundColor: '#FFFFFF',
-    fontFamily: 'Inter-Regular',
-  },
-  textArea: {
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  submitButton: {
-    backgroundColor: '#2563EB',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
+  deleteButton: {
+    padding: 8,
+    backgroundColor: '#FEF2F2',
     borderRadius: 8,
-    marginTop: 32,
-    marginBottom: 40,
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#94A3B8',
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-    fontFamily: 'Inter-SemiBold',
   },
   deleteButton: {
     padding: 8,
