@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { Calendar, Clock, Brain as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
@@ -63,6 +63,8 @@ type APIResponse = {
 export default function BookingScreen() {
   const [savedPNRs, setSavedPNRs] = useState<SavedPNR[]>([]);
   const [expandedPNRs, setExpandedPNRs] = useState<Set<string>>(new Set());
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [selectedPNR, setSelectedPNR] = useState<string | null>(null);
 
   // Load saved PNRs from storage
   const loadSavedPNRs = async () => {
@@ -234,35 +236,25 @@ export default function BookingScreen() {
     }, 2000);
   };
 
-  const handleDeletePNR = (pnrId: string) => {
-    Alert.alert(
-      'Delete PNR',
-      'Are you sure you want to remove this PNR from your saved list?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Filter out the PNR to delete
-              const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== pnrId);
-              
-              // Update state immediately
-              setSavedPNRs(updatedPNRs);
-              
-              // Save to AsyncStorage
-              await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
-            } catch (error) {
-              Alert.alert('Error', 'Failed to delete PNR. Please try again.');
-              // Reload data on error
-              loadSavedPNRs();
-            }
-          },
-        },
-      ]
-    );
-  };
+const openDeleteModal = (pnrId: string) => {
+  setSelectedPNR(pnrId);
+  setDeleteModalVisible(true);
+};
+
+const confirmDeletePNR = async () => {
+  if (!selectedPNR) return;
+
+  try {
+    const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== selectedPNR);
+    setSavedPNRs(updatedPNRs);
+    await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+  } catch (error) {
+    console.error('Failed to delete PNR:', error);
+  }
+
+  setDeleteModalVisible(false);
+  setSelectedPNR(null);
+};
 
   const handleAddNewPNR = () => {
     router.push('/pnr-checker');
@@ -322,91 +314,37 @@ export default function BookingScreen() {
         </View>
 
         {savedPNRs.map((booking) => (
-          <TouchableOpacity
-            key={booking.id}
-            style={styles.bookingCard}
-            onPress={() => handleViewDetails(booking)}
-          >
-            <View style={styles.pnrHeader}>
-              <Text style={styles.pnrNumber}>PNR: {booking.pnr}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || '') }]}>
-                <CheckCircle size={14} color="#FFFFFF" />
-                <Text style={styles.statusText}>
-                  {formatStatus(booking.passengers[0]?.status || 'Unknown')}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={styles.trainInfo}>
-              {booking.trainNumber} - {booking.trainName}
-            </Text>
-            <Text style={styles.classInfo}>
-              Class: {booking.journeyClass} | Date: {booking.date}
-            </Text>
-            <Text style={styles.boardingInfo}>
-              Boarding: {booking.boardingPoint}
-            </Text>
-
-            <View style={styles.passengersContainer}>
-              <Text style={styles.sectionTitle}>Passenger Details</Text>
-              
-              {/* First passenger - always shown */}
-              <View style={styles.passengerCard}>
-                <Text style={styles.passengerTitle}>
-                  Passenger 1
-                </Text>
-                
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Status : </Text>
-                  <Text
-                    style={[
-                      styles.detailValue,
-                      { color: getStatusColor(booking.passengers[0]?.status || '') },
-                    ]}
-                  >
+          <View key={booking.id} style={styles.bookingCard}>
+            <TouchableOpacity
+              onPress={() => handleViewDetails(booking)}
+            >
+              <View style={styles.pnrHeader}>
+                <Text style={styles.pnrNumber}>PNR: {booking.pnr}</Text>
+                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || '') }]}>
+                  <CheckCircle size={14} color="#FFFFFF" />
+                  <Text style={styles.statusText}>
                     {formatStatus(booking.passengers[0]?.status || 'Unknown')}
                   </Text>
                 </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Coach : </Text>
-                  <Text style={styles.detailValue}>
-                    {booking.passengers[0]?.coach || '-'}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Seat : </Text>
-                  <Text style={styles.detailValue}>
-                    {booking.passengers[0]?.seat || '-'}
-                  </Text>
-                </View>
               </View>
 
-              {/* Toggle button for multiple passengers */}
-              {booking.passengers.length > 1 && (
-                <TouchableOpacity
-                  style={styles.toggleButton}
-                  onPress={() => toggleExpanded(booking.id)}
-                >
-                  <Text style={styles.toggleText}>
-                    {expandedPNRs.has(booking.id) 
-                      ? `Hide ${booking.passengers.length - 1} other passengers` 
-                      : `Show ${booking.passengers.length - 1} more passengers`}
-                  </Text>
-                  {expandedPNRs.has(booking.id) ? (
-                    <ChevronUp size={16} color="#2563EB" />
-                  ) : (
-                    <ChevronDown size={16} color="#2563EB" />
-                  )}
-                </TouchableOpacity>
-              )}
+              <Text style={styles.trainInfo}>
+                {booking.trainNumber} - {booking.trainName}
+              </Text>
+              <Text style={styles.classInfo}>
+                Class: {booking.journeyClass} | Date: {booking.date}
+              </Text>
+              <Text style={styles.boardingInfo}>
+                Boarding: {booking.boardingPoint}
+              </Text>
 
-              {/* Additional passengers - shown when expanded */}
-              {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
-                <View key={index} style={styles.passengerCard}>
+              <View style={styles.passengersContainer}>
+                <Text style={styles.sectionTitle}>Passenger Details</Text>
+                
+                {/* First passenger - always shown */}
+                <View style={styles.passengerCard}>
                   <Text style={styles.passengerTitle}>
-                    Passenger {index + 2}
+                    Passenger 1
                   </Text>
                   
                   <View style={styles.detailRow}>
@@ -414,57 +352,111 @@ export default function BookingScreen() {
                     <Text
                       style={[
                         styles.detailValue,
-                        { color: getStatusColor(passenger.status || '') },
+                        { color: getStatusColor(booking.passengers[0]?.status || '') },
                       ]}
                     >
-                      {formatStatus(passenger.status || 'Unknown')}
+                      {formatStatus(booking.passengers[0]?.status || 'Unknown')}
                     </Text>
                   </View>
 
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Coach : </Text>
                     <Text style={styles.detailValue}>
-                      {passenger.coach || '-'}
+                      {booking.passengers[0]?.coach || '-'}
                     </Text>
                   </View>
 
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Seat : </Text>
                     <Text style={styles.detailValue}>
-                      {passenger.seat || '-'}
+                      {booking.passengers[0]?.seat || '-'}
                     </Text>
                   </View>
                 </View>
-              ))}
-            </View>
 
-            {/* Journey Details */}
-            <View style={styles.journeyContainer}>
-              <Text style={styles.journeyTitle}>Journey Details</Text>
-              <View style={styles.journeyRow}>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={30} color="#153cb9ff" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>From</Text>
-                    <Text style={styles.journeyValue}>
-                      {booking.from}
+                {/* Toggle button for multiple passengers */}
+                {booking.passengers.length > 1 && (
+                  <TouchableOpacity
+                    style={styles.toggleButton}
+                    onPress={() => toggleExpanded(booking.id)}
+                  >
+                    <Text style={styles.toggleText}>
+                      {expandedPNRs.has(booking.id) 
+                        ? `Hide ${booking.passengers.length - 1} other passengers` 
+                        : `Show ${booking.passengers.length - 1} more passengers`}
                     </Text>
+                    {expandedPNRs.has(booking.id) ? (
+                      <ChevronUp size={16} color="#2563EB" />
+                    ) : (
+                      <ChevronDown size={16} color="#2563EB" />
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                {/* Additional passengers - shown when expanded */}
+                {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
+                  <View key={index} style={styles.passengerCard}>
+                    <Text style={styles.passengerTitle}>
+                      Passenger {index + 2}
+                    </Text>
+                    
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Status : </Text>
+                      <Text
+                        style={[
+                          styles.detailValue,
+                          { color: getStatusColor(passenger.status || '') },
+                        ]}
+                      >
+                        {formatStatus(passenger.status || 'Unknown')}
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Coach : </Text>
+                      <Text style={styles.detailValue}>
+                        {passenger.coach || '-'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Seat : </Text>
+                      <Text style={styles.detailValue}>
+                        {passenger.seat || '-'}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <View style={styles.journeyArrow}>
-                  <Text style={styles.arrowText}>→</Text>
-                </View>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={30} color="#DC2626" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>To</Text>
-                    <Text style={styles.journeyValue}>
-                      {booking.to}
-                    </Text>
+                ))}
+              </View>
+
+              {/* Journey Details */}
+              <View style={styles.journeyContainer}>
+                <Text style={styles.journeyTitle}>Journey Details</Text>
+                <View style={styles.journeyRow}>
+                  <View style={styles.journeyPoint}>
+                    <MapPin size={30} color="#153cb9ff" />
+                    <View style={styles.journeyInfo}>
+                      <Text style={styles.journeyLabel}>From</Text>
+                      <Text style={styles.journeyValue}>
+                        {booking.from}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.journeyArrow}>
+                    <Text style={styles.arrowText}>→</Text>
+                  </View>
+                  <View style={styles.journeyPoint}>
+                    <MapPin size={30} color="#DC2626" />
+                    <View style={styles.journeyInfo}>
+                      <Text style={styles.journeyLabel}>To</Text>
+                      <Text style={styles.journeyValue}>
+                        {booking.to}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
 
             <View style={styles.actionBar}>
               <Text style={styles.lastChecked}>Last checked: {booking.lastChecked}</Text>
@@ -474,24 +466,58 @@ export default function BookingScreen() {
                   onPress={() => handleRefreshPNR(booking.id)}
                   disabled={booking.isRefreshing}
                 >
-                  <RefreshCw 
-                    size={16} 
-                    color={booking.isRefreshing ? "#94A3B8" : "#2563EB"} 
-                  />
+                  <RefreshCw size={16} color={booking.isRefreshing ? "#94A3B8" : "#2563EB"} />
                   <Text style={[styles.actionButtonText, booking.isRefreshing && styles.actionButtonTextDisabled]}>
                     {booking.isRefreshing ? 'Refreshing...' : 'Refresh'}
                   </Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() => handleDeletePNR(booking.id)}
+                  onPress={() => openDeleteModal(booking.id)}
                   activeOpacity={0.7}
                 >
                   <Trash2 size={16} color="#DC2626" />
                 </TouchableOpacity>
               </View>
             </View>
-          </TouchableOpacity>
+            <Modal
+              animationType="fade"
+              transparent
+              visible={deleteModalVisible}
+              onRequestClose={() => setDeleteModalVisible(false)}
+            >
+              <View style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0,0,0,0.5)',
+              }}>
+                <View style={{
+                  backgroundColor: '#fff',
+                  padding: 20,
+                  borderRadius: 12,
+                  width: '80%',
+                }}>
+                  <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>
+                    Delete PNR
+                  </Text>
+                  <Text style={{ marginBottom: 24 }}>
+                    Are you sure you want to remove this PNR from your saved list?
+                  </Text>
+
+                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+                    <Pressable onPress={() => setDeleteModalVisible(false)}>
+                      <Text style={{ color: '#2563EB', fontWeight: '600' }}>Cancel</Text>
+                    </Pressable>
+                    <Pressable onPress={confirmDeletePNR}>
+                      <Text style={{ color: '#DC2626', fontWeight: '600' }}>Delete</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          </View>
         ))}
 
         {savedPNRs.length === 0 && (
