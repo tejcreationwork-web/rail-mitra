@@ -388,7 +388,6 @@ export default function QAScreen() {
   const closeAnswersView = () => {
     setShowAnswersView(false);
     setSelectedQuestion(null);
-    setSelectedQuestionId(null);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -440,6 +439,7 @@ export default function QAScreen() {
                   <View style={styles.timestampContainer}>
                     <Clock size={12} color="#94A3B8" />
                     <Text style={styles.timestamp}>{formatTimestamp(selectedQuestion.created_at)}</Text>
+                  </View>
                   </View>
                 </View>
               </View>
@@ -497,7 +497,7 @@ export default function QAScreen() {
           <View style={styles.addAnswerContainer}>
             <TouchableOpacity 
               style={styles.addAnswerButton}
-              onPress={() => setShowAnswerModal(true)}
+              onPress={() => openAnswerModal(selectedQuestion.id)}
               activeOpacity={0.7}
             >
               <Plus size={16} color="#FFFFFF" />
@@ -704,7 +704,13 @@ export default function QAScreen() {
 
                 <TouchableOpacity 
                   style={styles.actionButton}
-                  onPress={() => openAnswersView(question)}
+                  onPress={() => {
+                    if (question.answers && question.answers.length > 0) {
+                      openAnswersView(question);
+                    } else {
+                      openAnswerModal(question.id);
+                    }
+                  }}
                 >
                   <MessageSquare size={16} color="#64748B" />
                   <Text style={styles.actionText}>{question.answers?.length || 0}</Text>
@@ -712,10 +718,10 @@ export default function QAScreen() {
 
                 <TouchableOpacity 
                   style={styles.actionButton}
-                  onPress={() => handleShare(question)}
+                  onPress={() => openAnswerModal(question.id)}
                 >
-                  <Share size={16} color="#64748B" />
-                  <Text style={styles.actionText}>Share</Text>
+                  <Plus size={16} color="#64748B" />
+                  <Text style={styles.actionText}>Answer</Text>
                 </TouchableOpacity>
               </View>
 
@@ -850,7 +856,11 @@ export default function QAScreen() {
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Add Answer</Text>
-            <TouchableOpacity onPress={() => setShowAnswerModal(false)}>
+            <TouchableOpacity onPress={() => {
+              setShowAnswerModal(false);
+              setAnswerContent('');
+              setAnswerAuthor('');
+            }}>
               <X size={24} color="#64748B" />
             </TouchableOpacity>
           </View>
