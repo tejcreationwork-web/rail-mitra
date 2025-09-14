@@ -3,10 +3,162 @@ import { useState } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, Search, TrainFront as Train, Clock, MapPin, RefreshCw as Refresh } from 'lucide-react-native';
 
+type StationData = {
+  stnNo: string;
+  stnName: string;
+  trainNoCc: string;
+  arrival: string | null;
+  departure: string;
+  noOfDays: number;
+  halts: number;
+  trainRemarks: string;
+  trainType: string;
+  dateEffFrom: string | null;
+  dateEffTo: string | null;
+  userId: string | null;
+};
+
+type TimetableData = {
+  trainNumber: string;
+  trainName: string;
+  runsOn: string;
+  stations: {
+    code: string;
+    name: string;
+    arrival: string;
+    departure: string;
+    halt: string;
+    distance: string;
+  }[];
+};
+
 export default function TrainTimetable() {
   const [trainNumber, setTrainNumber] = useState('');
-  const [timetableData, setTimetableData] = useState<any>(null);
+  const [timetableData, setTimetableData] = useState<TimetableData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTrainTimetable = async (trainNo: string): Promise<StationData[]> => {
+    // Determine category based on train number
+    const category = trainNo.startsWith('0') ? 'Special' : 'Regular';
+    
+    // Pad train number to 15 characters as shown in the example
+    const paddedTrainNo = trainNo.padEnd(15, ' ');
+    
+    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/json',
+        'Origin': 'https://wps.konkanrailway.com',
+        'Referer': 'https://wps.konkanrailway.com/Website_TrnSch/trainschedule',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
+        'URL-CHECK': '9942261d5fd1b0ccb3d60444fbcd57e9a444df6c0ac992d5d315a3e698d3428e',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36',
+        'sec-ch-ua': '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
+        'sec-ch-ua-mobile': '?1',
+        'sec-ch-ua-platform': '"Android"',
+      },
+      body: JSON.stringify({
+        'trainNoCc': paddedTrainNo,
+        'category': category
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('No timetable data found for this train number');
+    }
+
+    return data;
+  };
+
+  const formatTimetableData = (apiData: StationData[]): TimetableData => {
+    const firstStation = apiData[0];
+    
+    return {
+      trainNumber: firstStation.trainNoCc.trim(),
+      trainName: `Train ${firstStation.trainNoCc.trim()}`, // API doesn't provide train name
+      runsOn: firstStation.trainRemarks.trim(),
+      stations: apiData.map((station, index) => ({
+        code: station.stnNo.trim(),
+        name: station.stnName.trim(),
+        arrival: station.arrival || '---',
+        departure: station.departure,
+        halt: station.halts > 0 ? `${station.halts} min` : '---',
+        distance: `${index * 50} km`, // Approximate distance calculation
+      }))
+    };
+  };
+
+  const handleSearch = () => {
+    if (!trainNumber.trim()) return;
+    
+    setIsLoading(true);
+    setError(null);
+    setTimetableData(null);
+    
+    fetchTrainTimetable(trainNumber.trim())
+      .then((apiData) => {
+        const formattedData = formatTimetableData(apiData);
+        setTimetableData(formattedData);
+      })
+      .catch((err) => {
+        console.error('Error fetching timetable:', err);
+        setError(err.message || 'Failed to fetch train timetable');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  const clearData = () => {
+    setTimetableData(null);
+    setTrainNumber('');
+    setError(null);
+  };
+
+  const handleRefresh = () => {
+    if (trainNumber.trim()) {
+      handleSearch();
+    }
+  };
+
+  const formatTime = (time: string) => {
+    if (time === '---' || !time) return '---';
+    
+    // Handle time format from API (HH:MM:SS)
+    if (time.includes(':')) {
+      const parts = time.split(':');
+      return `${parts[0]}:${parts[1]}`;
+    }
+    
+    return time;
+  };
+
+  const calculateHalt = (arrival: string, departure: string) => {
+    if (!arrival || arrival === '---') return '---';
+    
+    try {
+      const arrTime = new Date(`1970-01-01T${arrival}`);
+      const depTime = new Date(`1970-01-01T${departure}`);
+      const diffMs = depTime.getTime() - arrTime.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      
+      return diffMins > 0 ? `${diffMins} min` : '---';
+    } catch {
+      return '---';
+    }
+  };
 
   const mockTimetableData = {
     trainNumber: '12951',
@@ -26,19 +178,16 @@ export default function TrainTimetable() {
     ]
   };
 
-  const handleSearch = () => {
+  const handleMockSearch = () => {
     if (!trainNumber.trim()) return;
     
     setIsLoading(true);
+    setError(null);
+    
     setTimeout(() => {
       setTimetableData({ ...mockTimetableData, trainNumber: trainNumber });
       setIsLoading(false);
     }, 1500);
-  };
-
-  const formatTime = (time: string) => {
-    if (time === '---') return time;
-    return time;
   };
 
   return (
@@ -50,7 +199,7 @@ export default function TrainTimetable() {
           <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Train Timetable</Text>
-        <TouchableOpacity style={styles.refreshButton}>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
           <Refresh size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -64,9 +213,14 @@ export default function TrainTimetable() {
               style={styles.textInput}
               value={trainNumber}
               onChangeText={setTrainNumber}
-              placeholder="12951"
+              placeholder="e.g. 12620, 01234"
               keyboardType="numeric"
             />
+            {trainNumber.length > 0 && (
+              <TouchableOpacity onPress={clearData}>
+                <Text style={styles.clearButton}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <TouchableOpacity 
             style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
@@ -78,7 +232,26 @@ export default function TrainTimetable() {
               {isLoading ? 'Loading...' : 'Search'}
             </Text>
           </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.mockButton]}
+            onPress={handleMockSearch}
+            disabled={isLoading}
+          >
+            <Text style={styles.mockButtonText}>Try Sample Data</Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Error Display */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>Error</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={handleSearch}>
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {timetableData && (
           <View style={styles.resultContainer}>
@@ -102,7 +275,7 @@ export default function TrainTimetable() {
             </View>
 
             <ScrollView style={styles.stationsContainer} showsVerticalScrollIndicator={true}>
-              {timetableData.stations.map((station: any, index: number) => (
+              {timetableData.stations.map((station, index: number) => (
                 <View key={index} style={styles.stationRow}>
                   <Text style={styles.stationCode}>{station.code}</Text>
                   <View style={styles.stationInfo}>
@@ -124,7 +297,7 @@ export default function TrainTimetable() {
 
             <View style={styles.updateInfo}>
               <Clock size={16} color="#64748B" />
-              <Text style={styles.updateText}>Last updated: 2022-02-11 01:41</Text>
+              <Text style={styles.updateText}>Last updated: {new Date().toLocaleString()}</Text>
             </View>
           </View>
         )}
@@ -214,6 +387,57 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
+  },
+  mockButton: {
+    backgroundColor: '#64748B',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  mockButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  clearButton: {
+    fontSize: 18,
+    color: '#64748B',
+    paddingHorizontal: 8,
+  },
+  errorContainer: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 24,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#DC2626',
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    color: '#DC2626',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: '#DC2626',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   resultContainer: {
     backgroundColor: '#FFFFFF',
