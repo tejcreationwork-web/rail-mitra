@@ -46,23 +46,42 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Pad train number with spaces to match expected format
+    const paddedTrainNo = trainNoCc.padEnd(15, ' ');
+    
+    const myHeaders = new Headers();
+    myHeaders.append("Accept", "application/json, text/plain, */*");
+    myHeaders.append("Accept-Language", "en-US,en;q=0.9");
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Origin", "https://wps.konkanrailway.com");
+    myHeaders.append("Referer", "https://wps.konkanrailway.com/Website_TrnSch/trainschedule");
+
+    const raw = JSON.stringify({
+      "trainNoCc": paddedTrainNo,
+      "category": category
+    });
+
     const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
       method: 'POST',
-      headers: {
-        'Accept': 'application/json, text/plain, */*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        trainNoCc,
-        category
-      })
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow"
     });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const result = await response.text();
+    
+    // Try to parse as JSON, if it fails return the text response
+    let data;
+    try {
+      data = JSON.parse(result);
+    } catch (parseError) {
+      // If it's not JSON, return the text response
+      data = { rawResponse: result };
+    }
 
     return new Response(
       JSON.stringify(data),
