@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
 import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical } from 'lucide-react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -10,6 +11,7 @@ type UserVote = {
   voteType: 'like' | 'dislike';
 };
 export default function QAScreen() {
+  const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -123,6 +125,19 @@ export default function QAScreen() {
     loadUserQuestions();
     loadQuestions();
 
+    // Check if we need to open a specific question's answers view
+    if (params.selectedQuestionId && params.openAnswersView === 'true') {
+      // Wait for questions to load, then open the specific question
+      const timer = setTimeout(() => {
+        const question = questions.find(q => q.id === params.selectedQuestionId);
+        if (question) {
+          openAnswersView(question);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+
     // Subscribe to real-time updates
     const subscription = qaService.subscribeToQuestions((updatedQuestions) => {
       setQuestions(updatedQuestions);
@@ -133,7 +148,17 @@ export default function QAScreen() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [params.selectedQuestionId, params.openAnswersView]);
+
+  // Effect to handle navigation to specific question after questions are loaded
+  useEffect(() => {
+    if (params.selectedQuestionId && params.openAnswersView === 'true' && questions.length > 0) {
+      const question = questions.find(q => q.id === params.selectedQuestionId);
+      if (question) {
+        openAnswersView(question);
+      }
+    }
+  }, [questions, params.selectedQuestionId, params.openAnswersView]);
 
   const handleLike = async (questionId: string, answerId?: string) => {
     try {
