@@ -89,7 +89,7 @@ export default function AccountScreen() {
       title: t('language', currentLanguage),
       subtitle: `${t('languageSubtitle', currentLanguage)} - ${getCurrentLanguageDisplay()}`,
       icon: Globe,
-      onPress: handleLanguageChange,
+      onPress: () => handleLanguageChange(),
     },
     {
       id: 'help',
