@@ -429,10 +429,11 @@ export default function QAScreen() {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Question Card */}
-          <View style={styles.questionCard}>
-            <View style={styles.questionHeader}>
-              <View style={styles.authorInfo}>
-                <View style={styles.avatar}>
+          <TouchableOpacity
+            style={styles.questionCard}
+            onPress={() => handleViewDetails(selectedQuestion)}
+            activeOpacity={0.7}
+          >
                   <User size={16} color="#FFFFFF" />
                 </View>
                 <View>
@@ -443,8 +444,7 @@ export default function QAScreen() {
                   </View>
                 </View>
               </View>
-            </View>
-
+          </TouchableOpacity>
             <Text style={styles.questionTitle}>{selectedQuestion.title}</Text>
             <Text style={styles.questionContent}>{selectedQuestion.content}</Text>
 
@@ -498,9 +498,8 @@ export default function QAScreen() {
           <View style={styles.addAnswerContainer}>
             <TouchableOpacity 
               style={styles.addAnswerButton}
-              onPress={() => {
-                setShowAnswerModal(true);
-              }}
+              onPress={() => setShowAnswerModal(true)}
+              activeOpacity={0.7}
             >
               <Plus size={16} color="#FFFFFF" />
               <Text style={styles.addAnswerButtonText}>Add Answer</Text>
