@@ -45,27 +45,17 @@ export default function TrainTimetable() {
     // Pad train number to 15 characters as shown in the example
     const paddedTrainNo = trainNo.padEnd(15, ' ');
     
-    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
+    const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/train-timetable`;
+    
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Accept': 'application/json, text/plain, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Connection': 'keep-alive',
+        'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
         'Content-Type': 'application/json',
-        'Origin': 'https://wps.konkanrailway.com',
-        'Referer': 'https://wps.konkanrailway.com/Website_TrnSch/trainschedule',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-origin',
-        'URL-CHECK': '9942261d5fd1b0ccb3d60444fbcd57e9a444df6c0ac992d5d315a3e698d3428e',
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36',
-        'sec-ch-ua': '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
-        'sec-ch-ua-mobile': '?1',
-        'sec-ch-ua-platform': '"Android"',
       },
       body: JSON.stringify({
-        'trainNoCc': paddedTrainNo,
-        'category': category
+        trainNoCc: paddedTrainNo,
+        category: category
       })
     });
 
@@ -74,6 +64,11 @@ export default function TrainTimetable() {
     }
 
     const data = await response.json();
+    
+    // Handle error response from edge function
+    if (data.error) {
+      throw new Error(data.error);
+    }
     
     if (!Array.isArray(data) || data.length === 0) {
       throw new Error('No timetable data found for this train number');
