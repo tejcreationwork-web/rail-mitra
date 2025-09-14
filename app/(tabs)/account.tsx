@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download } from 'lucide-react-native';
 import { useLanguage } from '@/hooks/useLanguage';
 import { t } from '@/lib/i18n';
@@ -14,6 +15,44 @@ export default function AccountScreen() {
     points: 1250,
   });
 
+  const getCurrentLanguageDisplay = () => {
+    switch (currentLanguage) {
+      case 'hi': return 'हिंदी (Hindi)';
+      case 'mr': return 'मराठी (Marathi)';
+      default: return 'English';
+    }
+  };
+
+  const handleLanguageChange = () => {
+    Alert.alert(
+      t('language', currentLanguage),
+      'Select Language / भाषा चुनें / भाषा निवडा:',
+      [
+        { 
+          text: 'English', 
+          onPress: async () => {
+            await changeLanguage('en');
+            Alert.alert('Language Changed', 'App language changed to English');
+          }
+        },
+        { 
+          text: 'हिंदी', 
+          onPress: async () => {
+            await changeLanguage('hi');
+            Alert.alert('भाषा बदली गई', 'ऐप की भाषा हिंदी में बदल दी गई');
+          }
+        },
+        { 
+          text: 'मराठी', 
+          onPress: async () => {
+            await changeLanguage('mr');
+            Alert.alert('भाषा बदलली', 'अॅपची भाषा मराठीत बदलली');
+          }
+        },
+        { text: t('cancel', currentLanguage), style: 'cancel' }
+      ]
+    );
+  };
   const accountOptions = [
     {
       id: 'bookings',
@@ -22,7 +61,7 @@ export default function AccountScreen() {
       icon: CreditCard,
       onPress: () => {
         // Navigate to bookings tab
-        Alert.alert(t('myBookingsAccount', currentLanguage), 'Navigating to your bookings...');
+        router.push('/(tabs)/booking');
       },
     },
     // {
@@ -42,28 +81,15 @@ export default function AccountScreen() {
       subtitle: t('appSettingsSubtitle', currentLanguage),
       icon: Settings,
       onPress: () => {
-        Alert.alert('App Settings', 'Theme: Light\nLanguage: English\nOffline mode: Disabled\nAuto-refresh: Enabled', [
-          { text: 'OK' }
-        ]);
+        router.push('/(tabs)/settings');
       },
     },
     {
       id: 'language',
       title: t('language', currentLanguage),
-      subtitle: t('languageSubtitle', currentLanguage),
+      subtitle: `${t('languageSubtitle', currentLanguage)} - ${getCurrentLanguageDisplay()}`,
       icon: Globe,
-      onPress: () => {
-        Alert.alert(
-          t('language', currentLanguage),
-          'Select Language / भाषा चुनें / भाषा निवडा:',
-          [
-            { text: 'English', onPress: () => changeLanguage('en') },
-            { text: 'हिंदी', onPress: () => changeLanguage('hi') },
-            { text: 'मराठी', onPress: () => changeLanguage('mr') },
-            { text: t('cancel', currentLanguage), style: 'cancel' }
-          ]
-        );
-      },
+      onPress: handleLanguageChange,
     },
     {
       id: 'help',
