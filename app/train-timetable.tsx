@@ -35,46 +35,52 @@ type TimetableData = {
 export default function TrainTimetable() {
   const [trainNumber, setTrainNumber] = useState('');
   const [timetableData, setTimetableData] = useState<TimetableData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchTrainTimetable = async (trainNo: string): Promise<StationData[]> => {
+    const paddedTrainNo = trainNo.padStart(5, '0');
+    const category = trainNo.length <= 4 ? 'PASS' : 'EXP';
+    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseAnonKey) {
       throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
     }
     
     // Determine category based on train number
-    // Call the external API directly with CORS mode
-    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
+    // Use Promise chain instead of async/await to avoid bundler issues
+    return fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
       method: 'POST',
       mode: 'cors',
       headers: {
         'Accept': 'application/json, text/plain, */*',
         'Content-Type': 'application/json',
       },
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({
         trainNoCc: paddedTrainNo,
         category: category
       })
+    })
+    .then(response => {
+      if (!response.ok) {
+        return response.text().then(errorText => {
+          throw new Error(`API request failed: ${response.status} - ${errorText}`);
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Handle error response from API
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('No timetable data found for this train number');
+      }
+
+      return data;
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API request failed: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    
-    // Handle error response from edge function
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    if (!Array.isArray(data) || data.length === 0) {
-      throw new Error('No timetable data found for this train number');
-    }
-
-    return data;
   };
 
   const formatTimetableData = (apiData: StationData[]): TimetableData => {
