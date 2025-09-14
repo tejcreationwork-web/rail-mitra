@@ -38,20 +38,21 @@ export default function TrainTimetable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTrainTimetable = async (trainNo: string): Promise<StationData[]> => {
-    const paddedTrainNo = trainNo.padStart(5, '0');
-    const category = trainNo.length <= 4 ? 'PASS' : 'EXP';
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseAnonKey) {
-      throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
+
+    if (!supabaseUrl) {
+      throw new Error('EXPO_PUBLIC_SUPABASE_URL environment variable is not set');
     }
-    
-    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
+
+    if (!supabaseAnonKey) {
+
+    const apiUrl = `${supabaseUrl}/functions/v1/train-timetable`;
+
+    const response = await fetch(apiUrl, {
       method: 'POST',
-      mode: 'cors',
       headers: {
-        'Accept': 'application/json, text/plain, */*',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
