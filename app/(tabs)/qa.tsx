@@ -716,14 +716,6 @@ export default function QAScreen() {
                   <MessageSquare size={16} color="#64748B" />
                   <Text style={styles.actionText}>{question.answers?.length || 0}</Text>
                 </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => openAnswerModal(question.id)}
-                >
-                  <Plus size={16} color="#64748B" />
-                  <Text style={styles.actionText}>Answer</Text>
-                </TouchableOpacity>
               </View>
             </View>
           ))
