@@ -176,8 +176,8 @@ export default function ContactScreen() {
               </TouchableOpacity>
             </View>
           </View>
-      <Text style={styles.headerTitle}>Help Desk</Text>
-      <Text style={styles.headerSubtitle}>Get help and support for your railway journey</Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
