@@ -1,29 +1,33 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { router } from 'expo-router';
 import { Zap as Train, MapPin,Building,Landmark,Clock, CircleCheck as CheckCircle, Wifi, Database, TrainFront } from 'lucide-react-native';
+import { useLanguage } from '@/hooks/useLanguage';
+import { t } from '@/lib/i18n';
 
 export default function HomeScreen() {
+  const { currentLanguage } = useLanguage();
+  
   const services = [
     {
       id: 'pnr',
-      title: 'PNR Status',
-      subtitle: 'Check your Train Status and Passenger Details Instantly',
+      title: t('pnrStatus', currentLanguage),
+      subtitle: t('pnrStatusSubtitle', currentLanguage),
       icon: CheckCircle,
       route: '/pnr-checker',
       color: '#2563EB',
     },
     {
       id: 'station',
-      title: 'Station Amenities',
-      subtitle: 'Explore Railway Stations with Interactive Maps',
+      title: t('stationAmenities', currentLanguage),
+      subtitle: t('stationAmenitiesSubtitle', currentLanguage),
       icon: MapPin,
       route: '/station-layout',
       color: '#2563EB',
     },
     {
       id: 'timetable',
-      title: 'Train Timetable',
-      subtitle: 'View detailed Train Schedules and Route information',
+      title: t('trainTimetable', currentLanguage),
+      subtitle: t('trainTimetableSubtitle', currentLanguage),
       icon: Clock,
       route: '/train-timetable',
       color: '#2563EB',
@@ -45,13 +49,13 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.headerTitle}>RailEase</Text>
         </View>
-        <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
-        <Text style={styles.accessNote}>🚀 Your smart companion for PNR, stations, and train journeys.</Text>
+        <Text style={styles.headerSubtitle}>{t('tagline', currentLanguage)}</Text>
+        <Text style={styles.accessNote}>🚀 {t('smartCompanion', currentLanguage)}</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.servicesContainer}>
-          <Text style={styles.sectionTitle}>Services</Text>
+          <Text style={styles.sectionTitle}>{t('services', currentLanguage)}</Text>
           
           {services.map((service) => {
             const IconComponent = service.icon;

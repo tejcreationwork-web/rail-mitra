@@ -1,10 +1,14 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
 import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download } from 'lucide-react-native';
+import { useLanguage } from '@/hooks/useLanguage';
+import { t } from '@/lib/i18n';
 
 export default function AccountScreen() {
+  const { currentLanguage, changeLanguage } = useLanguage();
+  
   const [user] = useState({
-    name: 'Hi Traveller !',
+    name: t('hiTraveller', currentLanguage),
     memberSince: 'January 2023',
     totalBookings: 24,
     points: 1250,
@@ -13,12 +17,12 @@ export default function AccountScreen() {
   const accountOptions = [
     {
       id: 'bookings',
-      title: 'My Bookings',
-      subtitle: 'View all your train bookings',
+      title: t('myBookingsAccount', currentLanguage),
+      subtitle: t('myBookingsSubtitle', currentLanguage),
       icon: CreditCard,
       onPress: () => {
         // Navigate to bookings tab
-        Alert.alert('My Bookings', 'Navigating to your bookings...');
+        Alert.alert(t('myBookingsAccount', currentLanguage), 'Navigating to your bookings...');
       },
     },
     // {
@@ -34,8 +38,8 @@ export default function AccountScreen() {
     // },
     {
       id: 'settings',
-      title: 'App Settings',
-      subtitle: 'Customize your app experience',
+      title: t('appSettings', currentLanguage),
+      subtitle: t('appSettingsSubtitle', currentLanguage),
       icon: Settings,
       onPress: () => {
         Alert.alert('App Settings', 'Theme: Light\nLanguage: English\nOffline mode: Disabled\nAuto-refresh: Enabled', [
@@ -45,36 +49,44 @@ export default function AccountScreen() {
     },
     {
       id: 'language',
-      title: 'Language',
-      subtitle: 'Change app language',
+      title: t('language', currentLanguage),
+      subtitle: t('languageSubtitle', currentLanguage),
       icon: Globe,
       onPress: () => {
-        Alert.alert('Language Selection', 'Available languages:\n• English (Current)\n• हिंदी\n• বাংলা\n• தமிழ்\n• తెలుగు', [
-          { text: 'OK' }
+        Alert.alert(
+          t('language', currentLanguage),
+          'Select Language / भाषा चुनें / भाषा निवडा:',
+          [
+            { text: 'English', onPress: () => changeLanguage('en') },
+            { text: 'हिंदी', onPress: () => changeLanguage('hi') },
+            { text: 'मराठी', onPress: () => changeLanguage('mr') },
+            { text: t('cancel', currentLanguage), style: 'cancel' }
+          ]
+        );
         ]);
       },
     },
     {
       id: 'help',
-      title: 'Help & Support',
-      subtitle: 'Get help with your account',
+      title: t('helpSupport', currentLanguage),
+      subtitle: t('helpSupportSubtitle', currentLanguage),
       icon: HelpCircle,
       onPress: () => {
-        Alert.alert('Help & Support', 'Contact Support:\n📞 139 (Railway Helpline)\n📧 support@railease.com\n💬 Live Chat: Available 24/7', [
+        Alert.alert(t('helpSupport', currentLanguage), 'Contact Support:\n📞 139 (Railway Helpline)\n📧 support@railease.com\n💬 Live Chat: Available 24/7', [
           { text: 'Contact Support' },
-          { text: 'OK' }
+          { text: t('ok', currentLanguage) }
         ]);
       },
     },
     {
       id: 'privacy',
-      title: 'Privacy & Security',
-      subtitle: 'Manage your privacy settings',
+      title: t('privacySecurity', currentLanguage),
+      subtitle: t('privacySecuritySubtitle', currentLanguage),
       icon: Shield,
       onPress: () => {
-        Alert.alert('Privacy & Security', 'Data Protection: Enabled\nTwo-factor Authentication: Disabled\nData Sharing: Limited\nLocation Services: Enabled', [
+        Alert.alert(t('privacySecurity', currentLanguage), 'Data Protection: Enabled\nTwo-factor Authentication: Disabled\nData Sharing: Limited\nLocation Services: Enabled', [
           { text: 'Manage Settings' },
-          { text: 'OK' }
+          { text: t('ok', currentLanguage) }
         ]);
       },
     },
@@ -83,7 +95,7 @@ export default function AccountScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Account</Text>
+        <Text style={styles.headerTitle}>{t('myAccount', currentLanguage)}</Text>
         <TouchableOpacity style={styles.settingsButton}>
           <Settings size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -98,7 +110,7 @@ export default function AccountScreen() {
             </View>
             <View style={styles.profileInfo}>
               <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.memberSince}>Your smart travel companion </Text>
+              <Text style={styles.memberSince}>{t('smartCompanion', currentLanguage)}</Text>
             </View>
           </View>
 
@@ -106,7 +118,7 @@ export default function AccountScreen() {
 
         {/* Account Options */}
         <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Account Section</Text>
+          <Text style={styles.sectionTitle}>{t('accountSection', currentLanguage)}</Text>
           {accountOptions.map((option) => {
             const IconComponent = option.icon;
             return (

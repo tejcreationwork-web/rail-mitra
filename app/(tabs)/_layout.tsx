@@ -1,7 +1,11 @@
 import { Tabs } from 'expo-router';
 import { User, Calendar, House, MessageSquare, Phone } from 'lucide-react-native';
+import { useLanguage } from '@/hooks/useLanguage';
+import { t } from '@/lib/i18n';
 
 export default function TabLayout() {
+  const { currentLanguage } = useLanguage();
+  
   return (
     <Tabs
       screenOptions={{
@@ -25,7 +29,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="account"
         options={{
-          title: 'Account',
+          title: t('account', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <User size={size} color={color} />
           ),
@@ -34,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="booking"
         options={{
-          title: 'Booking',
+          title: t('booking', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <Calendar size={size} color={color} />
           ),
@@ -43,7 +47,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('home', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <House size={size} color={color} />
           ),
@@ -52,7 +56,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="qa"
         options={{
-          title: 'Q&A',
+          title: t('qa', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <MessageSquare size={size} color={color} />
           ),
@@ -61,7 +65,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="contact"
         options={{
-          title: 'Contact',
+          title: t('contact', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <Phone size={size} color={color} />
           ),
