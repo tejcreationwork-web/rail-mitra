@@ -38,6 +38,10 @@ export default function TrainTimetable() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchTrainTimetable = async (trainNoCc: string): Promise<StationData[]> => {
+    const paddedTrainNo = trainNoCc.padStart(5, '0');
+    const category = paddedTrainNo.startsWith('0') ? 'SPECIAL' : 'REGULAR';
+
     const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -46,6 +50,8 @@ export default function TrainTimetable() {
     }
 
     if (!supabaseAnonKey) {
+      throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
+    }
 
     const apiUrl = `${supabaseUrl}/functions/v1/train-timetable`;
 
