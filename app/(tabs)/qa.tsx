@@ -492,7 +492,6 @@ export default function QAScreen() {
               </View>
             </View>
           </View>
-
           {/* Add Answer Button */}
           <View style={styles.addAnswerContainer}>
             <TouchableOpacity 
