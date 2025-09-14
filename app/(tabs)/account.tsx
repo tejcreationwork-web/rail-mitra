@@ -63,8 +63,6 @@ export default function AccountScreen() {
             { text: t('cancel', currentLanguage), style: 'cancel' }
           ]
         );
-        ]);
-      },
     },
     {
       id: 'help',
