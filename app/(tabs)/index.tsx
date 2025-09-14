@@ -1,37 +1,66 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput } from 'react-native';
 import { router } from 'expo-router';
-import { Zap as Train, MapPin,Building,Landmark,Clock, CircleCheck as CheckCircle, Wifi, Database, TrainFront } from 'lucide-react-native';
+import { Zap as Train, MapPin, Clock, CircleCheck as CheckCircle, Search, MessageSquare, Tag, ChevronRight } from 'lucide-react-native';
 
 export default function HomeScreen() {
   const services = [
     {
-      id: 'pnr',
-      title: 'PNR Status',
-      subtitle: 'Check your Train Status and Passenger Details Instantly',
-      icon: CheckCircle,
+      id: 'live-train',
+      title: 'Track\nLive Train',
+      icon: Train,
+      route: '/train-timetable',
+      color: '#2563EB',
+    },
+    {
+      id: 'waitlist',
+      title: 'Check\nWaitlist\nProbability',
+      icon: Tag,
       route: '/pnr-checker',
       color: '#2563EB',
     },
     {
-      id: 'station',
-      title: 'Station Amenities',
-      subtitle: 'Explore Railway Stations with Interactive Maps',
+      id: 'stations',
+      title: 'Find Nearby\nStations',
       icon: MapPin,
       route: '/station-layout',
       color: '#2563EB',
     },
     {
-      id: 'timetable',
-      title: 'Train Timetable',
-      subtitle: 'View detailed Train Schedules and Route information',
-      icon: Clock,
-      route: '/train-timetable',
+      id: 'qa',
+      title: 'Community\nQ&A',
+      icon: MessageSquare,
+      route: '/qa',
       color: '#2563EB',
+    },
+  ];
+
+  const trendingQuestions = [
+    {
+      id: 1,
+      question: "How's food on Rajdhani Express?",
+      replies: 12,
+      image: require('@/assets/images/thane.png'),
+    },
+    {
+      id: 2,
+      question: "Can I board the train at Jaipur?",
+      replies: 7,
+      image: require('@/assets/images/thane.png'),
+    },
+    {
+      id: 3,
+      question: "Is the wifi working at Delhi station?",
+      replies: 4,
+      image: require('@/assets/images/thane.png'),
     },
   ];
 
   const handleServicePress = (route: string) => {
     router.push(route as any);
+  };
+
+  const handleQuestionPress = (questionId: number) => {
+    router.push('/qa');
   };
 
   return (
@@ -43,40 +72,72 @@ export default function HomeScreen() {
           <View style={styles.logoContainer}>
             <Train size={32} color="#FFFFFF" strokeWidth={2.5} />
           </View>
-          <Text style={styles.headerTitle}>RailEase</Text>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>RailEase</Text>
+            <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
+          </View>
         </View>
-        <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
-        <Text style={styles.accessNote}>🚀 Your smart companion for PNR, stations, and train journeys.</Text>
+        <Text style={styles.tagline}>Your smart travel companion</Text>
+        
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={20} color="#94A3B8" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search trains, stations, PNRs..."
+            placeholderTextColor="#94A3B8"
+          />
+        </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.servicesContainer}>
-          <Text style={styles.sectionTitle}>Services</Text>
-          
-          {services.map((service) => {
+        {/* Services Grid */}
+        <View style={styles.servicesGrid}>
+          {services.map((service, index) => {
             const IconComponent = service.icon;
             return (
               <TouchableOpacity
                 key={service.id}
-                style={styles.serviceCard}
+                style={[
+                  styles.serviceCard,
+                  index % 2 === 0 ? styles.serviceCardLeft : styles.serviceCardRight
+                ]}
                 onPress={() => handleServicePress(service.route)}
                 activeOpacity={0.7}
               >
-                <View style={styles.serviceContent}>
-                  <View style={[styles.iconContainer, { backgroundColor: service.color }]}>
-                    <IconComponent size={28} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.serviceText}>
-                    <Text style={styles.serviceTitle}>{service.title}</Text>
-                    <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
-                  </View>
-                  <Text style={styles.arrow}>›</Text>
+                <View style={[styles.serviceIcon, { backgroundColor: service.color }]}>
+                  <IconComponent size={24} color="#FFFFFF" />
                 </View>
+                <Text style={styles.serviceTitle}>{service.title}</Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
+        {/* Trending Questions */}
+        <View style={styles.trendingSection}>
+          <Text style={styles.sectionTitle}>Trending Questions</Text>
+          
+          {trendingQuestions.map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.questionCard}
+              onPress={() => handleQuestionPress(item.id)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.questionContent}>
+                <View style={styles.questionImageContainer}>
+                  <View style={styles.questionImage} />
+                </View>
+                <View style={styles.questionText}>
+                  <Text style={styles.questionTitle}>{item.question}</Text>
+                  <Text style={styles.questionReplies}>{item.replies} replies</Text>
+                </View>
+                <ChevronRight size={20} color="#94A3B8" />
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
@@ -89,56 +150,76 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    paddingTop: 15,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   logoContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    padding: 8,
-    marginRight: 12,
+    borderRadius: 16,
+    padding: 12,
+    marginRight: 16,
+  },
+  headerText: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: '800',
     color: '#FFFFFF',
     fontFamily: 'Poppins-Bold',
     letterSpacing: 0.5,
+    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
     color: '#BFDBFE',
-    marginBottom: 6,
-    fontWeight: '600',
-    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '500',
+    fontFamily: 'Inter-Medium',
   },
-  accessNote: {
-    fontSize: 14,
+  tagline: {
+    fontSize: 16,
     color: '#DBEAFE',
     fontFamily: 'Inter-Medium',
+    marginBottom: 20,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1E293B',
+    marginLeft: 12,
+    fontFamily: 'Inter-Regular',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
-  servicesContainer: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1E293B',
-    marginBottom: 12,
-    fontFamily: 'Poppins-Bold',
+  servicesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 32,
   },
   serviceCard: {
     backgroundColor: '#FFFFFF',
@@ -146,45 +227,80 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.12,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 4,
+    alignItems: 'flex-start',
   },
-  serviceContent: {
+  serviceCardLeft: {
+    width: '48%',
+  },
+  serviceCardRight: {
+    width: '48%',
+  },
+  serviceIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  serviceTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    lineHeight: 22,
+    fontFamily: 'Poppins-Bold',
+  },
+  trendingSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 16,
+    fontFamily: 'Poppins-Bold',
+  },
+  questionCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  questionContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 20,
+  questionImageContainer: {
+    marginRight: 12,
   },
-  serviceText: {
+  questionImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E2E8F0',
+  },
+  questionText: {
     flex: 1,
   },
-  serviceTitle: {
-    fontSize: 19,
-    fontWeight: '800',
-    color: '#1E293B',
-    marginBottom: 6,
-    fontFamily: 'Poppins-Bold',
-  },
-  serviceSubtitle: {
+  questionTitle: {
     fontSize: 16,
-    color: '#64748B',
-    lineHeight: 22,
-    fontFamily: 'Inter-Medium',
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 4,
+    fontFamily: 'Poppins-SemiBold',
   },
-  arrow: {
-    fontSize: 24,
-    color: '#CBD5E1',
-    fontWeight: '300',
+  questionReplies: {
+    fontSize: 14,
+    color: '#64748B',
+    fontFamily: 'Inter-Regular',
   },
 });
