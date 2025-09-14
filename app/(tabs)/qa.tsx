@@ -429,10 +429,7 @@ export default function QAScreen() {
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Question Card */}
-          <TouchableOpacity
-            style={styles.questionCard}
-            activeOpacity={0.7}
-          >
+          <View style={styles.questionCard}>
             <View style={styles.questionHeader}>
               <View style={styles.authorInfo}>
                 <View style={styles.avatar}>
@@ -447,7 +444,6 @@ export default function QAScreen() {
                 </View>
               </View>
             </View>
-          </TouchableOpacity>
             <Text style={styles.questionTitle}>{selectedQuestion.title}</Text>
             <Text style={styles.questionContent}>{selectedQuestion.content}</Text>
 
