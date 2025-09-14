@@ -388,6 +388,10 @@ export default function QAScreen() {
   const closeAnswersView = () => {
     setShowAnswersView(false);
     setSelectedQuestion(null);
+    setShowAnswerModal(false);
+    setAnswerContent('');
+    setAnswerAuthor('');
+    setSelectedQuestionId(null);
   };
 
   const formatTimestamp = (timestamp: string) => {
