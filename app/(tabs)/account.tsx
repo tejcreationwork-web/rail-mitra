@@ -24,7 +24,7 @@ export default function AccountScreen() {
         // Navigate to bookings tab
         Alert.alert(t('myBookingsAccount', currentLanguage), 'Navigating to your bookings...');
       },
-    }
+    },
     // {
     //   id: 'notifications',
     //   title: 'Notifications',
