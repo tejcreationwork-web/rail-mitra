@@ -35,33 +35,20 @@ type TimetableData = {
 export default function TrainTimetable() {
   const [trainNumber, setTrainNumber] = useState('');
   const [timetableData, setTimetableData] = useState<TimetableData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTrainTimetable = async (trainNo: string): Promise<StationData[]> => {
-    // Validate environment variables
-    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl) {
-      throw new Error('EXPO_PUBLIC_SUPABASE_URL environment variable is not set');
-    }
     
     if (!supabaseAnonKey) {
       throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
     }
     
     // Determine category based on train number
-    const category = trainNo.startsWith('0') ? 'Special' : 'Regular';
-    
-    // Pad train number to 15 characters as shown in the example
-    const paddedTrainNo = trainNo.padEnd(15, ' ');
-    
-    const apiUrl = `${supabaseUrl}/functions/v1/train-timetable`;
-    
-    const response = await fetch(apiUrl, {
+    // Call the external API directly with CORS mode
+    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
       method: 'POST',
+      mode: 'cors',
       headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+      },
         'Authorization': `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
@@ -72,7 +59,8 @@ export default function TrainTimetable() {
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
