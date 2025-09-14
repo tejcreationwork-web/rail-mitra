@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { User, Calendar, House, MessageSquare, Phone } from 'lucide-react-native';
+import { User, Calendar, House, MessageSquare, CircleHelp } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -59,11 +59,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="qa"
+        options={{
+          title: 'Q&A',
+          tabBarIcon: ({ size, color }) => (
+            <MessageSquare size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="contact"
         options={{
-          title: 'Contact',
+          title: 'Help Desk',
           tabBarIcon: ({ size, color }) => (
-            <Phone size={size} color={color} />
+            <CircleHelp size={size} color={color} />
           ),
         }}
       />
