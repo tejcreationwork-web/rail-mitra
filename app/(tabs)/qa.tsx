@@ -24,7 +24,10 @@ export default function QAScreen() {
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   const [userQuestions, setUserQuestions] = useState<string[]>([]);
   const [showQuestionOptions, setShowQuestionOptions] = useState<string | null>(null);
-  
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+
+
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
   const [questionContent, setQuestionContent] = useState('');
@@ -271,39 +274,29 @@ export default function QAScreen() {
     ]);
   };
 
-  const handleDeleteQuestion = async (questionId: string) => {
-    Alert.alert(
-      'Delete Question',
-      'Are you sure you want to delete this question? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await qaService.deleteQuestion(questionId);
-              
-              // Remove from user's posted questions
-              const updatedUserQuestions = userQuestions.filter(id => id !== questionId);
-              await saveUserQuestions(updatedUserQuestions);
-              
-              // Remove any votes for this question
-              const updatedVotes = userVotes.filter(vote => vote.questionId !== questionId);
-              await saveUserVotes(updatedVotes);
-              
-              Alert.alert('Success', 'Question deleted successfully');
-              
-              // Reload questions
-              await loadQuestions();
-            } catch (error) {
-              console.error('Error deleting question:', error);
-              Alert.alert('Error', 'Failed to delete question. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+  const confirmDelete = (question: Question) => {
+    setSelectedQuestion(question); // store whole object
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedQuestion) return;
+
+    try {
+      await qaService.deleteQuestion(selectedQuestion.id); // now use .id
+      const updatedUserQuestions = userQuestions.filter(id => id !== selectedQuestion.id);
+      await saveUserQuestions(updatedUserQuestions);
+
+      const updatedVotes = userVotes.filter(vote => vote.questionId !== selectedQuestion.id);
+      await saveUserVotes(updatedVotes);
+
+      await loadQuestions();
+
+      setDeleteModalVisible(false);
+      setSelectedQuestion(null);
+    } catch (error) {
+      console.error("Error deleting question:", error);
+    }
   };
   const handleCreateQuestion = async () => {
     if (!questionTitle.trim() || !questionContent.trim() || !authorName.trim()) {
@@ -660,7 +653,7 @@ export default function QAScreen() {
               {showQuestionOptions === question.id && canDeleteQuestion(question.id) && (
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() => handleDeleteQuestion(question.id)}
+                  onPress={() => confirmDelete(question)}
                 >
                   <Trash2 size={18} color="#DC2626" />
                 </TouchableOpacity>
@@ -843,6 +836,30 @@ export default function QAScreen() {
               </Text>
             </TouchableOpacity>
           </ScrollView>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View style={{ backgroundColor: "white", padding: 20, borderRadius: 8, width: 300 }}>
+            <Text style={{ fontSize: 16, marginBottom: 20 }}>
+              Are you sure you want to delete this question? This action cannot be undone.
+            </Text>
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                <Text style={{ color: "blue" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmDelete}>
+                <Text style={{ color: "red" }}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
       </Modal>
     </View>
