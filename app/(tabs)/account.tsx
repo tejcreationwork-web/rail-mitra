@@ -24,7 +24,7 @@ export default function AccountScreen() {
         // Navigate to bookings tab
         Alert.alert(t('myBookingsAccount', currentLanguage), 'Navigating to your bookings...');
       },
-    },
+    }
     // {
     //   id: 'notifications',
     //   title: 'Notifications',
@@ -63,6 +63,7 @@ export default function AccountScreen() {
             { text: t('cancel', currentLanguage), style: 'cancel' }
           ]
         );
+      },
     },
     {
       id: 'help',
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  optionsContainer : {
+  optionsContainer: {
     marginBottom: 20,
     paddingHorizontal: 10,
   },
