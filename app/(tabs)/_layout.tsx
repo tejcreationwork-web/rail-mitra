@@ -59,15 +59,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="qa"
-        options={{
-          title: 'Q&A',
-          tabBarIcon: ({ size, color }) => (
-            <MessageSquare size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="contact"
         options={{
           title: 'Help Desk',
