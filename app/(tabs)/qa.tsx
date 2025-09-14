@@ -495,13 +495,18 @@ export default function QAScreen() {
           </View>
 
           {/* Add Answer Button */}
-          <TouchableOpacity 
-            style={styles.addAnswerButton}
-            onPress={() => setShowAnswerModal(true)}
-          >
-            <Plus size={20} color="#FFFFFF" />
-            <Text style={styles.addAnswerButtonText}>Add Your Answer</Text>
-          </TouchableOpacity>
+          <View style={styles.addAnswerContainer}>
+            <TouchableOpacity 
+              style={styles.addAnswerButton}
+              onPress={() => {
+                setSelectedQuestionId(selectedQuestion.id);
+                setShowAnswerModal(true);
+              }}
+            >
+              <Plus size={16} color="#FFFFFF" />
+              <Text style={styles.addAnswerButtonText}>Add Answer</Text>
+            </TouchableOpacity>
+          </View>
 
           {/* Answers Section */}
           <View style={styles.answersSection}>
@@ -1292,14 +1297,17 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 60,
   },
+  addAnswerContainer: {
+    alignItems: 'flex-end',
+    marginBottom: 24,
+  },
   addAnswerButton: {
-    backgroundColor: '#059669',
+    backgroundColor: '#2563EB',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-    marginBottom: 24,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1308,9 +1316,9 @@ const styles = StyleSheet.create({
   },
   addAnswerButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    marginLeft: 8,
+    marginLeft: 6,
     fontFamily: 'Inter-SemiBold',
   },
   noAnswersState: {
