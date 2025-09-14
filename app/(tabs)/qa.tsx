@@ -499,7 +499,6 @@ export default function QAScreen() {
             <TouchableOpacity 
               style={styles.addAnswerButton}
               onPress={() => {
-                setSelectedQuestionId(selectedQuestion.id);
                 setShowAnswerModal(true);
               }}
             >
