@@ -39,18 +39,30 @@ export default function TrainTimetable() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTrainTimetable = async (trainNo: string): Promise<StationData[]> => {
+    // Validate environment variables
+    const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl) {
+      throw new Error('EXPO_PUBLIC_SUPABASE_URL environment variable is not set');
+    }
+    
+    if (!supabaseAnonKey) {
+      throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
+    }
+    
     // Determine category based on train number
     const category = trainNo.startsWith('0') ? 'Special' : 'Regular';
     
     // Pad train number to 15 characters as shown in the example
     const paddedTrainNo = trainNo.padEnd(15, ' ');
     
-    const apiUrl = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/train-timetable`;
+    const apiUrl = `${supabaseUrl}/functions/v1/train-timetable`;
     
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
