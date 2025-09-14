@@ -490,7 +490,6 @@ export default function QAScreen() {
                 <MessageSquare size={16} color="#64748B" />
                 <Text style={styles.actionText}>{selectedQuestion.answers?.length || 0}</Text>
               </View>
-            </View>
           </View>
           {/* Add Answer Button */}
           <View style={styles.addAnswerContainer}>
