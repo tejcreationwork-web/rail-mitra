@@ -47,9 +47,7 @@ export default function TrainTimetable() {
       throw new Error('EXPO_PUBLIC_SUPABASE_ANON_KEY environment variable is not set');
     }
     
-    // Determine category based on train number
-    // Use Promise chain instead of async/await to avoid bundler issues
-    return fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
+    const response = await fetch('https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList', {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -60,27 +58,39 @@ export default function TrainTimetable() {
         trainNoCc: paddedTrainNo,
         category: category
       })
-    })
-    .then(response => {
-      if (!response.ok) {
-        return response.text().then(errorText => {
-          throw new Error(`API request failed: ${response.status} - ${errorText}`);
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      // Handle error response from API
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      
-      if (!Array.isArray(data) || data.length === 0) {
-        throw new Error('No timetable data found for this train number');
-      }
-
-      return data;
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API request failed: ${response.status} - ${errorText}`);
+    }
+
+    // Read response as text first
+    const responseText = await response.text();
+    
+    // Check if response is empty
+    if (!responseText.trim()) {
+      throw new Error('Empty response from API');
+    }
+
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}...`);
+    }
+
+    // Handle error response from API
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('No timetable data found for this train number');
+    }
+
+    return data;
   };
 
   const formatTimetableData = (apiData: StationData[]): TimetableData => {
