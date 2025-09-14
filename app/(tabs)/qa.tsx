@@ -495,7 +495,10 @@ export default function QAScreen() {
           <View style={styles.addAnswerContainer}>
             <TouchableOpacity 
               style={styles.addAnswerButton}
-              onPress={() => openAnswerModal(selectedQuestion.id)}
+              onPress={() => {
+                setSelectedQuestionId(selectedQuestion.id);
+                setShowAnswerModal(true);
+              }}
               activeOpacity={0.7}
             >
               <Plus size={16} color="#FFFFFF" />
@@ -722,57 +725,6 @@ export default function QAScreen() {
                   <Text style={styles.actionText}>Answer</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* Answers Section */}
-              {question.answers && question.answers.length > 0 && (
-                <View style={styles.answersSection}>
-                  <Text style={styles.answersTitle}>Answers ({question.answers.length})</Text>
-                  {question.answers.map((answer) => (
-                    <View key={answer.id} style={styles.answerCard}>
-                      <View style={styles.answerHeader}>
-                        <View style={styles.authorInfo}>
-                          <View style={styles.avatarSmall}>
-                            <User size={12} color="#FFFFFF" />
-                          </View>
-                          <View>
-                            <Text style={styles.answerAuthor}>{answer.author}</Text>
-                            <Text style={styles.answerTimestamp}>{formatTimestamp(answer.created_at)}</Text>
-                          </View>
-                        </View>
-                      </View>
-                      <Text style={styles.answerContent}>{answer.content}</Text>
-                      <View style={styles.answerActions}>
-                        <TouchableOpacity 
-                          style={[
-                            styles.actionButtonSmall,
-                            hasUserLiked(question.id, answer.id) && styles.actionButtonSmallActive
-                          ]}
-                          onPress={() => handleLike(question.id, answer.id)}
-                        >
-                          <ThumbsUp 
-                            size={14} 
-                            color={hasUserLiked(question.id, answer.id) ? "#2563EB" : "#64748B"} 
-                          />
-                          <Text style={styles.actionTextSmall}>{answer.likes}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                          style={[
-                            styles.actionButtonSmall,
-                            hasUserDisliked(question.id, answer.id) && styles.actionButtonSmallActive
-                          ]}
-                          onPress={() => handleDislike(question.id, answer.id)}
-                        >
-                          <ThumbsDown 
-                            size={14} 
-                            color={hasUserDisliked(question.id, answer.id) ? "#DC2626" : "#64748B"} 
-                          />
-                          <Text style={styles.actionTextSmall}>{answer.dislikes}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
             </View>
           ))
         )}
