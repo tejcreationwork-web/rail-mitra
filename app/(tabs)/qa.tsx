@@ -431,9 +431,11 @@ export default function QAScreen() {
           {/* Question Card */}
           <TouchableOpacity
             style={styles.questionCard}
-            onPress={() => handleViewDetails(selectedQuestion)}
             activeOpacity={0.7}
           >
+            <View style={styles.questionHeader}>
+              <View style={styles.authorInfo}>
+                <View style={styles.avatar}>
                   <User size={16} color="#FFFFFF" />
                 </View>
                 <View>
@@ -444,6 +446,7 @@ export default function QAScreen() {
                   </View>
                 </View>
               </View>
+            </View>
           </TouchableOpacity>
             <Text style={styles.questionTitle}>{selectedQuestion.title}</Text>
             <Text style={styles.questionContent}>{selectedQuestion.content}</Text>
