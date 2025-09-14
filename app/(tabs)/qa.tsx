@@ -14,7 +14,9 @@ export default function QAScreen() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [showAnswerModal, setShowAnswerModal] = useState(false);
+  const [showAnswersView, setShowAnswersView] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
+  const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalAnswers, setTotalAnswers] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
@@ -377,6 +379,18 @@ export default function QAScreen() {
     setShowAnswerModal(true);
   };
 
+  const openAnswersView = (question: Question) => {
+    setSelectedQuestion(question);
+    setSelectedQuestionId(question.id);
+    setShowAnswersView(true);
+  };
+
+  const closeAnswersView = () => {
+    setShowAnswersView(false);
+    setSelectedQuestion(null);
+    setSelectedQuestionId(null);
+  };
+
   const formatTimestamp = (timestamp: string) => {
     return new Date(timestamp).toLocaleString();
   };
@@ -401,6 +415,157 @@ export default function QAScreen() {
     );
   }
 
+  // Answers View
+  if (showAnswersView && selectedQuestion) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={closeAnswersView} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Answers</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Question Card */}
+          <View style={styles.questionCard}>
+            <View style={styles.questionHeader}>
+              <View style={styles.authorInfo}>
+                <View style={styles.avatar}>
+                  <User size={16} color="#FFFFFF" />
+                </View>
+                <View>
+                  <Text style={styles.authorName}>{selectedQuestion.author}</Text>
+                  <View style={styles.timestampContainer}>
+                    <Clock size={12} color="#94A3B8" />
+                    <Text style={styles.timestamp}>{formatTimestamp(selectedQuestion.created_at)}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.questionTitle}>{selectedQuestion.title}</Text>
+            <Text style={styles.questionContent}>{selectedQuestion.content}</Text>
+
+            {selectedQuestion.tags.length > 0 && (
+              <View style={styles.tagsContainer}>
+                {selectedQuestion.tags.map((tag, index) => (
+                  <View key={index} style={styles.tag}>
+                    <Text style={styles.tagText}>{tag}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.questionActions}>
+              <TouchableOpacity 
+                style={[
+                  styles.actionButton,
+                  hasUserLiked(selectedQuestion.id) && styles.actionButtonActive
+                ]}
+                onPress={() => handleLike(selectedQuestion.id)}
+              >
+                <ThumbsUp 
+                  size={16} 
+                  color={hasUserLiked(selectedQuestion.id) ? "#2563EB" : "#64748B"} 
+                />
+                <Text style={styles.actionText}>{selectedQuestion.likes}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={[
+                  styles.actionButton,
+                  hasUserDisliked(selectedQuestion.id) && styles.actionButtonActive
+                ]}
+                onPress={() => handleDislike(selectedQuestion.id)}
+              >
+                <ThumbsDown 
+                  size={16} 
+                  color={hasUserDisliked(selectedQuestion.id) ? "#DC2626" : "#64748B"} 
+                />
+                <Text style={styles.actionText}>{selectedQuestion.dislikes}</Text>
+              </TouchableOpacity>
+
+              <View style={styles.actionButton}>
+                <MessageSquare size={16} color="#64748B" />
+                <Text style={styles.actionText}>{selectedQuestion.answers?.length || 0}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Add Answer Button */}
+          <TouchableOpacity 
+            style={styles.addAnswerButton}
+            onPress={() => setShowAnswerModal(true)}
+          >
+            <Plus size={20} color="#FFFFFF" />
+            <Text style={styles.addAnswerButtonText}>Add Your Answer</Text>
+          </TouchableOpacity>
+
+          {/* Answers Section */}
+          <View style={styles.answersSection}>
+            <Text style={styles.answersTitle}>
+              {selectedQuestion.answers?.length || 0} Answer{(selectedQuestion.answers?.length || 0) !== 1 ? 's' : ''}
+            </Text>
+            
+            {selectedQuestion.answers && selectedQuestion.answers.length > 0 ? (
+              selectedQuestion.answers.map((answer) => (
+                <View key={answer.id} style={styles.answerCard}>
+                  <View style={styles.answerHeader}>
+                    <View style={styles.authorInfo}>
+                      <View style={styles.avatarSmall}>
+                        <User size={12} color="#FFFFFF" />
+                      </View>
+                      <View>
+                        <Text style={styles.answerAuthor}>{answer.author}</Text>
+                        <Text style={styles.answerTimestamp}>{formatTimestamp(answer.created_at)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.answerContent}>{answer.content}</Text>
+                  <View style={styles.answerActions}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.actionButtonSmall,
+                        hasUserLiked(selectedQuestion.id, answer.id) && styles.actionButtonSmallActive
+                      ]}
+                      onPress={() => handleLike(selectedQuestion.id, answer.id)}
+                    >
+                      <ThumbsUp 
+                        size={14} 
+                        color={hasUserLiked(selectedQuestion.id, answer.id) ? "#2563EB" : "#64748B"} 
+                      />
+                      <Text style={styles.actionTextSmall}>{answer.likes}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[
+                        styles.actionButtonSmall,
+                        hasUserDisliked(selectedQuestion.id, answer.id) && styles.actionButtonSmallActive
+                      ]}
+                      onPress={() => handleDislike(selectedQuestion.id, answer.id)}
+                    >
+                      <ThumbsDown 
+                        size={14} 
+                        color={hasUserDisliked(selectedQuestion.id, answer.id) ? "#DC2626" : "#64748B"} 
+                      />
+                      <Text style={styles.actionTextSmall}>{answer.dislikes}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <View style={styles.noAnswersState}>
+                <MessageSquare size={48} color="#94A3B8" />
+                <Text style={styles.noAnswersTitle}>No Answers Yet</Text>
+                <Text style={styles.noAnswersSubtitle}>Be the first to answer this question!</Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -537,7 +702,7 @@ export default function QAScreen() {
 
                 <TouchableOpacity 
                   style={styles.actionButton}
-                  onPress={() => openAnswerModal(question.id)}
+                  onPress={() => openAnswersView(question)}
                 >
                   <MessageSquare size={16} color="#64748B" />
                   <Text style={styles.actionText}>{question.answers?.length || 0}</Text>
@@ -1113,6 +1278,58 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
     fontFamily: 'Inter-SemiBold',
+  },
+  backButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  backButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+  },
+  placeholder: {
+    width: 60,
+  },
+  addAnswerButton: {
+    backgroundColor: '#059669',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addAnswerButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
+  },
+  noAnswersState: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  noAnswersTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: 'Poppins-Bold',
+  },
+  noAnswersSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    fontFamily: 'Inter-Regular',
   },
   deleteButton: {
     position: 'absolute',
