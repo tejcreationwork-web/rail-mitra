@@ -1,33 +1,19 @@
 import { Tabs } from 'expo-router';
-import { User, Calendar, House, MessageSquare, CircleHelp } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 70,
-        },
-        tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 12,
-          marginTop: 4,
-        },
-        tabBarActiveTintColor: '#2563EB',
-        tabBarInactiveTintColor: '#64748B',
+        tabBarActiveTintColor: '#2563eb',
       }}>
       <Tabs.Screen
-        name="account"
+        name="index"
         options={{
-          title: 'Account',
+          title: 'Home',
           tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -36,16 +22,7 @@ export default function TabLayout() {
         options={{
           title: 'Booking',
           tabBarIcon: ({ size, color }) => (
-            <Calendar size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ size, color }) => (
-            <House size={size} color={color} />
+            <Ionicons name="train" size={size} color={color} />
           ),
         }}
       />
@@ -54,25 +31,37 @@ export default function TabLayout() {
         options={{
           title: 'Q&A',
           tabBarIcon: ({ size, color }) => (
-            <MessageSquare size={size} color={color} />
+            <Ionicons name="help-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: 'Account',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ size, color }) => (
+            <Ionicons name="settings" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="contact"
         options={{
-          title: 'Help Desk',
+          title: 'Contact',
           tabBarIcon: ({ size, color }) => (
-            <CircleHelp size={size} color={color} />
+            <Ionicons name="mail" size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-      name="settings"
-      options={{
-        href: null, // hides it from the tab bar
-      }}
-    />
     </Tabs>
   );
 }
