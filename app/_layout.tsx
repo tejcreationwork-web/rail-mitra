@@ -28,9 +28,14 @@ export default function RootLayout() {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
       // Show custom splash for 3 seconds after fonts load
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         setShowSplash(false);
       }, 3000);
+      
+      // Cleanup function to clear timeout if component unmounts
+      return () => {
+        clearTimeout(timeoutId);
+      };
     }
   }, [fontsLoaded]);
 
