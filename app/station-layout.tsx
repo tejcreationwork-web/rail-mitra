@@ -1,8 +1,16 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { 
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, Animated, Easing
+} from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, MapPin, Info, Check } from 'lucide-react-native';
-import MapView, { Marker } from 'react-native-maps';
+
+let MapView: any, Marker: any;
+if (Platform.OS !== "web") {
+  const RNMaps = require("react-native-maps");
+  MapView = RNMaps.default;
+  Marker = RNMaps.Marker;
+}
 
 type Station = {
   id: string;
@@ -36,66 +44,101 @@ export default function StationLayout() {
   const [selectedStationId, setSelectedStationId] = useState('thane');
   const [showDropdown, setShowDropdown] = useState(false);
 
+  // Animated chevron rotation
+  const rotateAnim = useState(new Animated.Value(0))[0]; // 0 = closed, 1 = open
+
+  const toggleDropdown = () => {
+    const toValue = showDropdown ? 0 : 1;
+    Animated.timing(rotateAnim, {
+      toValue,
+      duration: 200,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
+    setShowDropdown(!showDropdown);
+  };
+
+  const rotateInterpolate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'], // rotate chevron
+  });
+
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
   const handleStationSelect = (stationId: string) => {
     setSelectedStationId(stationId);
     setShowDropdown(false);
+    Animated.timing(rotateAnim, {
+      toValue: 0, // reset chevron
+      duration: 200,
+      easing: Easing.ease,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
-    <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-      
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')} style={styles.backButton}>
+
+      {/* Header */}
+      <View style={{ backgroundColor: "#1E40AF", paddingTop: 45, paddingHorizontal: 16, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <TouchableOpacity 
+          onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
+          style={{ padding: 12, marginLeft: -12 }}
+        >
           <ArrowLeft size={26} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Station Layout</Text>
-        <TouchableOpacity style={styles.infoButton}>
+        <Text style={{ fontSize: 22, fontWeight: "700", color: "#FFFFFF" }}>Station Layout</Text>
+        <TouchableOpacity style={{ padding: 12, marginRight: -12 }}>
           <Info size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.stationSelector}>
-          <Text style={styles.sectionLabel}>Select Railway Station</Text>
+      <ScrollView style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20 }}>
+        {/* Dropdown */}
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 24, marginBottom: 20, elevation: 8 }}>
+          <Text style={{ fontSize: 18, fontWeight: "700", color: "#1E293B", marginBottom: 16 }}>Select Railway Station</Text>
+
           <TouchableOpacity 
-            style={styles.dropdown}
-            onPress={() => setShowDropdown(!showDropdown)}
+            style={{ flexDirection: "row", alignItems: "center", borderWidth: 2, borderColor: "#E2E8F0", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16 }}
+            onPress={toggleDropdown}
           >
             <MapPin size={22} color="#1E40AF" />
-            <Text style={styles.dropdownText}>
+            <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, color: "#1E293B", fontWeight: "500" }}>
               {selectedStation.name} ({selectedStation.code})
             </Text>
-            <ChevronDown 
-              size={22} 
-              color="#64748B" 
-              style={[styles.chevron, showDropdown && styles.chevronRotated]}
-            />
+            <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
+              <ChevronDown size={22} color="#64748B" />
+            </Animated.View>
           </TouchableOpacity>
 
           {showDropdown && (
-            <View style={styles.dropdownMenu}>
+            <View style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, marginTop: 8, elevation: 5 }}>
               {stations.map((station) => (
                 <TouchableOpacity
                   key={station.id}
-                  style={[
-                    styles.dropdownItem,
-                    selectedStationId === station.id && styles.dropdownItemSelected
-                  ]}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#F1F5F9",
+                    backgroundColor: selectedStationId === station.id ? "#EBF4FF" : "#FFFFFF"
+                  }}
                   onPress={() => handleStationSelect(station.id)}
                 >
                   <MapPin size={18} color={selectedStationId === station.id ? "#1E40AF" : "#64748B"} />
-                  <Text style={[
-                    styles.dropdownItemText,
-                    selectedStationId === station.id && styles.dropdownItemTextSelected
-                  ]}>
+                  <Text style={{
+                    flex: 1,
+                    marginLeft: 12,
+                    fontSize: 15,
+                    fontWeight: selectedStationId === station.id ? "600" : "500",
+                    color: selectedStationId === station.id ? "#1E40AF" : "#64748B"
+                  }}>
                     {station.name} ({station.code})
                   </Text>
-                  {selectedStationId === station.id && (
-                    <Check size={18} color="#1E40AF" />
-                  )}
+                  {selectedStationId === station.id && <Check size={18} color="#1E40AF" />}
                 </TouchableOpacity>
               ))}
             </View>
@@ -103,85 +146,48 @@ export default function StationLayout() {
         </View>
 
         {/* Station Map */}
-        <View style={styles.layoutContainer}>
-          <Text style={styles.layoutTitle}>{selectedStation.name} Location</Text>
-          
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: selectedStation.latitude,
-                longitude: selectedStation.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              region={{
-                latitude: selectedStation.latitude,
-                longitude: selectedStation.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              showsUserLocation={true}
-              showsMyLocationButton={true}
-              showsCompass={true}
-              showsScale={true}
-              mapType="standard"
-            >
-              <Marker
-                coordinate={{
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 24, marginBottom: 24, elevation: 8 }}>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "#1E293B", textAlign: "center", marginBottom: 20 }}>
+            {selectedStation.name} Location
+          </Text>
+
+          <View style={{ backgroundColor: "#F8FAFC", borderRadius: 16, overflow: "hidden", marginBottom: 20, height: 300 }}>
+            {Platform.OS !== "web" ? (
+              <MapView
+                style={{ flex: 1 }}
+                initialRegion={{
                   latitude: selectedStation.latitude,
                   longitude: selectedStation.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
                 }}
-                title={selectedStation.name}
-                description={`${selectedStation.code} - ${selectedStation.description}`}
-                pinColor="#1E40AF"
-              />
-            </MapView>
-          </View>
-          
-          <View style={styles.stationInfo}>
-            <Text style={styles.stationInfoTitle}>
-              {selectedStation.name} ({selectedStation.code})
-            </Text>
-            <Text style={styles.stationInfoText}>
-              {selectedStation.description}
-            </Text>
-            <View style={styles.coordinatesInfo}>
-              <Text style={styles.coordinatesText}>
-                📍 Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Station Amenities */}
-        <View style={styles.amenitiesContainer}>
-          <Text style={styles.amenitiesTitle}>Station Amenities</Text>
-          <View style={styles.amenitiesGrid}>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>🚻</Text>
-              <Text style={styles.amenityText}>Restrooms</Text>
-            </View>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>🍽️</Text>
-              <Text style={styles.amenityText}>Food Court</Text>
-            </View>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>🏧</Text>
-              <Text style={styles.amenityText}>ATM</Text>
-            </View>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>🚗</Text>
-              <Text style={styles.amenityText}>Parking</Text>
-            </View>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>📶</Text>
-              <Text style={styles.amenityText}>WiFi</Text>
-            </View>
-            <View style={styles.amenityItem}>
-              <Text style={styles.amenityIcon}>🛍️</Text>
-              <Text style={styles.amenityText}>Shopping</Text>
-            </View>
+                region={{
+                  latitude: selectedStation.latitude,
+                  longitude: selectedStation.longitude,
+                  latitudeDelta: 0.01,
+                  longitudeDelta: 0.01,
+                }}
+                showsUserLocation
+                showsMyLocationButton
+                showsCompass
+                showsScale
+                mapType="standard"
+              >
+                <Marker
+                  coordinate={{
+                    latitude: selectedStation.latitude,
+                    longitude: selectedStation.longitude,
+                  }}
+                  title={selectedStation.name}
+                  description={`${selectedStation.code} - ${selectedStation.description}`}
+                  pinColor="#1E40AF"
+                />
+              </MapView>
+            ) : (
+              <View style={{ height: 300, alignItems: "center", justifyContent: "center" }}>
+                <Text>🗺️ Map not available on Web</Text>
+              </View>
+            )}
           </View>
         </View>
       </ScrollView>
@@ -256,7 +262,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   chevron: {
-    transition: 'transform 0.2s',
   },
   chevronRotated: {
     transform: [{ rotate: '180deg' }],
