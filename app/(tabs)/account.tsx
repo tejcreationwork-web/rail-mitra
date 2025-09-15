@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, ExternalLink, FileText, Video } from 'lucide-react-native';
+import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, ExternalLink, FileText, Video, ArrowLeft } from 'lucide-react-native';
 import { useLanguage } from '@/hooks/useLanguage';
 import { t } from '@/lib/i18n';
 
@@ -273,10 +273,13 @@ export default function AccountScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('myAccount', currentLanguage)}</Text>
-        <TouchableOpacity style={styles.settingsButton}>
-          <Settings size={24} color="#FFFFFF" />
+        <TouchableOpacity onPress={() => router.push('/(tabs)/')} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>{t('myAccount', currentLanguage)}</Text>
+        </View>
+        <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -352,14 +355,22 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
   },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: '#FFFFFF',
     fontFamily: 'Poppins-Bold',
   },
-  settingsButton: {
-    padding: 8,
+  placeholder: {
+    width: 32,
   },
   content: {
     flex: 1,

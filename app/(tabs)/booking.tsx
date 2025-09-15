@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, TrainFrontIcon as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { Calendar, Clock, TrainFrontIcon as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle, ArrowLeft } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -283,8 +283,14 @@ const confirmDeletePNR = async () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Bookings</Text>
-        <Text style={styles.headerSubtitle}>Saved PNRs and booking history</Text>
+        <TouchableOpacity onPress={() => router.push('/(tabs)/')} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>My Bookings</Text>
+          <Text style={styles.headerSubtitle}>Saved PNRs and booking history</Text>
+        </View>
+        <View style={styles.placeholder} />
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -565,8 +571,19 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
@@ -579,6 +596,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#BFDBFE',
     fontFamily: 'Inter-Medium',
+  },
+  placeholder: {
+    width: 32,
   },
   content: {
     flex: 1,
