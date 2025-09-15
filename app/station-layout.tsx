@@ -1,16 +1,14 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Image } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, MapPin, Info, Check } from 'lucide-react-native';
-import MapView, { Marker } from 'react-native-maps';
 
 type Station = {
   id: string;
   name: string;
   code: string;
   description: string;
-  latitude: number;
-  longitude: number;
+  imageUrl: string;
 };
 
 export default function StationLayout() {
@@ -20,16 +18,14 @@ export default function StationLayout() {
       name: 'Thane Railway Station',
       code: 'TNA',
       description: 'Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.',
-      latitude: 19.18648,
-      longitude: 72.97577,
+      imageUrl: 'https://images.pexels.com/photos/1007025/pexels-photo-1007025.jpeg?auto=compress&cs=tinysrgb&w=800',
     },
     {
       id: 'dadar',
       name: 'Dadar Railway Station',
       code: 'DR',
       description: 'One of the busiest railway stations in Mumbai, serving both Central and Western Railway lines.',
-      latitude: 19.021556,
-      longitude: 72.844065,
+      imageUrl: 'https://images.pexels.com/photos/2097090/pexels-photo-2097090.jpeg?auto=compress&cs=tinysrgb&w=800',
     },
   ];
 
@@ -102,41 +98,16 @@ export default function StationLayout() {
           )}
         </View>
 
-        {/* Station Map */}
+        {/* Station Image */}
         <View style={styles.layoutContainer}>
-          <Text style={styles.layoutTitle}>{selectedStation.name} Location</Text>
+          <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
           
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: selectedStation.latitude,
-                longitude: selectedStation.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              region={{
-                latitude: selectedStation.latitude,
-                longitude: selectedStation.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-              }}
-              showsUserLocation={true}
-              showsMyLocationButton={true}
-              showsCompass={true}
-              showsScale={true}
-              mapType="standard"
-            >
-              <Marker
-                coordinate={{
-                  latitude: selectedStation.latitude,
-                  longitude: selectedStation.longitude,
-                }}
-                title={selectedStation.name}
-                description={`${selectedStation.code} - ${selectedStation.description}`}
-                pinColor="#1E40AF"
-              />
-            </MapView>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: selectedStation.imageUrl }}
+              style={styles.stationImage}
+              resizeMode="cover"
+            />
           </View>
           
           <View style={styles.stationInfo}>
@@ -146,11 +117,6 @@ export default function StationLayout() {
             <Text style={styles.stationInfoText}>
               {selectedStation.description}
             </Text>
-            <View style={styles.coordinatesInfo}>
-              <Text style={styles.coordinatesText}>
-                📍 Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
-              </Text>
-            </View>
           </View>
         </View>
 
@@ -313,16 +279,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  mapContainer: {
+  imageContainer: {
     backgroundColor: '#F8FAFC',
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 20,
     height: 300,
   },
-  map: {
-    flex: 1,
-    height: 300,
+  stationImage: {
+    width: '100%',
+    height: '100%',
   },
   stationInfo: {
     backgroundColor: '#F8FAFC',
@@ -342,14 +308,6 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
     marginBottom: 12,
-  },
-  coordinatesInfo: {
-    alignItems: 'center',
-  },
-  coordinatesText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontFamily: 'monospace',
   },
   amenitiesContainer: {
     backgroundColor: '#FFFFFF',
