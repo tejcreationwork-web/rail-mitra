@@ -1,8 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
-import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical } from 'lucide-react-native';
+import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical, ArrowLeft } from 'lucide-react-native';
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
 
 type UserVote = {
   questionId?: string;
@@ -576,8 +577,14 @@ export default function QAScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Q&A Community</Text>
-        <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>Q&A Community</Text>
+          <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
+        </View>
+        <View style={styles.placeholder} />
       </View>
 
       <View style={styles.searchContainer}>
@@ -856,11 +863,22 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#2563EB',
-    paddingTop: 50,
+    paddingTop: 45,
     paddingHorizontal: 20,
     paddingBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
+  },
+  backButton: {
+    padding: 8,
+    marginLeft: -8,
+  },
+  headerContent: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
@@ -873,6 +891,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#BFDBFE',
     fontFamily: 'Inter-Medium',
+  },
+  placeholder: {
+    width: 32,
   },
   loadingContainer: {
     flex: 1,
