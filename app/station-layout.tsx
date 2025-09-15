@@ -1,24 +1,16 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react-native';
-import { Image, Dimensions, Platform } from 'react-native';
-import { GestureHandlerRootView, PinchGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+import { ArrowLeft, ChevronDown, MapPin, Info, Check } from 'lucide-react-native';
+import MapView, { Marker } from 'react-native-maps';
 
 type Station = {
   id: string;
   name: string;
   code: string;
   description: string;
-  image: any;
+  latitude: number;
+  longitude: number;
 };
 
 export default function StationLayout() {
@@ -28,134 +20,27 @@ export default function StationLayout() {
       name: 'Thane Railway Station',
       code: 'TNA',
       description: 'Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.',
-      image: require('@/assets/images/thane.png'),
+      latitude: 19.18648,
+      longitude: 72.97577,
     },
     {
       id: 'dadar',
       name: 'Dadar Railway Station',
       code: 'DR',
       description: 'One of the busiest railway stations in Mumbai, serving both Central and Western Railway lines.',
-      image: require('@/assets/images/Dadar Station Layout.png'),
+      latitude: 19.021556,
+      longitude: 72.844065,
     },
   ];
 
   const [selectedStationId, setSelectedStationId] = useState('thane');
   const [showDropdown, setShowDropdown] = useState(false);
-  
-  // Animated values for gestures
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const baseScale = useSharedValue(1);
-  const pinchScale = useSharedValue(1);
-  const lastScale = useSharedValue(1);
 
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
   const handleStationSelect = (stationId: string) => {
     setSelectedStationId(stationId);
     setShowDropdown(false);
-    resetZoom();
-  };
-
-  const onPinchGestureEvent = (event: any) => {
-    'worklet';
-    pinchScale.value = event.scale;
-    scale.value = baseScale.value * pinchScale.value;
-  };
-
-  const onPinchHandlerStateChange = (event: any) => {
-    'worklet';
-    if (event.oldState === State.ACTIVE) {
-      lastScale.value = scale.value;
-      baseScale.value = scale.value;
-      pinchScale.value = 1;
-      
-      // Constrain scale
-      if (scale.value < 0.5) {
-        scale.value = withSpring(0.5);
-        baseScale.value = 0.5;
-        lastScale.value = 0.5;
-      } else if (scale.value > 3) {
-        scale.value = withSpring(3);
-        baseScale.value = 3;
-        lastScale.value = 3;
-      }
-    }
-  };
-
-  const onPanGestureEvent = (event: any) => {
-    'worklet';
-    translateX.value = event.translationX;
-    translateY.value = event.translationY;
-  };
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-    };
-  });
-
-  const resetZoom = () => {
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-    baseScale.value = 1;
-    pinchScale.value = 1;
-    lastScale.value = 1;
-  };
-
-  const zoomIn = () => {
-    const newScale = Math.min(scale.value * 1.2, 3);
-    scale.value = withSpring(newScale);
-    baseScale.value = newScale;
-    lastScale.value = newScale;
-  };
-
-  const zoomOut = () => {
-    const newScale = Math.max(scale.value * 0.8, 0.5);
-    scale.value = withSpring(newScale);
-    baseScale.value = newScale;
-    lastScale.value = newScale;
-  };
-
-  const renderImageWithGestures = () => {
-    if (Platform.OS === 'web') {
-      // Web fallback - no gestures, just zoom buttons
-      return (
-        <Image
-          source={selectedStation.image}
-          style={styles.stationImage}
-          resizeMode="contain"
-        />
-      );
-    }
-
-    // Mobile - with gesture support
-    return (
-      <GestureHandlerRootView style={styles.gestureContainer}>
-        <PanGestureHandler onGestureEvent={onPanGestureEvent}>
-          <Animated.View>
-            <PinchGestureHandler
-              onGestureEvent={onPinchGestureEvent}
-              onHandlerStateChange={onPinchHandlerStateChange}
-            >
-              <Animated.View>
-                <Animated.Image
-                  source={selectedStation.image}
-                  style={[styles.stationImage, animatedStyle]}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-            </PinchGestureHandler>
-          </Animated.View>
-        </PanGestureHandler>
-      </GestureHandlerRootView>
-    );
   };
 
   return (
@@ -217,37 +102,41 @@ export default function StationLayout() {
           )}
         </View>
 
-        {/* Station Layout Image */}
+        {/* Station Map */}
         <View style={styles.layoutContainer}>
-          <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
+          <Text style={styles.layoutTitle}>{selectedStation.name} Location</Text>
           
-          <View style={styles.imageContainer}>
-            {renderImageWithGestures()}
-          </View>
-
-          {/* Control Buttons */}
-          <View style={styles.controlButtons}>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={zoomIn}
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: selectedStation.latitude,
+                longitude: selectedStation.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              region={{
+                latitude: selectedStation.latitude,
+                longitude: selectedStation.longitude,
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              showsUserLocation={true}
+              showsMyLocationButton={true}
+              showsCompass={true}
+              showsScale={true}
+              mapType="standard"
             >
-              <ZoomIn size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Zoom In</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={zoomOut}
-            >
-              <ZoomOut size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Zoom Out</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={resetZoom}
-            >
-              <RotateCcw size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Reset</Text>
-            </TouchableOpacity>
+              <Marker
+                coordinate={{
+                  latitude: selectedStation.latitude,
+                  longitude: selectedStation.longitude,
+                }}
+                title={selectedStation.name}
+                description={`${selectedStation.code} - ${selectedStation.description}`}
+                pinColor="#1E40AF"
+              />
+            </MapView>
           </View>
           
           <View style={styles.stationInfo}>
@@ -257,6 +146,42 @@ export default function StationLayout() {
             <Text style={styles.stationInfoText}>
               {selectedStation.description}
             </Text>
+            <View style={styles.coordinatesInfo}>
+              <Text style={styles.coordinatesText}>
+                📍 Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Station Amenities */}
+        <View style={styles.amenitiesContainer}>
+          <Text style={styles.amenitiesTitle}>Station Amenities</Text>
+          <View style={styles.amenitiesGrid}>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🚻</Text>
+              <Text style={styles.amenityText}>Restrooms</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🍽️</Text>
+              <Text style={styles.amenityText}>Food Court</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🏧</Text>
+              <Text style={styles.amenityText}>ATM</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🚗</Text>
+              <Text style={styles.amenityText}>Parking</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>📶</Text>
+              <Text style={styles.amenityText}>WiFi</Text>
+            </View>
+            <View style={styles.amenityItem}>
+              <Text style={styles.amenityIcon}>🛍️</Text>
+              <Text style={styles.amenityText}>Shopping</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -370,16 +295,6 @@ const styles = StyleSheet.create({
     color: '#1E40AF',
     fontWeight: '600',
   },
-  infoLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoLinkText: {
-    marginLeft: 12,
-    fontSize: 15,
-    color: '#1E40AF',
-    fontWeight: '600',
-  },
   layoutContainer: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -398,50 +313,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  imageContainer: {
+  mapContainer: {
     backgroundColor: '#F8FAFC',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
     overflow: 'hidden',
-    minHeight: 300,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gestureContainer: {
-    flex: 1,
-    width: '100%',
-    height: 300,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stationImage: {
-    width: '100%',
-    height: 300,
-  },
-  controlButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 20,
+    height: 300,
   },
-  controlButton: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
+  map: {
     flex: 1,
-    marginHorizontal: 4,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  controlButtonText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    fontWeight: '600',
-    marginLeft: 6,
+    height: 300,
   },
   stationInfo: {
     backgroundColor: '#F8FAFC',
@@ -460,62 +341,55 @@ const styles = StyleSheet.create({
     color: '#64748B',
     lineHeight: 20,
     textAlign: 'center',
+    marginBottom: 12,
   },
-  platformItem: {
-    flexDirection: 'row',
+  coordinatesInfo: {
     alignItems: 'center',
+  },
+  coordinatesText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontFamily: 'monospace',
+  },
+  amenitiesContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  amenitiesTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1E293B',
+    textAlign: 'center',
     marginBottom: 20,
   },
-  platformIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#1E40AF',
-    borderRadius: 12,
-    justifyContent: 'center',
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  amenityItem: {
+    width: '30%',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 20,
+    padding: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
   },
-  platformInfo: {
-    flex: 1,
-  },
-  platformTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-  },
-  platformSubtitle: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  closeButton: {
-    fontSize: 20,
-    color: '#64748B',
-  },
-  platformDetails: {
-    gap: 20,
-  },
-  detailSection: {
-    marginBottom: 16,
-  },
-  detailTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1E293B',
+  amenityIcon: {
+    fontSize: 24,
     marginBottom: 8,
   },
-  detailText: {
-    fontSize: 15,
+  amenityText: {
+    fontSize: 12,
     color: '#64748B',
-    lineHeight: 22,
-    fontWeight: '500',
-  },
-  tipText: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-    marginTop: 4,
+    textAlign: 'center',
     fontWeight: '500',
   },
 });
