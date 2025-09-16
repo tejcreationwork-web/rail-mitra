@@ -19,7 +19,7 @@ export default function HomeScreen() {
     {
       id: 'waitlist',
       title: 'PNR\nStatus',
-      icon: Tag,
+      icon: PNR,
       route: '/pnr-checker',
       color: '#2563EB',
     },
