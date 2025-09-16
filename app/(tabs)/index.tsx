@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const services = [
     {
       id: 'live-train',
-      title: 'Track\nLive Train',
+      title: 'Train\nSchedules',
       icon: Train,
       route: '/train-timetable',
       color: '#2563EB',
