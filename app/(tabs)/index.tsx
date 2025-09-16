@@ -11,7 +11,7 @@ export default function HomeScreen() {
   const services = [
     {
       id: 'live-train',
-      title: 'Train\nSchedules',
+      title: 'Track\nTrain Schedule',
       icon: Train,
       route: '/train-timetable',
       color: '#2563EB',
@@ -38,7 +38,6 @@ export default function HomeScreen() {
       color: '#2563EB',
     },
   ];
-
 
   // Load latest questions from Q&A
   useEffect(() => {
@@ -103,8 +102,18 @@ export default function HomeScreen() {
             <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
           </View>
         </View>
+        
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={20} color="#94A3B8" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search trains, stations, PNRs..."
+            placeholderTextColor="#94A3B8"
+          />
+        </View>
       </View>
-      
+
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Services Grid */}
         <View style={styles.servicesGrid}>
@@ -119,10 +128,6 @@ export default function HomeScreen() {
                 ]}
                 onPress={() => handleServicePress(service.route)}
                 activeOpacity={0.7}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={`${service.title.replace('\n', ' ')} service`}
-                accessibilityHint="Double tap to access this service"
               >
                 <View style={[styles.serviceIcon, { backgroundColor: service.color }]}>
                   <IconComponent size={24} color="#FFFFFF" />
@@ -153,10 +158,6 @@ export default function HomeScreen() {
                 style={styles.questionCard}
                 onPress={() => handleQuestionPress(question)}
                 activeOpacity={0.7}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel={`Question: ${question.title}`}
-                accessibilityHint={`${question.answers?.length || 0} replies, posted ${formatTimestamp(question.created_at)}`}
               >
                 <View style={styles.questionContent}>
                   <View style={styles.questionImageContainer}>
@@ -190,10 +191,6 @@ export default function HomeScreen() {
               <TouchableOpacity 
                 style={styles.askQuestionButton}
                 onPress={() => router.push('/qa')}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel="Ask first question"
-                accessibilityHint="Navigate to Q&A section to ask the first question"
               >
                 <Text style={styles.askQuestionButtonText}>Ask First Question</Text>
               </TouchableOpacity>
@@ -255,16 +252,21 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 12,
     fontSize: 16,
-    color: '#FFFFFF',
+    color: '#1E293B',
+    marginLeft: 12,
     fontFamily: 'Inter-Regular',
   },
   content: {
