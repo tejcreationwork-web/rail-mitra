@@ -506,20 +506,6 @@ export default function StationLayout() {
             >
               {amenities.map(renderAmenityItem)}
             </View>
-
-            <View style={styles.legendContainer}>
-              <Text style={styles.legendTitle}>Legend</Text>
-              <View style={styles.legendItems}>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#2563EB' }]} />
-                  <Text style={styles.legendText}>Available</Text>
-                </View>
-                <View style={styles.legendItem}>
-                  <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
-                  <Text style={styles.legendText}>Not Available</Text>
-                </View>
-              </View>
-            </View>
           </View>
         )}
       </ScrollView>
