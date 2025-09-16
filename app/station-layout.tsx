@@ -397,12 +397,12 @@ export default function StationLayout() {
             onPress={() => setActiveTab('layout')}
             accessible={true}
             accessibilityRole="tab"
-            accessibilityLabel="Station Map"
+            accessibilityLabel="Station Layout"
             accessibilityState={{ selected: activeTab === 'layout' }}
           >
             <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
             <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
-              Station Layout
+              Station Map
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
