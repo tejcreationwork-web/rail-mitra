@@ -103,6 +103,7 @@ export default function HomeScreen() {
             <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
           </View>
         </View>
+      </View>
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Services Grid */}
