@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput } from 'react-native';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { Zap as Train, MapPin, Clock, CircleCheck as CheckCircle, Search, MessageSquare, Tag, ChevronRight, CircleHelp } from 'lucide-react-native';
+import { Train as Train, MapPin, Clock, CircleCheck as CheckCircle, Search, MessageSquare, Tag, ChevronRight, CircleHelp } from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
 
 export default function HomeScreen() {
