@@ -38,7 +38,9 @@ export default function AccountScreen() {
       subtitle: 'Customize your app experience',
       icon: Settings,
       onPress: () => {
-        Alert.alert('App Settings', 'Theme: Light\nLanguage: English\nOffline mode: Disabled\nAuto-refresh: Enabled', [
+        // Navigate to settings (you can implement a settings modal or screen here)
+        Alert.alert('App Settings', 'Theme: Light\nLanguage: English\nOffline mode: Disabled\nAuto-refresh: Enabled\nNotifications: Enabled\nData & Privacy settings available', [
+          { text: 'Manage Settings' },
           { text: 'OK' }
         ]);
       },
@@ -50,6 +52,18 @@ export default function AccountScreen() {
       icon: Globe,
       onPress: () => {
         Alert.alert('Language Selection', 'Available languages:\n• English (Current)\n• हिंदी\n• বাংলা\n• தமிழ்\n• తెలుగు', [
+          { text: 'OK' }
+        ]);
+      },
+    },
+    {
+      id: 'contact',
+      title: 'Contact & Support',
+      subtitle: 'Get help and contact information',
+      icon: HelpCircle,
+      onPress: () => {
+        Alert.alert('Contact & Support', 'Contact Support:\n📞 139 (Railway Helpline)\n📧 support@railease.com\n💬 Live Chat: Available 24/7\n\nEmergency Numbers:\n🚨 100 (Police)\n🔥 101 (Fire)\n🚑 108 (Ambulance)\n🚂 1512 (Railway Security)', [
+          { text: 'Call Support', onPress: () => {} },
           { text: 'OK' }
         ]);
       },
