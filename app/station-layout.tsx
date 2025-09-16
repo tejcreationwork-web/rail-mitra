@@ -3,7 +3,7 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, Taxi, Music, Package } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package } from 'lucide-react-native';
 
 let MapView: any, Marker: any;
 if (Platform.OS !== "web") {
