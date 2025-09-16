@@ -9,7 +9,7 @@ import {
   AccessibilityInfo,
   RefreshControl,
 } from 'react-native';
-import { AlertCircle, RefreshCw } from 'lucide-react-native';
+import { CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
 
 interface InfiniteScrollItem {
   id: string;
