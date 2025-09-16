@@ -105,7 +105,7 @@ export default function HomeScreen() {
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Search size={20} color="#94A3B8" />
+          <Search size={15} color="#94A3B8" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search trains, stations, PNRs..."
