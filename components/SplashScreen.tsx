@@ -7,9 +7,9 @@ import Animated, {
   withRepeat, 
   withTiming, 
   withSequence,
-  Easing,
   interpolate
 } from 'react-native-reanimated';
+import { Easing } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 
