@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, TrainFrontIcon as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { Calendar, Clock, TrainFront as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
