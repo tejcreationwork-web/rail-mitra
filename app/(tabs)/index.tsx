@@ -103,21 +103,7 @@ export default function HomeScreen() {
             <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
           </View>
         </View>
-        
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Search size={20} color="#94A3B8" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search trains, stations, PNRs..."
-            placeholderTextColor="#94A3B8"
-            accessible={true}
-            accessibilityLabel="Search"
-            accessibilityHint="Search for trains, stations, or PNR numbers"
-          />
-        </View>
-      </View>
-
+      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Services Grid */}
         <View style={styles.servicesGrid}>
