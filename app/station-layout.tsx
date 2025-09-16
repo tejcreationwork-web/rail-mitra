@@ -644,33 +644,6 @@ export default function StationLayout() {
                 </View>
               )}
 
-              {/* Action Buttons */}
-              <View style={styles.actionButtonsContainer}>
-                <TouchableOpacity 
-                  style={styles.directionsButton}
-                  onPress={() => {
-                    // Open directions to station
-                    const url = `https://www.google.com/maps/dir/?api=1&destination=${selectedStation.latitude},${selectedStation.longitude}`;
-                    Linking.openURL(url);
-                  }}
-                >
-                  <Navigation size={20} color="#FFFFFF" />
-                  <Text style={styles.directionsButtonText}>Get Directions</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.shareButton}
-                  onPress={() => {
-                    // Share amenity information
-                    const shareText = `${selectedAmenity.name} at ${selectedStation.name}\n${selectedAmenity.detailedInfo?.about || selectedAmenity.description}`;
-                    // In a real app, you would use React Native's Share API
-                    console.log('Share:', shareText);
-                  }}
-                >
-                  <Share size={20} color="#059669" />
-                  <Text style={styles.shareButtonText}>Share Location</Text>
-                </TouchableOpacity>
-              </View>
             </ScrollView>
           </View>
         )}
@@ -1078,43 +1051,5 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginLeft: 8,
     flex: 1,
-  },
-  actionButtonsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 20,
-    marginBottom: 40,
-  },
-  directionsButton: {
-    flex: 1,
-    backgroundColor: '#FF8C42',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  directionsButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
-  shareButton: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#059669',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  shareButtonText: {
-    color: '#059669',
-    fontSize: 16,
-    fontWeight: '700',
-    marginLeft: 8,
   },
 });
