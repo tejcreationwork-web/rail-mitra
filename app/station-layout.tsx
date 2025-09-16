@@ -3,7 +3,7 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, Check } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, Taxi, Music, Package } from 'lucide-react-native';
 
 let MapView: any, Marker: any;
 if (Platform.OS !== "web") {
@@ -19,6 +19,14 @@ type Station = {
   description: string;
   latitude: number;
   longitude: number;
+};
+
+type Amenity = {
+  id: string;
+  name: string;
+  icon: any;
+  available: boolean;
+  description?: string;
 };
 
 export default function StationLayout() {
@@ -41,8 +49,28 @@ export default function StationLayout() {
     },
   ];
 
+  const amenities: Amenity[] = [
+    { id: 'baby-food', name: 'Baby Food', icon: Baby, available: true, description: 'Baby care facilities' },
+    { id: 'parking', name: 'Parking', icon: Car, available: true, description: 'Vehicle parking' },
+    { id: 'catering', name: 'Food Court', icon: Utensils, available: true, description: 'Dining options' },
+    { id: 'accessibility', name: 'Accessibility', icon: Accessibility, available: true, description: 'Disabled facilities' },
+    { id: 'waiting-room', name: 'Waiting Room', icon: Sofa, available: true, description: 'Comfortable seating' },
+    { id: 'shopping', name: 'Shopping', icon: ShoppingBag, available: true, description: 'Retail stores' },
+    { id: 'ladies-waiting', name: 'Ladies Waiting Room', icon: Users, available: true, description: 'Women-only area' },
+    { id: 'restroom', name: 'Restrooms', icon: Restroom, available: true, description: 'Clean facilities' },
+    { id: 'wifi', name: 'Free WiFi', icon: Wifi, available: true, description: 'Internet access' },
+    { id: 'refreshment', name: 'Refreshments', icon: Coffee, available: true, description: 'Snacks & beverages' },
+    { id: 'security', name: 'Security', icon: ShieldCheck, available: true, description: '24/7 security' },
+    { id: 'announcement', name: 'PA System', icon: Headphones, available: true, description: 'Audio announcements' },
+    { id: 'cloakroom', name: 'Cloakroom', icon: Package, available: true, description: 'Luggage storage' },
+    { id: 'atm', name: 'ATM', icon: Banknote, available: true, description: 'Cash withdrawal' },
+    { id: 'taxi', name: 'Taxi Service', icon: Taxi, available: true, description: 'Transportation' },
+    { id: 'bookstall', name: 'Book Stall', icon: Music, available: false, description: 'Books & magazines' },
+  ];
+
   const [selectedStationId, setSelectedStationId] = useState('thane');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState<'layout' | 'amenities'>('layout');
 
   // Animated chevron rotation
   const rotateAnim = useState(new Animated.Value(0))[0]; // 0 = closed, 1 = open
@@ -76,35 +104,54 @@ export default function StationLayout() {
     }).start();
   };
 
+  const renderAmenityItem = (amenity: Amenity) => {
+    const IconComponent = amenity.icon;
+    return (
+      <View key={amenity.id} style={[styles.amenityItem, !amenity.available && styles.amenityItemDisabled]}>
+        <View style={[styles.amenityIcon, !amenity.available && styles.amenityIconDisabled]}>
+          <IconComponent size={24} color={amenity.available ? "#2563EB" : "#94A3B8"} />
+        </View>
+        <Text style={[styles.amenityText, !amenity.available && styles.amenityTextDisabled]}>
+          {amenity.name}
+        </Text>
+        {!amenity.available && (
+          <View style={styles.unavailableBadge}>
+            <Text style={styles.unavailableText}>N/A</Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
 
       {/* Header */}
-      <View style={{ backgroundColor: "#1E40AF", paddingTop: 45, paddingHorizontal: 16, paddingBottom: 10, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <View style={styles.header}>
         <TouchableOpacity 
           onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
-          style={{ padding: 12, marginLeft: -12 }}
+          style={styles.backButton}
         >
           <ArrowLeft size={26} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={{ fontSize: 22, fontWeight: "700", color: "#FFFFFF" }}>Station Layout</Text>
-        <TouchableOpacity style={{ padding: 12, marginRight: -12 }}>
+        <Text style={styles.headerTitle}>Station Info</Text>
+        <TouchableOpacity style={styles.infoButton}>
           <Info size={22} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1, paddingHorizontal: 16, paddingTop: 20 }}>
-        {/* Dropdown */}
-        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 24, marginBottom: 20, elevation: 8 }}>
-          <Text style={{ fontSize: 18, fontWeight: "700", color: "#1E293B", marginBottom: 16 }}>Select Railway Station</Text>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Station Selector */}
+        <View style={styles.stationSelector}>
+          <Text style={styles.sectionLabel}>Select Railway Station</Text>
 
           <TouchableOpacity 
-            style={{ flexDirection: "row", alignItems: "center", borderWidth: 2, borderColor: "#E2E8F0", borderRadius: 12, paddingHorizontal: 16, paddingVertical: 16, marginBottom: 16 }}
+            style={styles.dropdown}
             onPress={toggleDropdown}
           >
             <MapPin size={22} color="#1E40AF" />
-            <Text style={{ flex: 1, marginLeft: 12, fontSize: 16, color: "#1E293B", fontWeight: "500" }}>
+            <Text style={styles.dropdownText}>
               {selectedStation.name} ({selectedStation.code})
             </Text>
             <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
@@ -113,29 +160,21 @@ export default function StationLayout() {
           </TouchableOpacity>
 
           {showDropdown && (
-            <View style={{ backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E2E8F0", borderRadius: 12, marginTop: 8, elevation: 5 }}>
+            <View style={styles.dropdownMenu}>
               {stations.map((station) => (
                 <TouchableOpacity
                   key={station.id}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    paddingVertical: 12,
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#F1F5F9",
-                    backgroundColor: selectedStationId === station.id ? "#EBF4FF" : "#FFFFFF"
-                  }}
+                  style={[
+                    styles.dropdownItem,
+                    selectedStationId === station.id && styles.dropdownItemSelected
+                  ]}
                   onPress={() => handleStationSelect(station.id)}
                 >
                   <MapPin size={18} color={selectedStationId === station.id ? "#1E40AF" : "#64748B"} />
-                  <Text style={{
-                    flex: 1,
-                    marginLeft: 12,
-                    fontSize: 15,
-                    fontWeight: selectedStationId === station.id ? "600" : "500",
-                    color: selectedStationId === station.id ? "#1E40AF" : "#64748B"
-                  }}>
+                  <Text style={[
+                    styles.dropdownItemText,
+                    selectedStationId === station.id && styles.dropdownItemTextSelected
+                  ]}>
                     {station.name} ({station.code})
                   </Text>
                   {selectedStationId === station.id && <Check size={18} color="#1E40AF" />}
@@ -145,51 +184,118 @@ export default function StationLayout() {
           )}
         </View>
 
-        {/* Station Map */}
-        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 16, padding: 24, marginBottom: 24, elevation: 8 }}>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: "#1E293B", textAlign: "center", marginBottom: 20 }}>
-            {selectedStation.name} Location
-          </Text>
+        {/* Tab Selector */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'layout' && styles.activeTab]}
+            onPress={() => setActiveTab('layout')}
+          >
+            <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
+            <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
+              Station Layout
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'amenities' && styles.activeTab]}
+            onPress={() => setActiveTab('amenities')}
+          >
+            <Utensils size={20} color={activeTab === 'amenities' ? "#FFFFFF" : "#64748B"} />
+            <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
+              Amenities
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-          <View style={{ backgroundColor: "#F8FAFC", borderRadius: 16, overflow: "hidden", marginBottom: 20, height: 300 }}>
-            {Platform.OS !== "web" ? (
-              <MapView
-                style={{ flex: 1 }}
-                initialRegion={{
-                  latitude: selectedStation.latitude,
-                  longitude: selectedStation.longitude,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                region={{
-                  latitude: selectedStation.latitude,
-                  longitude: selectedStation.longitude,
-                  latitudeDelta: 0.01,
-                  longitudeDelta: 0.01,
-                }}
-                showsUserLocation
-                showsMyLocationButton
-                showsCompass
-                showsScale
-                mapType="standard"
-              >
-                <Marker
-                  coordinate={{
+        {/* Content based on active tab */}
+        {activeTab === 'layout' ? (
+          /* Station Layout */
+          <View style={styles.layoutContainer}>
+            <Text style={styles.layoutTitle}>
+              {selectedStation.name} Location
+            </Text>
+
+            <View style={styles.mapContainer}>
+              {Platform.OS !== "web" ? (
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
                     latitude: selectedStation.latitude,
                     longitude: selectedStation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
                   }}
-                  title={selectedStation.name}
-                  description={`${selectedStation.code} - ${selectedStation.description}`}
-                  pinColor="#1E40AF"
-                />
-              </MapView>
-            ) : (
-              <View style={{ height: 300, alignItems: "center", justifyContent: "center" }}>
-                <Text>🗺️ Map not available on Web</Text>
+                  region={{
+                    latitude: selectedStation.latitude,
+                    longitude: selectedStation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  showsUserLocation
+                  showsMyLocationButton
+                  showsCompass
+                  showsScale
+                  mapType="standard"
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: selectedStation.latitude,
+                      longitude: selectedStation.longitude,
+                    }}
+                    title={selectedStation.name}
+                    description={`${selectedStation.code} - ${selectedStation.description}`}
+                    pinColor="#1E40AF"
+                  />
+                </MapView>
+              ) : (
+                <View style={{ height: 300, alignItems: "center", justifyContent: "center" }}>
+                  <Text>🗺️ Map not available on Web</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.stationInfo}>
+              <Text style={styles.stationInfoTitle}>
+                {selectedStation.name} ({selectedStation.code})
+              </Text>
+              <Text style={styles.stationInfoText}>
+                {selectedStation.description}
+              </Text>
+              <View style={styles.coordinatesInfo}>
+                <Text style={styles.coordinatesText}>
+                  Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
+                </Text>
               </View>
-            )}
+            </View>
           </View>
-        </View>
+        ) : (
+          /* Amenities Section */
+          <View style={styles.amenitiesContainer}>
+            <Text style={styles.amenitiesTitle}>
+              Station Amenities & Services
+            </Text>
+            <Text style={styles.amenitiesSubtitle}>
+              Available facilities at {selectedStation.name}
+            </Text>
+            
+            <View style={styles.amenitiesGrid}>
+              {amenities.map(renderAmenityItem)}
+            </View>
+
+            <View style={styles.legendContainer}>
+              <Text style={styles.legendTitle}>Legend</Text>
+              <View style={styles.legendItems}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#2563EB' }]} />
+                  <Text style={styles.legendText}>Available</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#94A3B8' }]} />
+                  <Text style={styles.legendText}>Not Available</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -261,11 +367,6 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     fontWeight: '500',
   },
-  chevron: {
-  },
-  chevronRotated: {
-    transform: [{ rotate: '180deg' }],
-  },
   dropdownMenu: {
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -299,6 +400,39 @@ const styles = StyleSheet.create({
   dropdownItemTextSelected: {
     color: '#1E40AF',
     fontWeight: '600',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: '#2563EB',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginLeft: 8,
+  },
+  activeTabText: {
+    color: '#FFFFFF',
   },
   layoutContainer: {
     backgroundColor: '#FFFFFF',
@@ -372,29 +506,98 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E293B',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 8,
+  },
+  amenitiesSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    marginBottom: 24,
   },
   amenitiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 24,
   },
   amenityItem: {
-    width: '30%',
+    width: '23%',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
     padding: 12,
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
+    position: 'relative',
+  },
+  amenityItemDisabled: {
+    opacity: 0.6,
   },
   amenityIcon: {
-    fontSize: 24,
+    width: 48,
+    height: 48,
+    backgroundColor: '#EBF4FF',
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 8,
   },
+  amenityIconDisabled: {
+    backgroundColor: '#F1F5F9',
+  },
   amenityText: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 11,
+    color: '#1E293B',
     textAlign: 'center',
+    fontWeight: '500',
+    lineHeight: 14,
+  },
+  amenityTextDisabled: {
+    color: '#94A3B8',
+  },
+  unavailableBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#DC2626',
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  unavailableText: {
+    fontSize: 8,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  legendContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
+  },
+  legendTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  legendItems: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 14,
+    color: '#64748B',
     fontWeight: '500',
   },
 });
