@@ -8,7 +8,8 @@ import Animated, {
   withTiming, 
   withSequence,
   interpolate,
-  Easing
+  Easing,
+  runOnJS
 } from 'react-native-reanimated';
 
 
@@ -26,8 +27,8 @@ export default function SplashScreen() {
     
     // Logo animation
     scale.value = withSequence(
-      withTiming(1.2, { duration: 800, easing: Easing.out(Easing.cubic) }),
-      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
+      withTiming(1.2, { duration: 800, easing: Easing.bezier(0.25, 0.46, 0.45, 0.94) }),
+      withTiming(1, { duration: 400, easing: Easing.bezier(0.42, 0, 0.58, 1) })
     );
     
     opacity.value = withTiming(1, { duration: 1000 });
@@ -35,14 +36,14 @@ export default function SplashScreen() {
     // Loading progress animation
     progress.value = withTiming(1, { 
       duration: 2500, 
-      easing: Easing.out(Easing.cubic) 
+      easing: Easing.bezier(0.25, 0.46, 0.45, 0.94)
     });
     
     // Gentle pulse animation for logo
     scale.value = withRepeat(
       withSequence(
-        withTiming(1.05, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sine) })
+        withTiming(1.05, { duration: 1500, easing: Easing.bezier(0.37, 0, 0.63, 1) }),
+        withTiming(1, { duration: 1500, easing: Easing.bezier(0.37, 0, 0.63, 1) })
       ),
       -1,
       true
