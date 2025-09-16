@@ -103,7 +103,6 @@ export default function HomeScreen() {
             <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
           </View>
         </View>
-        <Text style={styles.tagline}>Your smart travel companion</Text>
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
