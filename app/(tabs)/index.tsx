@@ -118,6 +118,20 @@ export default function HomeScreen() {
           />
         </View>
       </View>
+
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Services Grid */}
+        <View style={styles.servicesGrid}>
+          {services.map((service, index) => {
+            const IconComponent = service.icon;
+            return (
+              <TouchableOpacity
+                key={service.id}
+                style={[
+                  styles.serviceCard,
+                  index % 2 === 0 ? styles.serviceCardLeft : styles.serviceCardRight
+                ]}
+                onPress={() => handleServicePress(service.route)}
                 activeOpacity={0.7}
                 accessible={true}
                 accessibilityRole="button"
@@ -251,6 +265,21 @@ const styles = StyleSheet.create({
     color: '#DBEAFE',
     fontFamily: 'Inter-Medium',
     marginBottom: 20,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontFamily: 'Inter-Regular',
   },
   content: {
     flex: 1,
