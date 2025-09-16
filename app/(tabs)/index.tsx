@@ -18,7 +18,7 @@ export default function HomeScreen() {
     },
     {
       id: 'waitlist',
-      title: 'Check\nWaitlist\nProbability',
+      title: 'PNR\nStatus',
       icon: Tag,
       route: '/pnr-checker',
       color: '#2563EB',
