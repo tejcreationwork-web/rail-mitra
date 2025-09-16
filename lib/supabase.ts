@@ -38,7 +38,7 @@ export const qaService = {
       .from('questions')
       .select(`
         *,
-        answers (*)
+        answers(*)
       `)
       .order('created_at', { ascending: false });
 

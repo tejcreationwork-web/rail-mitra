@@ -19,7 +19,7 @@ type SavedPNR = {
     age: number;
     status: string;
     coach: string;
-    berth : string;
+    berth: string;
     seat: string;
   }[];
   lastChecked: string;

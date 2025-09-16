@@ -7,9 +7,13 @@ import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Acces
 
 let MapView: any, Marker: any;
 if (Platform.OS !== "web") {
-  const RNMaps = require("react-native-maps");
-  MapView = RNMaps.default;
-  Marker = RNMaps.Marker;
+  try {
+    const RNMaps = require("react-native-maps");
+    MapView = RNMaps.default;
+    Marker = RNMaps.Marker;
+  } catch (error) {
+    console.warn("react-native-maps not available");
+  }
 }
 
 type Station = {

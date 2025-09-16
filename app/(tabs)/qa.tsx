@@ -10,6 +10,7 @@ type UserVote = {
   answerId?: string;
   voteType: 'like' | 'dislike';
 };
+
 export default function QAScreen() {
   const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');

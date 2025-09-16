@@ -23,7 +23,7 @@ type APIPassenger = {
   currentStatus: string;
   currentCoachId: string;
   currentBerthNo: number;
-  currentStatusDetails: string;
+  currentStatusDetails?: string;
 };
 
 type APIResponse = {
