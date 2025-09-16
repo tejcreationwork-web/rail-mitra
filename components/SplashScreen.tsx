@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, AccessibilityInfo } from 'react-native';
 import { Zap as Train } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
@@ -7,7 +7,8 @@ import Animated, {
   withRepeat, 
   withTiming, 
   withSequence,
-  Easing 
+  Easing,
+  interpolate
 } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -16,8 +17,12 @@ export default function SplashScreen() {
   const scale = useSharedValue(0.8);
   const opacity = useSharedValue(0);
   const rotation = useSharedValue(0);
+  const progress = useSharedValue(0);
 
   React.useEffect(() => {
+    // Announce to screen readers
+    AccessibilityInfo.announceForAccessibility('RailEase app is loading');
+    
     // Logo animation
     scale.value = withSequence(
       withTiming(1.2, { duration: 800, easing: Easing.out(Easing.cubic) }),
@@ -26,19 +31,27 @@ export default function SplashScreen() {
     
     opacity.value = withTiming(1, { duration: 1000 });
     
-    // Subtle rotation animation
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 8000, easing: Easing.linear }),
+    // Loading progress animation
+    progress.value = withTiming(1, { 
+      duration: 2500, 
+      easing: Easing.out(Easing.cubic) 
+    });
+    
+    // Gentle pulse animation for logo
+    scale.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 1500, easing: Easing.inOut(Easing.sine) }),
+        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sine) })
+      ),
       -1,
-      false
+      true
     );
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { scale: scale.value },
-        { rotate: `${rotation.value}deg` }
+        { scale: scale.value }
       ],
       opacity: opacity.value,
     };
@@ -47,27 +60,60 @@ export default function SplashScreen() {
   const textAnimatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacity.value,
-      transform: [{ translateY: withTiming(0, { duration: 1200 }) }]
+    };
+  });
+
+  const progressAnimatedStyle = useAnimatedStyle(() => {
+    const progressWidth = interpolate(progress.value, [0, 1], [0, 200]);
+    return {
+      width: progressWidth,
     };
   });
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      accessible={true}
+      accessibilityLabel="RailEase app loading screen"
+      accessibilityRole="progressbar"
+    >
       <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <Train size={80} color="#FFFFFF" strokeWidth={2} />
+          <Train 
+            size={80} 
+            color="#FFFFFF" 
+            strokeWidth={2}
+            accessibilityLabel="RailEase train logo"
+          />
         </Animated.View>
         
         <Animated.View style={textAnimatedStyle}>
-          <Text style={styles.appName}>RailEase</Text>
-          <Text style={styles.tagline}>Your Railway Travel Companion</Text>
+          <Text 
+            style={styles.appName}
+            accessible={true}
+            accessibilityRole="header"
+          >
+            RailEase
+          </Text>
+          <Text 
+            style={styles.tagline}
+            accessible={true}
+          >
+            Your Railway Travel Companion
+          </Text>
         </Animated.View>
         
         <View style={styles.loadingContainer}>
           <View style={styles.loadingBar}>
-            <Animated.View style={[styles.loadingProgress]} />
+            <Animated.View style={[styles.loadingProgress, progressAnimatedStyle]} />
           </View>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text 
+            style={styles.loadingText}
+            accessible={true}
+            accessibilityLiveRegion="polite"
+          >
+            Loading your travel companion...
+          </Text>
         </View>
       </View>
     </View>
@@ -77,7 +123,7 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E40AF',
+    backgroundColor: '#2563EB',
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import { router } from 'expo-router';
 import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package, X, Phone, Clock, CircleCheck as CheckCircle, Share, Navigation } from 'lucide-react-native';
 import { Modal, Image, Linking } from 'react-native';
+import AccessibleDropdown from '@/components/AccessibleDropdown';
 
 let MapView: any, Marker: any;
 if (Platform.OS !== "web") {
@@ -306,41 +307,20 @@ export default function StationLayout() {
   ];
 
   const [selectedStationId, setSelectedStationId] = useState('thane');
-  const [showDropdown, setShowDropdown] = useState(false);
   const [activeTab, setActiveTab] = useState<'layout' | 'amenities'>('layout');
   const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
   const [amenityModalVisible, setAmenityModalVisible] = useState(false);
 
-  // Animated chevron rotation
-  const rotateAnim = useState(new Animated.Value(0))[0]; // 0 = closed, 1 = open
-
-  const toggleDropdown = () => {
-    const toValue = showDropdown ? 0 : 1;
-    Animated.timing(rotateAnim, {
-      toValue,
-      duration: 200,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
-    setShowDropdown(!showDropdown);
-  };
-
-  const rotateInterpolate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '180deg'], // rotate chevron
-  });
-
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
-  const handleStationSelect = (stationId: string) => {
-    setSelectedStationId(stationId);
-    setShowDropdown(false);
-    Animated.timing(rotateAnim, {
-      toValue: 0, // reset chevron
-      duration: 200,
-      easing: Easing.ease,
-      useNativeDriver: true,
-    }).start();
+  const stationOptions = stations.map(station => ({
+    id: station.id,
+    label: `${station.name} (${station.code})`,
+    value: station.id,
+  }));
+
+  const handleStationSelect = (option: any) => {
+    setSelectedStationId(option.value);
   };
 
   const renderAmenityItem = (amenity: Amenity) => {
@@ -354,6 +334,11 @@ export default function StationLayout() {
           setAmenityModalVisible(true);
         }}
         activeOpacity={0.7}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={`${amenity.name} ${amenity.available ? 'available' : 'not available'}`}
+        accessibilityHint={amenity.available ? 'Double tap to view details' : 'This amenity is currently not available'}
+        accessibilityState={{ disabled: !amenity.available }}
       >
         <View style={[styles.amenityIcon, !amenity.available && styles.amenityIconDisabled]}>
           <IconComponent size={24} color={amenity.available ? "#2563EB" : "#94A3B8"} />
@@ -379,6 +364,10 @@ export default function StationLayout() {
         <TouchableOpacity 
           onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
           style={styles.backButton}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Navigate back to previous screen"
         >
           <ArrowLeft size={26} color="#FFFFFF" />
         </TouchableOpacity>
@@ -391,44 +380,14 @@ export default function StationLayout() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Station Selector */}
         <View style={styles.stationSelector}>
-          <Text style={styles.sectionLabel}>Select Railway Station</Text>
-
-          <TouchableOpacity 
+          <AccessibleDropdown
+            options={stationOptions}
+            selectedValue={selectedStationId}
+            onSelect={handleStationSelect}
+            label="Select Railway Station"
+            placeholder="Choose a station"
             style={styles.dropdown}
-            onPress={toggleDropdown}
-          >
-            <MapPin size={22} color="#1E40AF" />
-            <Text style={styles.dropdownText}>
-              {selectedStation.name} ({selectedStation.code})
-            </Text>
-            <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
-              <ChevronDown size={22} color="#64748B" />
-            </Animated.View>
-          </TouchableOpacity>
-
-          {showDropdown && (
-            <View style={styles.dropdownMenu}>
-              {stations.map((station) => (
-                <TouchableOpacity
-                  key={station.id}
-                  style={[
-                    styles.dropdownItem,
-                    selectedStationId === station.id && styles.dropdownItemSelected
-                  ]}
-                  onPress={() => handleStationSelect(station.id)}
-                >
-                  <MapPin size={18} color={selectedStationId === station.id ? "#1E40AF" : "#64748B"} />
-                  <Text style={[
-                    styles.dropdownItemText,
-                    selectedStationId === station.id && styles.dropdownItemTextSelected
-                  ]}>
-                    {station.name} ({station.code})
-                  </Text>
-                  {selectedStationId === station.id && <Check size={18} color="#1E40AF" />}
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+          />
         </View>
 
         {/* Tab Selector */}
@@ -436,6 +395,10 @@ export default function StationLayout() {
           <TouchableOpacity
             style={[styles.tab, activeTab === 'layout' && styles.activeTab]}
             onPress={() => setActiveTab('layout')}
+            accessible={true}
+            accessibilityRole="tab"
+            accessibilityLabel="Station Layout"
+            accessibilityState={{ selected: activeTab === 'layout' }}
           >
             <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
             <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
@@ -445,6 +408,10 @@ export default function StationLayout() {
           <TouchableOpacity
             style={[styles.tab, activeTab === 'amenities' && styles.activeTab]}
             onPress={() => setActiveTab('amenities')}
+            accessible={true}
+            accessibilityRole="tab"
+            accessibilityLabel="Amenities"
+            accessibilityState={{ selected: activeTab === 'amenities' }}
           >
             <Utensils size={20} color={activeTab === 'amenities' ? "#FFFFFF" : "#64748B"} />
             <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
@@ -482,6 +449,8 @@ export default function StationLayout() {
                   showsCompass
                   showsScale
                   mapType="standard"
+                  accessible={true}
+                  accessibilityLabel={`Map showing ${selectedStation.name} location`}
                 >
                   <Marker
                     coordinate={{
@@ -494,7 +463,12 @@ export default function StationLayout() {
                   />
                 </MapView>
               ) : (
-                <View style={{ height: 300, alignItems: "center", justifyContent: "center" }}>
+                <View 
+                  style={{ height: 300, alignItems: "center", justifyContent: "center" }}
+                  accessible={true}
+                  accessibilityLabel="Map not available on web platform"
+                  accessibilityRole="text"
+                >
                   <Text>🗺️ Map not available on Web</Text>
                 </View>
               )}
@@ -524,7 +498,12 @@ export default function StationLayout() {
               Available facilities at {selectedStation.name}
             </Text>
             
-            <View style={styles.amenitiesGrid}>
+            <View 
+              style={styles.amenitiesGrid}
+              accessible={true}
+              accessibilityRole="grid"
+              accessibilityLabel={`${amenities.length} amenities available`}
+            >
               {amenities.map(renderAmenityItem)}
             </View>
 
@@ -551,6 +530,8 @@ export default function StationLayout() {
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setAmenityModalVisible(false)}
+        accessible={true}
+        accessibilityViewIsModal={true}
       >
         {selectedAmenity && (
           <View style={styles.modalContainer}>
@@ -567,6 +548,9 @@ export default function StationLayout() {
               <TouchableOpacity 
                 onPress={() => setAmenityModalVisible(false)}
                 style={styles.closeButton}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Close amenity details"
               >
                 <X size={24} color="#64748B" />
               </TouchableOpacity>
@@ -579,6 +563,8 @@ export default function StationLayout() {
                   source={{ uri: selectedAmenity.detailedInfo.images[0] }}
                   style={styles.amenityImage}
                   resizeMode="cover"
+                  accessible={true}
+                  accessibilityLabel={`Image of ${selectedAmenity.name} facility`}
                 />
               )}
 
@@ -626,6 +612,10 @@ export default function StationLayout() {
                         Linking.openURL(`tel:${phoneNumber}`);
                       }
                     }}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Call ${selectedAmenity.detailedInfo.contact}`}
+                    accessibilityHint="Double tap to make a phone call"
                   >
                     <Phone size={16} color="#2563EB" />
                     <Text style={styles.contactText}>{selectedAmenity.detailedInfo.contact}</Text>
@@ -695,62 +685,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  sectionLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 16,
-  },
   dropdown: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 16,
-  },
-  dropdownText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  dropdownMenu: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#EBF4FF',
-  },
-  dropdownItemText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 15,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  dropdownItemTextSelected: {
-    color: '#1E40AF',
-    fontWeight: '600',
+    marginBottom: 0,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -879,6 +815,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
     position: 'relative',
+    minHeight: 88, // Minimum touch target
   },
   amenityItemDisabled: {
     opacity: 0.6,
@@ -986,6 +923,10 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
+    minWidth: 44, // Minimum touch target
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContent: {
     flex: 1,
@@ -1035,6 +976,7 @@ const styles = StyleSheet.create({
   contactContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: 44, // Minimum touch target
   },
   contactText: {
     fontSize: 16,

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import { Zap as Train, MapPin, Clock, CircleCheck as CheckCircle, Search, MessageSquare, Tag, ChevronRight, CircleHelp } from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
+import AccessibleCarousel from '@/components/AccessibleCarousel';
 
 export default function HomeScreen() {
   const [latestQuestions, setLatestQuestions] = useState<Question[]>([]);
@@ -36,6 +37,46 @@ export default function HomeScreen() {
       icon: CircleHelp,
       route: '/contact',
       color: '#2563EB',
+    },
+  ];
+
+  // Sample carousel items for featured content
+  const featuredItems = [
+    {
+      id: '1',
+      content: (
+        <View style={styles.carouselItem}>
+          <Text style={styles.carouselTitle}>Real-time Train Updates</Text>
+          <Text style={styles.carouselDescription}>
+            Get live updates on train schedules, delays, and platform changes
+          </Text>
+        </View>
+      ),
+      accessibilityLabel: 'Featured: Real-time train updates and live schedule information'
+    },
+    {
+      id: '2',
+      content: (
+        <View style={styles.carouselItem}>
+          <Text style={styles.carouselTitle}>PNR Status Tracking</Text>
+          <Text style={styles.carouselDescription}>
+            Track your booking status and get instant notifications
+          </Text>
+        </View>
+      ),
+      accessibilityLabel: 'Featured: PNR status tracking and booking notifications'
+    },
+    {
+      id: '3',
+      content: (
+        <View style={styles.carouselItem}>
+          <Text style={styles.carouselTitle}>Station Information</Text>
+          <Text style={styles.carouselDescription}>
+            Find nearby stations with amenities and facility details
+          </Text>
+        </View>
+      ),
+      accessibilityLabel: 'Featured: Station information and amenities guide'
     },
   ];
 
@@ -111,11 +152,23 @@ export default function HomeScreen() {
             style={styles.searchInput}
             placeholder="Search trains, stations, PNRs..."
             placeholderTextColor="#94A3B8"
+            accessible={true}
+            accessibilityLabel="Search"
+            accessibilityHint="Search for trains, stations, or PNR numbers"
           />
         </View>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Featured Content Carousel */}
+        <AccessibleCarousel
+          items={featuredItems}
+          title="Featured Services"
+          showControls={true}
+          autoPlay={false}
+          style={styles.carousel}
+        />
+
         {/* Services Grid */}
         <View style={styles.servicesGrid}>
           {services.map((service, index) => {
@@ -129,6 +182,10 @@ export default function HomeScreen() {
                 ]}
                 onPress={() => handleServicePress(service.route)}
                 activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`${service.title.replace('\n', ' ')} service`}
+                accessibilityHint="Double tap to access this service"
               >
                 <View style={[styles.serviceIcon, { backgroundColor: service.color }]}>
                   <IconComponent size={24} color="#FFFFFF" />
@@ -159,6 +216,10 @@ export default function HomeScreen() {
                 style={styles.questionCard}
                 onPress={() => handleQuestionPress(question)}
                 activeOpacity={0.7}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel={`Question: ${question.title}`}
+                accessibilityHint={`${question.answers?.length || 0} replies, posted ${formatTimestamp(question.created_at)}`}
               >
                 <View style={styles.questionContent}>
                   <View style={styles.questionImageContainer}>
@@ -192,6 +253,10 @@ export default function HomeScreen() {
               <TouchableOpacity 
                 style={styles.askQuestionButton}
                 onPress={() => router.push('/qa')}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Ask first question"
+                accessibilityHint="Navigate to Q&A section to ask the first question"
               >
                 <Text style={styles.askQuestionButtonText}>Ask First Question</Text>
               </TouchableOpacity>
@@ -274,6 +339,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 24,
+  },
+  carousel: {
+    marginBottom: 32,
+  },
+  carouselItem: {
+    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    minHeight: 120,
+    justifyContent: 'center',
+  },
+  carouselTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+    fontFamily: 'Poppins-Bold',
+  },
+  carouselDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+    fontFamily: 'Inter-Regular',
   },
   servicesGrid: {
     flexDirection: 'row',
