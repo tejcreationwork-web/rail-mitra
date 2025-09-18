@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput } from 'react-native';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { Train,Zap as PNR, MapPin, Clock, CircleCheck as CheckCircle, Search, MessageSquare, Tag, ChevronRight, CircleHelp } from 'lucide-react-native';
+import { Train, MapPin,Ticket, Search, MessageSquare, ChevronRight, CircleHelp } from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
 
 export default function HomeScreen() {
@@ -11,20 +11,20 @@ export default function HomeScreen() {
   const services = [
     {
       id: 'live-train',
-      title: 'Track\nTrain Schedule',
+      title: 'Train Schedule',
       icon: Train,
       route: '/train-timetable',
       color: '#2563EB',
     },
     {
-      id: 'waitlist',
+      id: 'pnr_status',
       title: 'PNR\nStatus',
-      icon: PNR,
+      icon: Ticket,
       route: '/pnr-checker',
       color: '#2563EB',
     },
     {
-      id: 'stations',
+      id: 'station_layouts',
       title: 'Find Nearby\nStations',
       icon: MapPin,
       route: '/station-layout',
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   header: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: '#2563EB',
     paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 24,

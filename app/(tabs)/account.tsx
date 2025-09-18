@@ -1,14 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Switch, Linking } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { User, Settings, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X } from 'lucide-react-native';
+import { User, Settings,Info, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
     name: 'Hi Traveller !',
-    memberSince: 'January 2023',
-    totalBookings: 24,
-    points: 1250,
   });
 
   // Modal states
@@ -103,22 +100,22 @@ export default function AccountScreen() {
     },
     {
       id: 'contact',
-      title: 'Contact & Support',
-      subtitle: 'Get help and contact information',
+      title: 'Connect with Us',
+      subtitle: 'Share feedback or ask questions',
       icon: HelpCircle,
       onPress: () => {
-        setContactModalVisible(true);
+        router.push("../connect");
       },
     },
     {
-      id: 'privacy',
-      title: 'Privacy & Security',
-      subtitle: 'Manage your privacy settings',
-      icon: Shield,
+      id: 'about',
+      title: 'About & Policies',
+      subtitle: 'Learn more about our service',
+      icon: Info,
       onPress: () => {
-        setPrivacyModalVisible(true);
+        router.push("../about");
       },
-    },
+    }
   ];
 
   const handleLanguageSelect = (language: typeof languages[0]) => {

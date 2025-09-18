@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, AccessibilityInfo } from 'react-native';
 import { Zap as Train } from 'lucide-react-native';
+import { ImageBackground } from 'react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -9,7 +10,6 @@ import Animated, {
   withSequence,
   interpolate,
   Easing,
-  runOnJS
 } from 'react-native-reanimated';
 
 
@@ -24,30 +24,6 @@ export default function SplashScreen() {
   React.useEffect(() => {
     // Announce to screen readers
     AccessibilityInfo.announceForAccessibility('RailEase app is loading');
-    
-    // Logo animation
-    scale.value = withSequence(
-      withTiming(1.2, { duration: 800, easing: Easing.bezier(0.25, 0.46, 0.45, 0.94) }),
-      withTiming(1, { duration: 400, easing: Easing.bezier(0.42, 0, 0.58, 1) })
-    );
-    
-    opacity.value = withTiming(1, { duration: 1000 });
-    
-    // Loading progress animation
-    progress.value = withTiming(1, { 
-      duration: 2500, 
-      easing: Easing.bezier(0.25, 0.46, 0.45, 0.94)
-    });
-    
-    // Gentle pulse animation for logo
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.05, { duration: 1500, easing: Easing.bezier(0.37, 0, 0.63, 1) }),
-        withTiming(1, { duration: 1500, easing: Easing.bezier(0.37, 0, 0.63, 1) })
-      ),
-      -1,
-      true
-    );
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => {
@@ -73,6 +49,11 @@ export default function SplashScreen() {
   });
 
   return (
+  <ImageBackground 
+    source={require('../assets/images/splash-bg.jpg')} // 👈 replace with your image path
+    style={styles.container}
+    resizeMode="cover"
+  >
     <View 
       style={styles.container}
       accessible={true}
@@ -80,15 +61,15 @@ export default function SplashScreen() {
       accessibilityRole="progressbar"
     >
       <View style={styles.content}>
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+        <View style={styles.logoContainer}>
           <Train 
             size={80} 
             color="#FFFFFF" 
             strokeWidth={2}
             accessibilityLabel="RailEase train logo"
           />
-        </Animated.View>
-        
+        </View>
+      
         <Animated.View style={textAnimatedStyle}>
           <Text 
             style={styles.appName}
@@ -104,7 +85,7 @@ export default function SplashScreen() {
             Your Railway Travel Companion
           </Text>
         </Animated.View>
-        
+      
         <View style={styles.loadingContainer}>
           <View style={styles.loadingBar}>
             <Animated.View style={[styles.loadingProgress, progressAnimatedStyle]} />
@@ -119,13 +100,19 @@ export default function SplashScreen() {
         </View>
       </View>
     </View>
+  </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2563EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(37, 99, 235, 0.8)', // blue tint with transparency
     justifyContent: 'center',
     alignItems: 'center',
   },
