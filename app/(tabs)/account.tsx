@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Switch, Linking } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { User, Settings,Info, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X } from 'lucide-react-native';
+import { User, Settings,Info, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X, CheckSquare } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
@@ -126,56 +126,69 @@ export default function AccountScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Account</Text>
         <TouchableOpacity 
           style={styles.settingsButton}
           onPress={() => setSettingsModalVisible(true)}
         >
-          <Settings size={24} color="#FFFFFF" />
+          <Settings size={24} color="#2563EB" />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
-              <User size={40} color="#FFFFFF" />
+          <View style={styles.profileContent}>
+            <View style={styles.profileLeft}>
+              <View style={styles.avatarContainer}>
+                <User size={32} color="#FFFFFF" />
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={styles.userName}>{user.name}</Text>
+                <Text style={styles.memberSince}>Lovely Level Railways</Text>
+              </View>
             </View>
-            <View style={styles.profileInfo}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.memberSince}>Your smart travel companion</Text>
-            </View>
+            <TouchableOpacity style={styles.verifiedBadge}>
+              <CheckSquare size={20} color="#2563EB" />
+            </TouchableOpacity>
           </View>
         </View>
 
-        {/* Account Options */}
-        <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Account Section</Text>
-          {accountOptions.map((option) => {
-            const IconComponent = option.icon;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                style={styles.optionItem}
-                onPress={option.onPress}
-                activeOpacity={0.7}
-              >
-                <View style={styles.optionLeft}>
-                  <View style={styles.optionIcon}>
-                    <IconComponent size={20} color="#2563EB" />
-                  </View>
-                  <View style={styles.optionInfo}>
-                    <Text style={styles.optionTitle}>{option.title}</Text>
-                    <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
-                  </View>
-                </View>
-                <ChevronRight size={20} color="#94A3B8" />
-              </TouchableOpacity>
-            );
-          })}
+        {/* Account Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Account</Text>
         </View>
+
+        {/* Account Options */}
+        {accountOptions.map((option) => {
+          const IconComponent = option.icon;
+          return (
+            <TouchableOpacity
+              key={option.id}
+              style={styles.optionItem}
+              onPress={option.onPress}
+              activeOpacity={0.7}
+            >
+              <View style={styles.optionLeft}>
+                <View style={styles.optionIcon}>
+                  <IconComponent size={20} color="#2563EB" />
+                </View>
+                <View style={styles.optionInfo}>
+                  <Text style={styles.optionTitle}>{option.title}</Text>
+                  <Text style={styles.optionSubtitle}>{option.subtitle}</Text>
+                </View>
+              </View>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          );
+        })}
+
+        {/* Quick Action Button */}
+        <TouchableOpacity style={styles.quickActionButton}>
+          <Text style={styles.quickActionText}>Quick action</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Settings Modal */}
@@ -417,65 +430,54 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  optionsContainer: {
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#57585ae3',
-    marginBottom: 10,
-    fontFamily: 'Poppins-Bold',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FFFFFF',
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#FFFFFF',
-    fontFamily: 'Poppins-Bold',
+    color: '#1F2937',
+    fontFamily: 'Poppins-ExtraBold',
   },
   settingsButton: {
     padding: 8,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
   },
   profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: '#F3F4F6',
     padding: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 32,
+    borderRadius: 16,
   },
-  profileHeader: {
+  profileContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    justifyContent: 'space-between',
+  },
+  profileLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
   avatarContainer: {
-    width: 80,
-    height: 80,
+    width: 64,
+    height: 64,
     backgroundColor: '#2563EB',
-    borderRadius: 40,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -484,30 +486,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 4,
-    fontFamily: 'Poppins-Bold',
+    fontFamily: 'Poppins-ExtraBold',
   },
   memberSince: {
-    fontSize: 12,
-    color: '#94A3B8',
+    fontSize: 16,
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
   },
+  verifiedBadge: {
+    padding: 8,
+  },
+  sectionContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    fontFamily: 'Poppins-Bold',
+  },
   optionItem: {
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   optionLeft: {
     flexDirection: 'row',
@@ -515,28 +525,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   optionIcon: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#EBF4FF',
-    borderRadius: 10,
+    width: 48,
+    height: 48,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   optionInfo: {
     flex: 1,
   },
   optionTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 2,
-    fontFamily: 'Poppins-SemiBold',
+    color: '#1F2937',
+    marginBottom: 4,
+    fontFamily: 'Poppins-Bold',
   },
   optionSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
+    fontSize: 16,
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
+  },
+  quickActionButton: {
+    backgroundColor: '#2563EB',
+    marginHorizontal: 20,
+    marginTop: 32,
+    marginBottom: 40,
+    paddingVertical: 16,
+    borderRadius: 24,
+    alignItems: 'center',
+  },
+  quickActionText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
   modalContainer: {
     flex: 1,
@@ -555,7 +580,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     fontFamily: 'Poppins-Bold',
   },
   modalContent: {
@@ -583,13 +608,13 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 2,
     fontFamily: 'Poppins-SemiBold',
   },
   settingSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
   },
   languageItem: {
@@ -606,7 +631,7 @@ const styles = StyleSheet.create({
   },
   languageText: {
     fontSize: 16,
-    color: '#1E293B',
+    color: '#1F2937',
     fontFamily: 'Inter-Regular',
   },
   selectedLanguageText: {
@@ -635,13 +660,13 @@ const styles = StyleSheet.create({
   contactTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 4,
     fontFamily: 'Poppins-SemiBold',
   },
   contactSubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
   },
   emergencyGrid: {
@@ -687,13 +712,13 @@ const styles = StyleSheet.create({
   privacyTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 2,
     fontFamily: 'Poppins-SemiBold',
   },
   privacyStatus: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
   },
   manageButton: {
