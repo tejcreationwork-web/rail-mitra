@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions, AccessibilityInfo, ActivityIndicator } from 'react-native';
-import { Train } from 'lucide-react-native';
+import { Brain as Train } from 'lucide-react-native';
 import { ImageBackground } from 'react-native';
 import Animated, { 
   useSharedValue, 
