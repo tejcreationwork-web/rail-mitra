@@ -1,0 +1,722 @@
+[
+  {
+    "number": "01595          ",
+    "name": "KAWR-MAO EXP SPL    ",
+    "type": "Regular"
+  },
+  {
+    "number": "01596          ",
+    "name": "MAO-KAWR EXP SPL    ",
+    "type": "Regular"
+  },
+  {
+    "number": "06601          ",
+    "name": "MAO-MAQ DAILY SPL   ",
+    "type": "Regular"
+  },
+  {
+    "number": "06602          ",
+    "name": "MAQ-MAO DAILY SPL   ",
+    "type": "Regular"
+  },
+  {
+    "number": "08047          ",
+    "name": "SHM-VSG SUMMER SPL  ",
+    "type": "Regular"
+  },
+  {
+    "number": "08048          ",
+    "name": "VSG-SHM SUMMER SPL  ",
+    "type": "Regular"
+  },
+  {
+    "number": "10103          ",
+    "name": "MANDOVI EXPRESS     ",
+    "type": "Regular"
+  },
+  {
+    "number": "10104          ",
+    "name": "MANDOVI EXPRESS     ",
+    "type": "Regular"
+  },
+  {
+    "number": "10105          ",
+    "name": "DIVA-SWV DAILY EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "10106          ",
+    "name": "SWV-DIVA DAILY EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "10107          ",
+    "name": "MAO-MAQ MEMU EXP    ",
+    "type": "Regular"
+  },
+  {
+    "number": "10108          ",
+    "name": "MAQ-MAO EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "10115          ",
+    "name": "BDTS-MAO SPL        ",
+    "type": "Regular"
+  },
+  {
+    "number": "10116          ",
+    "name": "MAO-BDTS SPL        ",
+    "type": "Regular"
+  },
+  {
+    "number": "10215          ",
+    "name": "MAO-ERS WEEKLY SF   ",
+    "type": "Regular"
+  },
+  {
+    "number": "10216          ",
+    "name": "ERS-MAO WEEKLY SF   ",
+    "type": "Regular"
+  },
+  {
+    "number": "11003          ",
+    "name": "TUTARI EXPRESS      ",
+    "type": "Regular"
+  },
+  {
+    "number": "11004          ",
+    "name": "TUTARI EXPRESS      ",
+    "type": "Regular"
+  },
+  {
+    "number": "11097          ",
+    "name": "PUNE-ERNAKULAM EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "11098          ",
+    "name": "ERNAKULAM-PUNE EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "11099          ",
+    "name": "LTT-MAO SPL         ",
+    "type": "Regular"
+  },
+  {
+    "number": "11100          ",
+    "name": "MAO-LTT SPL         ",
+    "type": "Regular"
+  },
+  {
+    "number": "12051          ",
+    "name": "JAN SHATABDI EXPRESS",
+    "type": "Regular"
+  },
+  {
+    "number": "12052          ",
+    "name": "JAN SHATABDI EXPRESS",
+    "type": "Regular"
+  },
+  {
+    "number": "12133          ",
+    "name": "MANGALORE EXP       ",
+    "type": "Regular"
+  },
+  {
+    "number": "12134          ",
+    "name": "MUMBAI EXP.         ",
+    "type": "Regular"
+  },
+  {
+    "number": "12201          ",
+    "name": "LTT-KCVL GARIB RATH ",
+    "type": "Regular"
+  },
+  {
+    "number": "12202          ",
+    "name": "KCVL-LTT GARIB RATH ",
+    "type": "Regular"
+  },
+  {
+    "number": "12217          ",
+    "name": "KCVL-CDG SAMPARK KRA",
+    "type": "Regular"
+  },
+  {
+    "number": "12218          ",
+    "name": "CDG-KCVL SAMPARKK   ",
+    "type": "Regular"
+  },
+  {
+    "number": "12223          ",
+    "name": "LTT ERS DURANTO EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "12224          ",
+    "name": "ERS LTT DURANTO EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "12283          ",
+    "name": "ERS NZM DURANTO EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "12284          ",
+    "name": "NZM ERS DURANTO EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "12431          ",
+    "name": "RAJDHANI EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "12432          ",
+    "name": "TRIVNDRM RAJDHANI   ",
+    "type": "Regular"
+  },
+  {
+    "number": "12449          ",
+    "name": "GOA SMPRK KRANTI EXP",
+    "type": "Regular"
+  },
+  {
+    "number": "12450          ",
+    "name": "GOA SMPRK KRANTI EXP",
+    "type": "Regular"
+  },
+  {
+    "number": "12483          ",
+    "name": "KCVL-ASR EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "12484          ",
+    "name": "ASR-KCVL EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "12617          ",
+    "name": "MANGALA EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "12618          ",
+    "name": "MANGALA EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "12619          ",
+    "name": "MATSYAGANDHA EXPRESS",
+    "type": "Regular"
+  },
+  {
+    "number": "12620          ",
+    "name": "MATSYAGANDHA EXPRESS",
+    "type": "Regular"
+  },
+  {
+    "number": "12741          ",
+    "name": "VSG-PNBE EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "12742          ",
+    "name": "PNBE-VSG EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "12779          ",
+    "name": "VSG-NZM GOA SUPFAST ",
+    "type": "Regular"
+  },
+  {
+    "number": "12780          ",
+    "name": "NZM-VSG GOA SUF     ",
+    "type": "Regular"
+  },
+  {
+    "number": "12789          ",
+    "name": "KCG-MRDW SPL        ",
+    "type": "Regular"
+  },
+  {
+    "number": "12790          ",
+    "name": "MRDW-KCG SPL        ",
+    "type": "Regular"
+  },
+  {
+    "number": "12977          ",
+    "name": "ERS-AIIMARUSAGAR EXP",
+    "type": "Regular"
+  },
+  {
+    "number": "12978          ",
+    "name": "AII-ERS EXPRESS     ",
+    "type": "Regular"
+  },
+  {
+    "number": "16311          ",
+    "name": "SGNR-KCVL EXPRESS   ",
+    "type": "Regular"
+  },
+  {
+    "number": "16312          ",
+    "name": "KCVL-SGNR EXPRESS   ",
+    "type": "Regular"
+  },
+  {
+    "number": "16333          ",
+    "name": "VRL-TVC EXPRESS     ",
+    "type": "Regular"
+  },
+  {
+    "number": "16334          ",
+    "name": "TVC-VRL EXPRESS     ",
+    "type": "Regular"
+  },
+  {
+    "number": "16335          ",
+    "name": "GANDHIDHAM NAGARCOIL",
+    "type": "Regular"
+  },
+  {
+    "number": "16336          ",
+    "name": "NAGARCOIL GANDHIDHAM",
+    "type": "Regular"
+  },
+  {
+    "number": "16337          ",
+    "name": "OKHA - ERS EXPRESS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "16338          ",
+    "name": "ERS - OKHA EXPRESS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "16345          ",
+    "name": "NETRAVATI EXPRESS   ",
+    "type": "Regular"
+  },
+  {
+    "number": "16346          ",
+    "name": "NETRAVATI EXPRESS   ",
+    "type": "Regular"
+  },
+  {
+    "number": "16515          ",
+    "name": "YPR-KAWR  INTERCITY ",
+    "type": "Regular"
+  },
+  {
+    "number": "16516          ",
+    "name": "KAWR-YPR INTERCITY  ",
+    "type": "Regular"
+  },
+  {
+    "number": "16585          ",
+    "name": "SMVB-MRDW EXP       ",
+    "type": "Regular"
+  },
+  {
+    "number": "16586          ",
+    "name": "MRDW-SMVB EXP       ",
+    "type": "Regular"
+  },
+  {
+    "number": "16595          ",
+    "name": "PANCHAGANGA EXPRESS ",
+    "type": "Regular"
+  },
+  {
+    "number": "16596          ",
+    "name": "PANCHAGANGA EXPRESS ",
+    "type": "Regular"
+  },
+  {
+    "number": "17039          ",
+    "name": "SC-VSG BI WEEKLY SPL",
+    "type": "Regular"
+  },
+  {
+    "number": "17040          ",
+    "name": "VSG-SC BI-WEEKLY SPL",
+    "type": "Regular"
+  },
+  {
+    "number": "17309          ",
+    "name": "YPR-VSG B-W EXP     ",
+    "type": "Regular"
+  },
+  {
+    "number": "17310          ",
+    "name": "VSG-YPR B-W EXP     ",
+    "type": "Regular"
+  },
+  {
+    "number": "17315          ",
+    "name": "VSG-VLNK WEEKLY EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "17316          ",
+    "name": "VLNK-VSG WEEKLY EXP ",
+    "type": "Regular"
+  },
+  {
+    "number": "17321          ",
+    "name": "VSG-JSME WEEKLY SPL ",
+    "type": "Regular"
+  },
+  {
+    "number": "17322          ",
+    "name": "JSME-VSG WEEKLY SPL ",
+    "type": "Regular"
+  },
+  {
+    "number": "17419          ",
+    "name": "TPTY-VSG EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "17420          ",
+    "name": "VSG-TPTY EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "18047          ",
+    "name": "HWH-VSG EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "18048          ",
+    "name": "VSG-HWH EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "19259          ",
+    "name": "KCVL-BVC  EXPRESS   ",
+    "type": "Regular"
+  },
+  {
+    "number": "19260          ",
+    "name": "BVC-KCVL EXPRESS    ",
+    "type": "Regular"
+  },
+  {
+    "number": "19577          ",
+    "name": "TEN-JAM EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "19578          ",
+    "name": "JAM-TEN EXP         ",
+    "type": "Regular"
+  },
+  {
+    "number": "20111          ",
+    "name": "CSMT-MAO-KONKAN KANY",
+    "type": "Regular"
+  },
+  {
+    "number": "20112          ",
+    "name": "MAO-CSMT-KONKAN KANY",
+    "type": "Regular"
+  },
+  {
+    "number": "20645          ",
+    "name": "VANDE BHARAT SPL    ",
+    "type": "Regular"
+  },
+  {
+    "number": "20646          ",
+    "name": "VANDE BHARAT SPL    ",
+    "type": "Regular"
+  },
+  {
+    "number": "20909          ",
+    "name": "KCVL-PBR SUF        ",
+    "type": "Regular"
+  },
+  {
+    "number": "20910          ",
+    "name": "PBR-KCVL SUF        ",
+    "type": "Regular"
+  },
+  {
+    "number": "20923          ",
+    "name": "TEN-GIMB HMSF       ",
+    "type": "Regular"
+  },
+  {
+    "number": "20924          ",
+    "name": "GIMB-TEN HMSF       ",
+    "type": "Regular"
+  },
+  {
+    "number": "20931          ",
+    "name": "KCVL-INDB SUF       ",
+    "type": "Regular"
+  },
+  {
+    "number": "20932          ",
+    "name": "INDB-KCVL SUF       ",
+    "type": "Regular"
+  },
+  {
+    "number": "22113          ",
+    "name": "LTT KCVL SUPERFAST E",
+    "type": "Regular"
+  },
+  {
+    "number": "22114          ",
+    "name": "KCVL LTT SUPERFAST E",
+    "type": "Regular"
+  },
+  {
+    "number": "22115          ",
+    "name": "LTT KRMI AC SUPERFAS",
+    "type": "Regular"
+  },
+  {
+    "number": "22116          ",
+    "name": "KRMI LTT AC SUPERFAS",
+    "type": "Regular"
+  },
+  {
+    "number": "22119          ",
+    "name": "CSMT-MAO TEJAS EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "22120          ",
+    "name": "MAO-CSMT TEJAS EXP  ",
+    "type": "Regular"
+  },
+  {
+    "number": "22149          ",
+    "name": "ERS-PUNE SUP EXP    ",
+    "type": "Regular"
+  },
+  {
+    "number": "22150          ",
+    "name": "PUNE-ERS SUP        ",
+    "type": "Regular"
+  },
+  {
+    "number": "22229          ",
+    "name": "VANDE BHARAT EXP    ",
+    "type": "Regular"
+  },
+  {
+    "number": "22230          ",
+    "name": "VANDE BHARAT EXP    ",
+    "type": "Regular"
+  },
+  {
+    "number": "22413          ",
+    "name": "NZM RAJDHANI        ",
+    "type": "Regular"
+  },
+  {
+    "number": "22414          ",
+    "name": "NZM-MAO RAJDHANI    ",
+    "type": "Regular"
+  },
+  {
+    "number": "22475          ",
+    "name": "HISAR-CBE-AC EXP    ",
+    "type": "Regular"
+  },
+  {
+    "number": "22476          ",
+    "name": "CBE-HSR AC SUP      ",
+    "type": "Regular"
+  },
+  {
+    "number": "22629          ",
+    "name": "DR TEN EXP          ",
+    "type": "Regular"
+  },
+  {
+    "number": "22630          ",
+    "name": "TEN DR EXP          ",
+    "type": "Regular"
+  },
+  {
+    "number": "22633          ",
+    "name": "NIZAMUDDIN EXP.     ",
+    "type": "Regular"
+  },
+  {
+    "number": "22634          ",
+    "name": "NZM TVC SF EXP      ",
+    "type": "Regular"
+  },
+  {
+    "number": "22653          ",
+    "name": "TVC-NZM SUPER FAST  ",
+    "type": "Regular"
+  },
+  {
+    "number": "22654          ",
+    "name": "NZM-TVC SUPER FAST  ",
+    "type": "Regular"
+  },
+  {
+    "number": "22655          ",
+    "name": "ERS-NZM SUPER FAST E",
+    "type": "Regular"
+  },
+  {
+    "number": "22656          ",
+    "name": "NZM-ERS SUPER FAST E",
+    "type": "Regular"
+  },
+  {
+    "number": "22659          ",
+    "name": "KCVL-YNRK EXP       ",
+    "type": "Regular"
+  },
+  {
+    "number": "22660          ",
+    "name": "YNRK-KCVL EXP       ",
+    "type": "Regular"
+  },
+  {
+    "number": "22907          ",
+    "name": "MAO-HAPA SUPERFAST  ",
+    "type": "Regular"
+  },
+  {
+    "number": "22908          ",
+    "name": "HAPA-MAO SUP        ",
+    "type": "Regular"
+  },
+  {
+    "number": "50103          ",
+    "name": "DIVA-RN DAILY PASS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "50104          ",
+    "name": "RN-DIVA DAILY PASS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "50107          ",
+    "name": "SWV-MAO PASSENGER   ",
+    "type": "Regular"
+  },
+  {
+    "number": "50108          ",
+    "name": "MAO-SWV PASSENGER   ",
+    "type": "Regular"
+  },
+  {
+    "number": "56616          ",
+    "name": "MAQ-MAO PASS        ",
+    "type": "Regular"
+  },
+  {
+    "number": "56640          ",
+    "name": "MAQ-MAO PASSENGER   ",
+    "type": "Regular"
+  },
+  {
+    "number": "56641          ",
+    "name": "MAO-MAQ PASSENGER   ",
+    "type": "Regular"
+  },
+  {
+    "number": "70101          ",
+    "name": "MAO-KAWR MEMU PASS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "70102          ",
+    "name": "KAWR-MAO MEMU PASS  ",
+    "type": "Regular"
+  },
+  {
+    "number": "01139          ",
+    "name": "NGP-MAO BI-WEEKLY SP",
+    "type": "Special"
+  },
+  {
+    "number": "01140          ",
+    "name": "MAO-NGP BI-WEEKLY SP",
+    "type": "Special"
+  },
+  {
+    "number": "01179          ",
+    "name": "LTT-SWV POOJA-DIWALI",
+    "type": "Special"
+  },
+  {
+    "number": "01180          ",
+    "name": "SWV-LTT POOJA-DIWALI",
+    "type": "Special"
+  },
+  {
+    "number": "01463          ",
+    "name": "LTT-TVCN SPL        ",
+    "type": "Special"
+  },
+  {
+    "number": "01464          ",
+    "name": "TVCN-LTT SPL        ",
+    "type": "Special"
+  },
+  {
+    "number": "02197          ",
+    "name": "CBE-JBP SPL         ",
+    "type": "Special"
+  },
+  {
+    "number": "02198          ",
+    "name": "JBP-CBE SPL         ",
+    "type": "Special"
+  },
+  {
+    "number": "06249          ",
+    "name": "YPR-MAO SPL         ",
+    "type": "Special"
+  },
+  {
+    "number": "06250          ",
+    "name": "MAO-YPR SPL         ",
+    "type": "Special"
+  },
+  {
+    "number": "07311          ",
+    "name": "VSG-MFP SUMMER SPL  ",
+    "type": "Special"
+  },
+  {
+    "number": "07312          ",
+    "name": "MFP-VSG SUMMER SPL  ",
+    "type": "Special"
+  },
+  {
+    "number": "09057          ",
+    "name": "UDN-MAJN SPL        ",
+    "type": "Special"
+  },
+  {
+    "number": "09058          ",
+    "name": "MAJN-UDN SPL        ",
+    "type": "Special"
+  },
+  {
+    "number": "56615          ",
+    "name": "MAO-MAQ PASS        ",
+    "type": "Special"
+  }
+]
