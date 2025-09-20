@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Switch, Linking } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { User, Settings,Info, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X, CheckSquare } from 'lucide-react-native';
+import { User, Settings, Info, Bell, CreditCard, CircleHelp as HelpCircle, ChevronRight, Star, Shield, Globe, Moon, Download, Phone, Mail, MessageCircle, MapPin, Clock, X, SquareCheck as CheckSquare } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const [user] = useState({
