@@ -1,7 +1,7 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput, Image } from 'react-native';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { Train, MapPin,Ticket, Search, MessageSquare, ChevronRight, CircleHelp } from 'lucide-react-native';
+import { Train, MapPin, Ticket, Search, MessageSquare, ChevronRight, CircleHelp, Bell, Mic } from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
 
 export default function HomeScreen() {
@@ -11,31 +11,35 @@ export default function HomeScreen() {
   const services = [
     {
       id: 'live-train',
-      title: 'Train Schedule',
+      title: 'Track Train',
       icon: Train,
       route: '/train-timetable',
       color: '#2563EB',
+      bgColor: '#2563EB',
     },
     {
       id: 'pnr_status',
-      title: 'PNR\nStatus',
+      title: 'PNR Status',
       icon: Ticket,
       route: '/pnr-checker',
-      color: '#2563EB',
+      color: '#FFFFFF',
+      bgColor: '#EF4444',
     },
     {
       id: 'station_layouts',
-      title: 'Find Nearby\nStations',
+      title: 'Nearby Stations',
       icon: MapPin,
       route: '/station-layout',
-      color: '#2563EB',
+      color: '#FFFFFF',
+      bgColor: '#2563EB',
     },
     {
       id: 'helpdesk',
-      title: 'Help Desk\nSupport',
+      title: 'Help & Support',
       icon: CircleHelp,
       route: '/contact',
-      color: '#2563EB',
+      color: '#FFFFFF',
+      bgColor: '#EF4444',
     },
   ];
 
@@ -90,27 +94,39 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.logoContainer}>
-            <Train size={32} color="#FFFFFF" strokeWidth={2.5} />
+            <View style={styles.appIcon}>
+              <Train size={24} color="#FFFFFF" />
+            </View>
+            <View>
+              <Text style={styles.appName}>RailEase</Text>
+              <Text style={styles.appTagline}>Your Railway Travel Companion</Text>
+            </View>
           </View>
-          <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>RailEase</Text>
-            <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
-          </View>
+          <TouchableOpacity style={styles.notificationButton}>
+            <Bell size={24} color="#1F2937" />
+            <View style={styles.notificationDot} />
+          </TouchableOpacity>
         </View>
         
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <Search size={20} color="#94A3B8" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search trains, stations, PNRs..."
-            placeholderTextColor="#94A3B8"
-          />
+          <View style={styles.searchBar}>
+            <Search size={20} color="#9CA3AF" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search trains, stations or PNR"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+          <TouchableOpacity style={styles.micButton}>
+            <Mic size={20} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -124,78 +140,67 @@ export default function HomeScreen() {
                 key={service.id}
                 style={[
                   styles.serviceCard,
+                  { backgroundColor: service.bgColor },
                   index % 2 === 0 ? styles.serviceCardLeft : styles.serviceCardRight
                 ]}
                 onPress={() => handleServicePress(service.route)}
-                activeOpacity={0.7}
+                activeOpacity={0.8}
               >
-                <View style={[styles.serviceIcon, { backgroundColor: service.color }]}>
-                  <IconComponent size={24} color="#FFFFFF" />
+                <View style={styles.serviceIcon}>
+                  <IconComponent size={32} color={service.color} />
                 </View>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
+                <Text style={[styles.serviceTitle, { color: service.color }]}>
+                  {service.title}
+                </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* Trending Questions */}
-        <View style={styles.trendingSection}>
+        {/* Recent Searches */}
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Latest Questions</Text>
-            <TouchableOpacity onPress={() => router.push('/qa')}>
-              <Text style={styles.viewAllText}>View All</Text>
+            <Text style={styles.sectionTitle}>Recent Searchs</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
           
-          {isLoadingQuestions ? (
-            <View style={styles.loadingContainer}>
-              <Text style={styles.loadingText}>Loading questions...</Text>
+          <View style={styles.recentSearches}>
+            <View style={styles.searchItem}>
+              <Text style={styles.searchNumber}>2</Text>
+              <Text style={styles.searchDate}>23/40/5-30</Text>
+              <ChevronRight size={16} color="#9CA3AF" />
             </View>
-          ) : latestQuestions.length > 0 ? (
-            latestQuestions.map((question) => (
-              <TouchableOpacity
-                key={question.id}
-                style={styles.questionCard}
-                onPress={() => handleQuestionPress(question)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.questionContent}>
-                  <View style={styles.questionImageContainer}>
-                    <View style={styles.questionImage}>
-                      <Text style={styles.questionImageText}>
-                        {question.author.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.questionText}>
-                    <Text style={styles.questionTitle} numberOfLines={2}>
-                      {question.title}
-                    </Text>
-                    <View style={styles.questionMeta}>
-                      <Text style={styles.questionReplies}>
-                        {question.answers?.length || 0} replies
-                      </Text>
-                      <Text style={styles.questionTime}>
-                        • {formatTimestamp(question.created_at)}
-                      </Text>
-                    </View>
-                  </View>
-                  <ChevronRight size={20} color="#94A3B8" />
-                </View>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <View style={styles.emptyQuestionsContainer}>
-              <MessageSquare size={32} color="#94A3B8" />
-              <Text style={styles.emptyQuestionsText}>No questions yet</Text>
-              <TouchableOpacity 
-                style={styles.askQuestionButton}
-                onPress={() => router.push('/qa')}
-              >
-                <Text style={styles.askQuestionButtonText}>Ask First Question</Text>
-              </TouchableOpacity>
+            <View style={styles.searchItem}>
+              <Train size={20} color="#2563EB" />
+              <Text style={styles.searchText}>Station Cod</Text>
+              <ChevronRight size={16} color="#9CA3AF" />
             </View>
-          )}
+          </View>
+        </View>
+
+        {/* Latest Updates */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Latest Updates</Text>
+            <TouchableOpacity>
+              <Text style={styles.newsAlert}>News alert</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.updateCard}>
+            <Image 
+              source={{ uri: 'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg' }}
+              style={styles.updateImage}
+            />
+            <View style={styles.updateContent}>
+              <Text style={styles.updateTitle}>Indian Railway.</Text>
+              <Text style={styles.updateDescription}>
+                Trivienods anillany, artart, for
+              </Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -205,69 +210,89 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
   },
   header: {
-    backgroundColor: '#2563EB',
+    backgroundColor: '#FFFFFF',
     paddingTop: 50,
     paddingHorizontal: 20,
-    paddingBottom: 24,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   logoContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 16,
-    padding: 12,
-    marginRight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  headerText: {
-    flex: 1,
+  appIcon: {
+    width: 48,
+    height: 48,
+    backgroundColor: '#2563EB',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#FFFFFF',
+  appName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
     fontFamily: 'Poppins-Bold',
-    letterSpacing: 0.5,
-    marginBottom: 4,
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#BFDBFE',
-    fontWeight: '500',
-    fontFamily: 'Inter-Medium',
+  appTagline: {
+    fontSize: 14,
+    color: '#6B7280',
+    fontFamily: 'Inter-Regular',
   },
-  tagline: {
-    fontSize: 16,
-    color: '#DBEAFE',
-    fontFamily: 'Inter-Medium',
-    marginBottom: 20,
+  notificationButton: {
+    position: 'relative',
+    padding: 8,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    backgroundColor: '#EF4444',
+    borderRadius: 4,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    gap: 12,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    borderWidth: 2,
+    borderColor: '#2563EB',
+    borderRadius: 25,
     paddingHorizontal: 16,
-    paddingVertical: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    paddingVertical: 12,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1E293B',
+    color: '#1F2937',
     marginLeft: 12,
     fontFamily: 'Inter-Regular',
+  },
+  micButton: {
+    backgroundColor: '#2563EB',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
@@ -281,40 +306,35 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   serviceCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
+    width: '48%',
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
     alignItems: 'flex-start',
+    minHeight: 140,
   },
   serviceCardLeft: {
-    width: '48%',
+    marginRight: '2%',
   },
   serviceCardRight: {
-    width: '48%',
+    marginLeft: '2%',
   },
   serviceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   serviceTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
-    lineHeight: 22,
+    lineHeight: 24,
     fontFamily: 'Poppins-Bold',
   },
-  trendingSection: {
-    marginBottom: 24,
+  section: {
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -323,105 +343,85 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#1E293B',
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
     fontFamily: 'Poppins-Bold',
   },
-  viewAllText: {
+  seeAllText: {
     fontSize: 14,
-    color: '#2563EB',
-    fontWeight: '600',
-    fontFamily: 'Inter-SemiBold',
-  },
-  loadingContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'Inter-Medium',
   },
-  questionCard: {
+  newsAlert: {
+    fontSize: 14,
+    color: '#2563EB',
+    fontFamily: 'Inter-Medium',
+  },
+  recentSearches: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  searchItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  questionContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  questionImageContainer: {
-    marginRight: 12,
-  },
-  questionImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#2563EB',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  questionImageText: {
-    fontSize: 16,
+  searchNumber: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1F2937',
+    marginRight: 8,
     fontFamily: 'Poppins-Bold',
   },
-  questionText: {
+  searchDate: {
     flex: 1,
-  },
-  questionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 4,
-    fontFamily: 'Poppins-SemiBold',
-    lineHeight: 22,
-  },
-  questionMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  questionReplies: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     fontFamily: 'Inter-Regular',
   },
-  questionTime: {
+  searchText: {
+    flex: 1,
     fontSize: 14,
-    color: '#94A3B8',
-    fontFamily: 'Inter-Regular',
-    marginLeft: 4,
-  },
-  emptyQuestionsContainer: {
-    paddingVertical: 40,
-    alignItems: 'center',
-  },
-  emptyQuestionsText: {
-    fontSize: 16,
-    color: '#64748B',
-    marginTop: 12,
-    marginBottom: 16,
+    color: '#1F2937',
+    marginLeft: 8,
     fontFamily: 'Inter-Medium',
   },
-  askQuestionButton: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
+  updateCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  askQuestionButtonText: {
-    color: '#FFFFFF',
+  updateImage: {
+    width: '100%',
+    height: 120,
+  },
+  updateContent: {
+    padding: 16,
+  },
+  updateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 4,
+    fontFamily: 'Poppins-Bold',
+  },
+  updateDescription: {
     fontSize: 14,
-    fontWeight: '600',
-    fontFamily: 'Inter-SemiBold',
+    color: '#6B7280',
+    fontFamily: 'Inter-Regular',
   },
 });

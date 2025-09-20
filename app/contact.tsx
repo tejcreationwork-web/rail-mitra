@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
-import { Phone, Mail, MapPin, Clock, Globe, MessageCircle } from 'lucide-react-native';
+import { Phone, Mail, MapPin, Clock, Globe, MessageCircle, Menu, Heart } from 'lucide-react-native';
 
 export default function ContactScreen() {
   const contactOptions = [
@@ -72,12 +72,275 @@ export default function ContactScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Contact Us</Text>
-        <Text style={styles.headerSubtitle}>Get help and support for your journey</Text>
+        <TouchableOpacity style={styles.menuButton}>
+          <Menu size={24} color="#6B7280" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>UI Wireframe</Text>
+        <TouchableOpacity style={styles.heartButton}>
+          <Heart size={24} color="#6B7280" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Main Title */}
+      <View style={styles.header}>
+        <Text style={styles.mainTitle}>Contact & Help</Text>
+        <Text style={styles.mainSubtitle}>24/7 support for your journey</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Emergency & Helpline Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
+          
+          <View style={styles.emergencyGrid}>
+            <TouchableOpacity
+              style={[styles.emergencyCard, styles.railwayHelplineCard]}
+              onPress={() => Linking.openURL('tel:139')}
+              activeOpacity={0.8}
+            >
+              <Phone size={32} color="#FFFFFF" />
+              <Text style={styles.emergencyTitle}>Railway Helpline</Text>
+              <Text style={styles.emergencyNumber}>139</Text>
+              <Text style={styles.emergencyDescription}>
+                Frisent escgortit, fonns br compliant registration.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.emergencyCard, styles.railMadadCard]}
+              onPress={() => Linking.openURL('tel:139')}
+              activeOpacity={0.8}
+            >
+              <MessageCircle size={32} color="#FFFFFF" />
+              <Text style={styles.emergencyTitle}>Rail Madad Support</Text>
+              <Text style={styles.emergencyDescription}>
+                Feciures snin decrimnut complatiante registration.
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.emergencyGrid}>
+            <TouchableOpacity
+              style={[styles.emergencyCard, styles.railwaySecurityCard]}
+              onPress={() => Linking.openURL('tel:1512')}
+              activeOpacity={0.8}
+            >
+              <Phone size={32} color="#FFFFFF" />
+              <Text style={styles.emergencyTitle}>Railway Security</Text>
+              <Text style={styles.emergencyNumber}>1800-111-322</Text>
+              <Text style={styles.emergencyDescription}>
+                Feciurs securipro itis the conpaistecurition the upcturt.
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.emergencyCard, styles.medicalEmergencyCard]}
+              onPress={() => Linking.openURL('tel:108')}
+              activeOpacity={0.8}
+            >
+              <Phone size={32} color="#FFFFFF" />
+              <Text style={styles.emergencyTitle}>Medical Emergency</Text>
+              <Text style={styles.emergencyNumber}>1800-111-322</Text>
+              <Text style={styles.emergencyDescription}>
+                Using support for Iris the usirgs uragimattirm thir urgenty.
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Online Services Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Online Services</Text>
+          
+          <View style={styles.onlineServicesGrid}>
+            <View style={styles.onlineServiceCard}>
+              <Globe size={48} color="#2563EB" />
+              <Text style={styles.onlineServiceTitle}>IRCTC Website</Text>
+              <Text style={styles.onlineServiceDescription}>
+                Descriptons ioud ticket booking
+              </Text>
+              <TouchableOpacity 
+                style={styles.onlineServiceButton}
+                onPress={() => Linking.openURL('https://www.irctc.co.in')}
+              >
+                <Text style={styles.onlineServiceButtonText}>Visit</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.onlineServiceCard}>
+              <MessageCircle size={48} color="#2563EB" />
+              <Text style={styles.onlineServiceTitle}>RailEase Support</Text>
+              <Text style={styles.onlineServiceDescription}>
+                Distars, iapp supporto in App support
+              </Text>
+              <TouchableOpacity 
+                style={styles.onlineServiceButton}
+                onPress={() => {}}
+              >
+                <Text style={styles.onlineServiceButtonText}>Chat</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  menuButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#6B7280',
+    fontFamily: 'Inter-SemiBold',
+  },
+  heartButton: {
+    padding: 8,
+  },
+  titleSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+  },
+  mainTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1F2937',
+    marginBottom: 8,
+    fontFamily: 'Poppins-ExtraBold',
+  },
+  mainSubtitle: {
+    fontSize: 18,
+    color: '#2563EB',
+    fontFamily: 'Inter-Medium',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  section: {
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 24,
+    fontFamily: 'Poppins-Bold',
+  },
+  emergencyGrid: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+  emergencyCard: {
+    flex: 1,
+    padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  railwayHelplineCard: {
+    backgroundColor: '#2563EB',
+  },
+  railMadadCard: {
+    backgroundColor: '#2563EB',
+  },
+  railwaySecurityCard: {
+    backgroundColor: '#2563EB',
+  },
+  medicalEmergencyCard: {
+    backgroundColor: '#EF4444',
+  },
+  emergencyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 12,
+    marginBottom: 8,
+    fontFamily: 'Poppins-Bold',
+  },
+  emergencyNumber: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#FDE047',
+    marginBottom: 8,
+    fontFamily: 'Poppins-ExtraBold',
+  },
+  emergencyDescription: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    lineHeight: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  onlineServicesGrid: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  onlineServiceCard: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+    padding: 24,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  onlineServiceTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+    fontFamily: 'Poppins-Bold',
+  },
+  onlineServiceDescription: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 20,
+    fontFamily: 'Inter-Regular',
+  },
+  onlineServiceButton: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  onlineServiceButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+  },
+});
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
           {contactOptions.map((option) => {

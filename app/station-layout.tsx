@@ -3,7 +3,7 @@ import {
 } from 'react-native';
 import { useState, useRef } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package, X, Phone, Clock, CircleCheck as CheckCircle, Share, Navigation } from 'lucide-react-native';
+import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package, X, Phone, Clock, CircleCheck as CheckCircle, Share, Navigation, Train, Plus } from 'lucide-react-native';
 import { Modal, Image, Linking } from 'react-native';
 import AccessibleDropdown from '@/components/AccessibleDropdown';
 
@@ -357,7 +357,7 @@ export default function StationLayout() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Header */}
       <View style={styles.header}>
@@ -369,25 +369,32 @@ export default function StationLayout() {
           accessibilityLabel="Go back"
           accessibilityHint="Navigate back to previous screen"
         >
-          <ArrowLeft size={26} color="#FFFFFF" />
+          <ArrowLeft size={24} color="#1F2937" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Station Info</Text>
         <TouchableOpacity style={styles.infoButton}>
-          <Info size={22} color="#FFFFFF" />
+          <View style={styles.infoButtonCircle}>
+            <Text style={styles.infoButtonText}>Info</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Station Selector */}
-        <View style={styles.stationSelector}>
-          <AccessibleDropdown
-            options={stationOptions}
-            selectedValue={selectedStationId}
-            onSelect={handleStationSelect}
-            label="Select Railway Station"
-            placeholder="Choose a station"
-            style={styles.dropdown}
+        {/* Station Selector with Background Image */}
+        <View style={styles.stationSelectorContainer}>
+          <Image 
+            source={{ uri: 'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg' }}
+            style={styles.stationBackgroundImage}
           />
+          <View style={styles.stationSelectorOverlay}>
+            <View style={styles.stationSelector}>
+              <Train size={24} color="#1F2937" />
+              <Text style={styles.stationSelectorText}>
+                {selectedStation.name} ({selectedStation.code})
+              </Text>
+              <ChevronDown size={20} color="#1F2937" />
+            </View>
+          </View>
         </View>
 
         {/* Tab Selector */}
@@ -400,7 +407,7 @@ export default function StationLayout() {
             accessibilityLabel="Station Layout"
             accessibilityState={{ selected: activeTab === 'layout' }}
           >
-            <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
+            <MapPin size={20} color={activeTab === 'layout' ? "#2563EB" : "#6B7280"} />
             <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
               Station Map
             </Text>
@@ -413,7 +420,7 @@ export default function StationLayout() {
             accessibilityLabel="Amenities"
             accessibilityState={{ selected: activeTab === 'amenities' }}
           >
-            <Utensils size={20} color={activeTab === 'amenities' ? "#FFFFFF" : "#64748B"} />
+            <Utensils size={20} color={activeTab === 'amenities' ? "#2563EB" : "#6B7280"} />
             <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
               Amenities
             </Text>
@@ -494,9 +501,6 @@ export default function StationLayout() {
             <Text style={styles.amenitiesTitle}>
               Station Amenities & Services
             </Text>
-            <Text style={styles.amenitiesSubtitle}>
-              Available facilities at {selectedStation.name}
-            </Text>
             
             <View 
               style={styles.amenitiesGrid}
@@ -506,6 +510,22 @@ export default function StationLayout() {
             >
               {amenities.map(renderAmenityItem)}
             </View>
+
+            {/* Additional Section */}
+            <View style={styles.additionalSection}>
+              <Text style={styles.additionalSectionTitle}>Moina Railways</Text>
+              <View style={styles.additionalItem}>
+                <View style={styles.additionalIcon}>
+                  <Train size={20} color="#2563EB" />
+                </View>
+                <Text style={styles.additionalText}>Nidira Railway Consistant</Text>
+              </View>
+            </View>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity style={styles.fab}>
+              <Plus size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -631,202 +651,221 @@ export default function StationLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    backgroundColor: '#1E40AF',
-    paddingTop: 45,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 50,
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   backButton: {
-    padding: 12,
-    marginLeft: -12,
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1F2937',
+    fontFamily: 'Poppins-Bold',
   },
   infoButton: {
-    padding: 12,
-    marginRight: -12,
+    padding: 8,
+  },
+  infoButtonCircle: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  infoButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
+  },
+  stationSelectorContainer: {
+    position: 'relative',
+    height: 200,
+    marginBottom: 24,
+  },
+  stationBackgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
+  stationSelectorOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
   stationSelector: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 4,
+  },
+  stationSelectorText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 12,
+    fontFamily: 'Poppins-SemiBold',
   },
   dropdown: {
     marginBottom: 0,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    marginHorizontal: 20,
+    marginBottom: 24,
   },
   tab: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    borderRadius: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   activeTab: {
-    backgroundColor: '#2563EB',
+    borderBottomColor: '#2563EB',
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
+    color: '#6B7280',
     marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: '#2563EB',
   },
   layoutContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    paddingHorizontal: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
   },
   layoutTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: 'Poppins-Bold',
   },
   mapContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 20,
     height: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   map: {
     flex: 1,
     height: 300,
   },
   stationInfo: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 20,
   },
   stationInfoTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Poppins-Bold',
   },
   stationInfoText: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     lineHeight: 20,
     textAlign: 'center',
     marginBottom: 12,
+    fontFamily: 'Inter-Regular',
   },
   coordinatesInfo: {
     alignItems: 'center',
   },
   coordinatesText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#9CA3AF',
     fontFamily: 'monospace',
   },
   amenitiesContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    paddingHorizontal: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
   },
   amenitiesTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  amenitiesSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
+    color: '#1F2937',
     marginBottom: 24,
+    fontFamily: 'Poppins-Bold',
   },
   amenitiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     marginBottom: 24,
   },
   amenityItem: {
-    width: '23%',
+    width: '30%',
     alignItems: 'center',
     marginBottom: 24,
-    padding: 12,
-    backgroundColor: '#F8FAFC',
+    padding: 16,
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     position: 'relative',
-    minHeight: 88, // Minimum touch target
+    minHeight: 100,
   },
   amenityItemDisabled: {
     opacity: 0.6,
   },
   amenityIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#EBF4FF',
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   amenityIconDisabled: {
-    backgroundColor: '#F1F5F9',
+    backgroundColor: '#F3F4F6',
   },
   amenityText: {
-    fontSize: 11,
-    color: '#1E293B',
+    fontSize: 12,
+    color: '#1F2937',
     textAlign: 'center',
-    fontWeight: '500',
-    lineHeight: 14,
+    fontWeight: '600',
+    lineHeight: 16,
+    fontFamily: 'Inter-SemiBold',
   },
   amenityTextDisabled: {
-    color: '#94A3B8',
+    color: '#9CA3AF',
   },
   unavailableBadge: {
     position: 'absolute',
@@ -842,17 +881,67 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  additionalSection: {
+    marginTop: 32,
+    marginBottom: 80,
+  },
+  additionalSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 16,
+    fontFamily: 'Poppins-Bold',
+  },
+  additionalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+  },
+  additionalIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  additionalText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    backgroundColor: '#2563EB',
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   legendContainer: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 16,
   },
   legendTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 12,
     textAlign: 'center',
+    fontFamily: 'Poppins-SemiBold',
   },
   legendItems: {
     flexDirection: 'row',
@@ -871,8 +960,9 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     fontWeight: '500',
+    fontFamily: 'Inter-Medium',
   },
   modalContainer: {
     flex: 1,
@@ -904,8 +994,9 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     flex: 1,
+    fontFamily: 'Poppins-Bold',
   },
   closeButton: {
     padding: 8,
@@ -930,13 +1021,15 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 12,
+    fontFamily: 'Poppins-Bold',
   },
   sectionContent: {
     fontSize: 16,
-    color: '#64748B',
+    color: '#6B7280',
     lineHeight: 24,
+    fontFamily: 'Inter-Regular',
   },
   timingContainer: {
     flexDirection: 'row',
@@ -944,9 +1037,10 @@ const styles = StyleSheet.create({
   },
   timingText: {
     fontSize: 16,
-    color: '#1E293B',
+    color: '#1F2937',
     fontWeight: '600',
     marginLeft: 8,
+    fontFamily: 'Poppins-SemiBold',
   },
   facilityItem: {
     flexDirection: 'row',
@@ -955,9 +1049,10 @@ const styles = StyleSheet.create({
   },
   facilityText: {
     fontSize: 15,
-    color: '#64748B',
+    color: '#6B7280',
     marginLeft: 8,
     flex: 1,
+    fontFamily: 'Inter-Regular',
   },
   contactContainer: {
     flexDirection: 'row',
@@ -969,6 +1064,7 @@ const styles = StyleSheet.create({
     color: '#2563EB',
     fontWeight: '600',
     marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
   },
   locationContainer: {
     flexDirection: 'row',
@@ -976,8 +1072,9 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 15,
-    color: '#64748B',
+    color: '#6B7280',
     marginLeft: 8,
     flex: 1,
+    fontFamily: 'Inter-Regular',
   },
 });
