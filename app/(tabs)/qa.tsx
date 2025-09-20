@@ -745,6 +745,7 @@ export default function QAScreen() {
                   </TouchableOpacity>
 
                   <View style={styles.actionStats}>
+                  <View style={styles.actionStats}>
                     <Text style={styles.actionStatsText}>{question.likes} likes</Text>
                     <Text style={styles.actionStatsText}>{question.answers?.length || 0} answers</Text>
                     </View>
