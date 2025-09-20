@@ -2,26 +2,26 @@
 node_modules/
 
 # expo
-# .expo/
-# dist/
-# web-build/
+#.expo/
+dist/
+web-build/
 # expo-env.d.ts
 
 # native
-#*.orig.*
-#*.jks
-#*.p8
-#*.p12
+*.orig.*
+*.jks
+*.p8
+*.p12
 #*.key
-#*.mobileprovision
+*.mobileprovision
 
 # metro
-#.metro-health-check*
+.metro-health-check*
 
 # debug
-#npm-debug.*
-#yarn-debug.*
-#yarn-error.*
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
 # macos
 #.DS_Store
@@ -39,3 +39,6 @@ node_modules/
 
 expo-env.d.ts
 # @end expo-cli
+
+# Expo local state
+.expo/

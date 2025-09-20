@@ -1,6 +1,10 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
+<<<<<<< HEAD
 import { Calendar, Clock, TrainFrontIcon as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle, ArrowLeft } from 'lucide-react-native';
+=======
+import { Calendar, Clock, TrainFront as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
 import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -19,7 +23,7 @@ type SavedPNR = {
     age: number;
     status: string;
     coach: string;
-    berth : string;
+    berth: string;
     seat: string;
   }[];
   lastChecked: string;

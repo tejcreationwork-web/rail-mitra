@@ -23,7 +23,8 @@ type APIPassenger = {
   currentStatus: string;
   currentCoachId: string;
   currentBerthNo: number;
-  currentStatusDetails: string;
+  currentBerthCode: string;
+  currentStatusDetails?: string;
 };
 
 type APIResponse = {
@@ -312,6 +313,33 @@ export default function PNRChecker() {
       {pnrData && (
         <View style={styles.resultContainer}>
           {/* Header */}
+          <View style={styles.detailsContainer}>
+            <Text style={styles.sectionTitle}>Journey Details</Text>
+            <View style={styles.journeyRow}>
+              <View style={styles.journeyPoint}>
+                <MapPin size={30} color="#153cb9ff" />
+                <View style={styles.journeyInfo}>
+                  <Text style={styles.journeyLabel}>From</Text>
+                  <Text style={styles.journeyValue}>
+                    {pnrData.sourceStation}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.journeyArrow}>
+                <Text style={styles.arrowText}>→</Text>
+              </View>
+              <View style={styles.journeyPoint}>
+                <MapPin size={30} color="#DC2626" />
+                <View style={styles.journeyInfo}>
+                  <Text style={styles.journeyLabel}>To</Text>
+                  <Text style={styles.journeyValue}>
+                    {pnrData.destinationStation}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.pnrHeader}>
             <Text style={styles.pnrNumber}>PNR : {pnrData.pnrNumber}</Text>
             <View
@@ -337,17 +365,15 @@ export default function PNRChecker() {
           <Text style={styles.trainInfo}>
             Train : {pnrData.trainNumber} - {pnrData.trainName}
           </Text>
-          <Text style={styles.classInfo}>
-            Class : {pnrData.journeyClass} | Date : {pnrData.dateOfJourney}
-          </Text>
           <Text style={styles.BoardingInfo}>
-            Boarding Point : {pnrData.boardingPoint}
+            Boarding Date : {pnrData.dateOfJourney}
           </Text>
+          <Text style={styles.classInfo}>
+            Boarding: {pnrData.boardingPoint}  | Class : {pnrData.journeyClass}
+          </Text>
+      
           <Text style={styles.BookingQuota}>
-            Booking Quata : {pnrData.quota}
-          </Text>
-          <Text style={styles.TicketFare}>
-            Ticket Fare : {pnrData.ticketFare} INR
+            Ticket Fare : ₹{pnrData.ticketFare} | Booking Quota : {pnrData.quota}
           </Text>
 
           {/* Passenger List */}
@@ -377,55 +403,27 @@ export default function PNRChecker() {
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Coach                : </Text>
+                <Text style={styles.detailLabel}>Coach                :  </Text>
                 <Text style={styles.detailValue}>
                   {passenger.currentCoachId || passenger.bookingCoachId || '    -'}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Berth                 : </Text>
+                <Text style={styles.detailLabel}>Berth                :  </Text>
                 <Text style={styles.detailValue}>
-                  {passenger.currentBerthNo || passenger.bookingBerthCode ||'     -'}
+                  {passenger.currentBerthCode ||  passenger.bookingBerthCode ||'     -'}
                 </Text>
               </View>
 
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Seat                    : </Text>
+                <Text style={styles.detailLabel}>Seat                   :  </Text>
                 <Text style={styles.detailValue}>
-                  {passenger.currentBerthNo || passenger.bookingBerthNo ||'     -'}
+                  {passenger.currentBerthNo ||  passenger.bookingBerthNo ||'     -'}
                 </Text>
               </View>
             </View>
           ))}
-
-          {/* Journey Details */}
-          <View style={styles.detailsContainer}>
-            <Text style={styles.sectionTitle}>Journey Details</Text>
-            <View style={styles.journeyRow}>
-              <View style={styles.journeyPoint}>
-                <MapPin size={30} color="#153cb9ff" />
-                <View style={styles.journeyInfo}>
-                  <Text style={styles.journeyLabel}>From</Text>
-                  <Text style={styles.journeyValue}>
-                    {pnrData.sourceStation}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.journeyArrow}>
-                <Text style={styles.arrowText}>→</Text>
-              </View>
-              <View style={styles.journeyPoint}>
-                <MapPin size={30} color="#DC2626" />
-                <View style={styles.journeyInfo}>
-                  <Text style={styles.journeyLabel}>To</Text>
-                  <Text style={styles.journeyValue}>
-                    {pnrData.destinationStation}
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
 
           {/* Save Section */}
           <View style={styles.saveSection}>
@@ -687,11 +685,11 @@ const styles = StyleSheet.create({
   journeyArrow: {
     justifyContent: 'center',
     alignItems: 'flex-start',
-    marginLeft: -50,
-    paddingHorizontal: 60,
+    marginLeft: -10,
+    paddingHorizontal: 30,
   },
   arrowText: {
-    fontSize: 24,
+    fontSize: 30,
     color: '#64748B',
     fontWeight: 'bold',
   },

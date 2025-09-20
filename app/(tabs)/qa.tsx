@@ -1,6 +1,11 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical, ArrowLeft } from 'lucide-react-native';
+=======
+import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical, Brain as Train } from 'lucide-react-native';
+import { useLocalSearchParams } from 'expo-router';
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -10,7 +15,9 @@ type UserVote = {
   answerId?: string;
   voteType: 'like' | 'dislike';
 };
+
 export default function QAScreen() {
+  const params = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
@@ -25,7 +32,10 @@ export default function QAScreen() {
   const [userVotes, setUserVotes] = useState<UserVote[]>([]);
   const [userQuestions, setUserQuestions] = useState<string[]>([]);
   const [showQuestionOptions, setShowQuestionOptions] = useState<string | null>(null);
-  
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+
+
   // Question form state
   const [questionTitle, setQuestionTitle] = useState('');
   const [questionContent, setQuestionContent] = useState('');
@@ -121,6 +131,19 @@ export default function QAScreen() {
     loadUserQuestions();
     loadQuestions();
 
+    // Check if we need to open a specific question's answers view
+    if (params.selectedQuestionId && params.openAnswersView === 'true') {
+      // Wait for questions to load, then open the specific question
+      const timer = setTimeout(() => {
+        const question = questions.find(q => q.id === params.selectedQuestionId);
+        if (question) {
+          openAnswersView(question);
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+
     // Subscribe to real-time updates
     const subscription = qaService.subscribeToQuestions((updatedQuestions) => {
       setQuestions(updatedQuestions);
@@ -131,7 +154,17 @@ export default function QAScreen() {
     return () => {
       supabase.removeChannel(subscription);
     };
-  }, []);
+  }, [params.selectedQuestionId, params.openAnswersView]);
+
+  // Effect to handle navigation to specific question after questions are loaded
+  useEffect(() => {
+    if (params.selectedQuestionId && params.openAnswersView === 'true' && questions.length > 0) {
+      const question = questions.find(q => q.id === params.selectedQuestionId);
+      if (question) {
+        openAnswersView(question);
+      }
+    }
+  }, [questions, params.selectedQuestionId, params.openAnswersView]);
 
   const handleLike = async (questionId: string, answerId?: string) => {
     try {
@@ -272,39 +305,29 @@ export default function QAScreen() {
     ]);
   };
 
-  const handleDeleteQuestion = async (questionId: string) => {
-    Alert.alert(
-      'Delete Question',
-      'Are you sure you want to delete this question? This action cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await qaService.deleteQuestion(questionId);
-              
-              // Remove from user's posted questions
-              const updatedUserQuestions = userQuestions.filter(id => id !== questionId);
-              await saveUserQuestions(updatedUserQuestions);
-              
-              // Remove any votes for this question
-              const updatedVotes = userVotes.filter(vote => vote.questionId !== questionId);
-              await saveUserVotes(updatedVotes);
-              
-              Alert.alert('Success', 'Question deleted successfully');
-              
-              // Reload questions
-              await loadQuestions();
-            } catch (error) {
-              console.error('Error deleting question:', error);
-              Alert.alert('Error', 'Failed to delete question. Please try again.');
-            }
-          },
-        },
-      ]
-    );
+  const confirmDelete = (question: Question) => {
+    setSelectedQuestion(question); // store whole object
+    setDeleteModalVisible(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedQuestion) return;
+
+    try {
+      await qaService.deleteQuestion(selectedQuestion.id); // now use .id
+      const updatedUserQuestions = userQuestions.filter(id => id !== selectedQuestion.id);
+      await saveUserQuestions(updatedUserQuestions);
+
+      const updatedVotes = userVotes.filter(vote => vote.questionId !== selectedQuestion.id);
+      await saveUserVotes(updatedVotes);
+
+      await loadQuestions();
+
+      setDeleteModalVisible(false);
+      setSelectedQuestion(null);
+    } catch (error) {
+      console.error("Error deleting question:", error);
+    }
   };
   const handleCreateQuestion = async () => {
     if (!questionTitle.trim() || !questionContent.trim() || !authorName.trim()) {
@@ -576,6 +599,7 @@ export default function QAScreen() {
   }
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color="#FFFFFF" />
@@ -585,11 +609,37 @@ export default function QAScreen() {
           <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
         </View>
         <View style={styles.placeholder} />
+=======
+      {/* Header with logo and title */}
+      <View style={styles.topHeader}>
+        <View style={styles.logoContainer}>
+          <Train size={24} color="#2563EB" />
+          <Text style={styles.logoText}>Indian Railway</Text>
+        </View>
+        <TouchableOpacity style={styles.wireframeButton}>
+          <Text style={styles.wireframeText}>Wireframe</Text>
+        </TouchableOpacity>
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
       </View>
 
-      <View style={styles.searchContainer}>
-        <View style={styles.searchWrapper}>
-          <Search size={20} color="#64748B" />
+      {/* Hero Section */}
+      <View style={styles.heroSection}>
+        <View style={styles.heroContent}>
+          <Text style={styles.heroTitle}>Q&A Community</Text>
+          <Text style={styles.heroSubtitle}>Get answers from fellow travelers</Text>
+          <View style={styles.categoryTag}>
+            <Text style={styles.categoryTagText}>Indian Railways</Text>
+          </View>
+        </View>
+        <View style={styles.heroIllustration}>
+          <Train size={120} color="#BFDBFE" />
+        </View>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchSection}>
+        <View style={styles.searchBar}>
+          <Search size={20} color="#94A3B8" />
           <TextInput
             style={styles.searchInput}
             placeholder="Search questions..."
@@ -599,138 +649,129 @@ export default function QAScreen() {
           />
         </View>
         <TouchableOpacity 
-          style={styles.askButton}
+          style={styles.addButton}
           onPress={() => setShowQuestionModal(true)}
         >
-          <Plus size={20} color="#FFFFFF" />
+          <Plus size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Stats Cards */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalQuestions}</Text>
-            <Text style={styles.statLabel}>Questions</Text>
+            <View style={styles.statIcon}>
+              <MessageSquare size={24} color="#2563EB" />
+            </View>
+            <Text style={styles.statLabel}>Questions: {totalQuestions}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalAnswers}</Text>
-            <Text style={styles.statLabel}>Answers</Text>
+            <View style={styles.statIcon}>
+              <MessageSquare size={24} color="#FFFFFF" />
+            </View>
+            <Text style={styles.statLabel}>Answers: {totalAnswers}</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalQuestions > 0 ? Math.floor(totalAnswers / totalQuestions * 100) / 100 : 0}</Text>
-            <Text style={styles.statLabel}>Avg Answers</Text>
+            <View style={styles.statIcon}>
+              <MessageSquare size={24} color="#DC2626" />
+            </View>
+            <Text style={styles.statLabel}>Avg Answers: {totalQuestions > 0 ? (totalAnswers / totalQuestions).toFixed(2) : '0.00'}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>
-          {filteredQuestions.length === 0 && questions.length > 0 ? 'No matching questions' : 'Recent Questions'}
-        </Text>
+        {/* Recent Questions Section */}
+        <View style={styles.questionsSection}>
+          <Text style={styles.sectionTitle}>Recent Questions</Text>
 
-        {filteredQuestions.length === 0 && questions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MessageSquare size={48} color="#94A3B8" />
-            <Text style={styles.emptyTitle}>No Questions Yet</Text>
-            <Text style={styles.emptySubtitle}>Be the first to ask a question in the community!</Text>
-            <TouchableOpacity 
-              style={styles.emptyButton}
-              onPress={() => setShowQuestionModal(true)}
-            >
-              <Text style={styles.emptyButtonText}>Ask First Question</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          filteredQuestions.map((question) => (
-            <View key={question.id} style={styles.questionCard}>
-              <View style={styles.questionHeader}>
-                <View style={styles.authorInfo}>
-                  <View style={styles.avatar}>
-                    <User size={16} color="#FFFFFF" />
-                  </View>
-                  <View>
-                    <Text style={styles.authorName}>{question.author}</Text>
-                    <View style={styles.timestampContainer}>
-                      <Clock size={12} color="#94A3B8" />
+          {filteredQuestions.length === 0 && questions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MessageSquare size={48} color="#94A3B8" />
+              <Text style={styles.emptyTitle}>No Questions Yet</Text>
+              <Text style={styles.emptySubtitle}>Be the first to ask a question in the community!</Text>
+              <TouchableOpacity 
+                style={styles.emptyButton}
+                onPress={() => setShowQuestionModal(true)}
+              >
+                <Text style={styles.emptyButtonText}>Ask First Question</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            filteredQuestions.map((question) => (
+              <View key={question.id} style={styles.questionCard}>
+                <View style={styles.questionHeader}>
+                  <View style={styles.authorInfo}>
+                    <View style={styles.avatar}>
+                      <User size={20} color="#FFFFFF" />
+                    </View>
+                    <View style={styles.authorDetails}>
+                      <Text style={styles.authorName}>{question.author}</Text>
                       <Text style={styles.timestamp}>{formatTimestamp(question.created_at)}</Text>
                     </View>
                   </View>
+                  {canDeleteQuestion(question.id) && (
+                    <TouchableOpacity
+                      style={styles.optionsButton}
+                      onPress={() => setShowQuestionOptions(showQuestionOptions === question.id ? null : question.id)}
+                    >
+                      <MoreVertical size={20} color="#64748B" />
+                    </TouchableOpacity>
+                  )}
                 </View>
-                {canDeleteQuestion(question.id) && (
+
+                {showQuestionOptions === question.id && canDeleteQuestion(question.id) && (
                   <TouchableOpacity
-                    style={styles.optionsButton}
-                    onPress={() => setShowQuestionOptions(showQuestionOptions === question.id ? null : question.id)}
+                    style={styles.deleteButton}
+                    onPress={() => confirmDelete(question)}
                   >
-                    <MoreVertical size={20} color="#64748B" />
+                    <Trash2 size={18} color="#DC2626" />
                   </TouchableOpacity>
                 )}
-              </View>
 
-              {showQuestionOptions === question.id && canDeleteQuestion(question.id) && (
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteQuestion(question.id)}
-                >
-                  <Trash2 size={18} color="#DC2626" />
-                </TouchableOpacity>
-              )}
-              <Text style={styles.questionTitle}>{question.title}</Text>
-              <Text style={styles.questionContent}>{question.content}</Text>
+                <Text style={styles.questionTitle}>{question.title}</Text>
+                <Text style={styles.questionContent}>{question.content}</Text>
 
-              {question.tags.length > 0 && (
-                <View style={styles.tagsContainer}>
-                  {question.tags.map((tag, index) => (
-                    <View key={index} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag}</Text>
+                {question.tags.length > 0 && (
+                  <View style={styles.tagsContainer}>
+                    {question.tags.map((tag, index) => (
+                      <View key={index} style={styles.tag}>
+                        <Text style={styles.tagText}>{tag}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                <View style={styles.questionActions}>
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => handleLike(question.id)}
+                  >
+                    <Text style={styles.actionButtonText}>Like</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={styles.actionButton}
+                    onPress={() => {
+                      if (question.answers && question.answers.length > 0) {
+                        openAnswersView(question);
+                      } else {
+                        openAnswerModal(question.id);
+                      }
+                    }}
+                  >
+                    <Text style={styles.actionButtonText}>Count</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.actionStats}>
+                  <View style={styles.actionStats}>
+                    <Text style={styles.actionStatsText}>{question.likes} likes</Text>
+                    <Text style={styles.actionStatsText}>{question.answers?.length || 0} answers</Text>
                     </View>
-                  ))}
+                  </View>
                 </View>
-              )}
-
-              <View style={styles.questionActions}>
-                <TouchableOpacity 
-                  style={[
-                    styles.actionButton,
-                    hasUserLiked(question.id) && styles.actionButtonActive
-                  ]}
-                  onPress={() => handleLike(question.id)}
-                >
-                  <ThumbsUp 
-                    size={16} 
-                    color={hasUserLiked(question.id) ? "#2563EB" : "#64748B"} 
-                  />
-                  <Text style={styles.actionText}>{question.likes}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={[
-                    styles.actionButton,
-                    hasUserDisliked(question.id) && styles.actionButtonActive
-                  ]}
-                  onPress={() => handleDislike(question.id)}
-                >
-                  <ThumbsDown 
-                    size={16} 
-                    color={hasUserDisliked(question.id) ? "#DC2626" : "#64748B"} 
-                  />
-                  <Text style={styles.actionText}>{question.dislikes}</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                  style={styles.actionButton}
-                  onPress={() => {
-                    if (question.answers && question.answers.length > 0) {
-                      openAnswersView(question);
-                    } else {
-                      openAnswerModal(question.id);
-                    }
-                  }}
-                >
-                  <MessageSquare size={16} color="#64748B" />
-                  <Text style={styles.actionText}>{question.answers?.length || 0}</Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          ))
-        )}
+            ))
+          )}
+        </View>
       </ScrollView>
 
       {/* Question Modal */}
@@ -852,6 +893,30 @@ export default function QAScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View style={{ backgroundColor: "white", padding: 20, borderRadius: 8, width: 300 }}>
+            <Text style={{ fontSize: 16, marginBottom: 20 }}>
+              Are you sure you want to delete this question? This action cannot be undone.
+            </Text>
+
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)}>
+                <Text style={{ color: "blue" }}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleConfirmDelete}>
+                <Text style={{ color: "red" }}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -859,10 +924,11 @@ export default function QAScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
-  header: {
+  topHeader: {
     backgroundColor: '#2563EB',
+<<<<<<< HEAD
     paddingTop: 45,
     paddingHorizontal: 20,
     paddingBottom: 12,
@@ -883,14 +949,107 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+=======
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 18,
+    fontWeight: '600',
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
     color: '#FFFFFF',
-    marginBottom: 4,
+    marginLeft: 8,
+  },
+  wireframeButton: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  wireframeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2563EB',
+  },
+  heroSection: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  heroContent: {
+    flex: 1,
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
-  headerSubtitle: {
+  heroSubtitle: {
+    fontSize: 16,
+    color: '#64748B',
+    marginBottom: 20,
+    fontFamily: 'Inter-Regular',
+  },
+  categoryTag: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    alignSelf: 'flex-start',
+  },
+  categoryTagText: {
+    color: '#FFFFFF',
     fontSize: 14,
-    color: '#BFDBFE',
-    fontFamily: 'Inter-Medium',
+    fontWeight: '600',
+  },
+  heroIllustration: {
+    marginLeft: 20,
+  },
+  searchSection: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    alignItems: 'center',
+    gap: 12,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#1E293B',
+    marginLeft: 12,
+    fontFamily: 'Inter-Regular',
+  },
+  addButton: {
+    backgroundColor: '#2563EB',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   placeholder: {
     width: 32,
@@ -905,76 +1064,48 @@ const styles = StyleSheet.create({
     color: '#64748B',
     fontFamily: 'Inter-Medium',
   },
-  searchContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    gap: 12,
-  },
-  searchWrapper: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  searchInput: {
-    flex: 1,
-    height: 48,
-    fontSize: 16,
-    color: '#1E293B',
-    marginLeft: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  askButton: {
-    backgroundColor: '#2563EB',
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    paddingHorizontal: 20,
+    marginBottom: 32,
+    gap: 12,
   },
   statItem: {
     flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 4,
-    fontFamily: 'Poppins-Bold',
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 14,
+    fontWeight: '600',
     color: '#64748B',
-    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+    fontFamily: 'Inter-SemiBold',
+  },
+  questionsSection: {
+    paddingHorizontal: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#1E293B',
     marginBottom: 16,
@@ -1015,19 +1146,19 @@ const styles = StyleSheet.create({
   },
   questionCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 16,
+    padding: 24,
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 5,
   },
   questionHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
   authorInfo: {
@@ -1036,13 +1167,94 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   avatar: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     backgroundColor: '#2563EB',
-    borderRadius: 16,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+  },
+  authorDetails: {
+    flex: 1,
+  },
+  authorName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginBottom: 2,
+    fontFamily: 'Poppins-SemiBold',
+  },
+  timestamp: {
+    fontSize: 14,
+    color: '#94A3B8',
+    fontFamily: 'Inter-Regular',
+  },
+  optionsButton: {
+    padding: 8,
+  },
+  questionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 12,
+    fontFamily: 'Poppins-Bold',
+  },
+  questionContent: {
+    fontSize: 16,
+    color: '#64748B',
+    lineHeight: 24,
+    marginBottom: 16,
+    fontFamily: 'Inter-Regular',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 20,
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  tagText: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+    fontFamily: 'Inter-Medium',
+  },
+  questionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  actionButton: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
+  },
+  actionStats: {
+    alignItems: 'flex-end',
+  },
+  actionStatsText: {
+    fontSize: 14,
+    color: '#64748B',
+    fontFamily: 'Inter-Regular',
+  },
+  answersSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
   },
   avatarSmall: {
     width: 24,
@@ -1053,70 +1265,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  authorName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 2,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  timestampContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timestamp: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginLeft: 4,
-    fontFamily: 'Inter-Regular',
-  },
-  optionsButton: {
-    padding: 8,
-  },
-  questionTitle: {
+  answersTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#1E293B',
-    marginBottom: 8,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  questionContent: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
     marginBottom: 12,
-    fontFamily: 'Inter-Regular',
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 16,
-    gap: 8,
-  },
-  tag: {
-    backgroundColor: '#EBF4FF',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  tagText: {
-    fontSize: 12,
-    color: '#2563EB',
-    fontWeight: '500',
-    fontFamily: 'Inter-Medium',
-  },
-  questionActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    fontFamily: 'Poppins-SemiBold',
   },
   actionButtonActive: {
     backgroundColor: '#EBF4FF',
@@ -1127,19 +1281,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: '500',
     fontFamily: 'Inter-Medium',
-  },
-  answersSection: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  answersTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 12,
-    fontFamily: 'Poppins-SemiBold',
   },
   answerCard: {
     backgroundColor: '#F8FAFC',

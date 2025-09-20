@@ -1,7 +1,11 @@
 import { Tabs } from 'expo-router';
+<<<<<<< HEAD
 import { User, Calendar, House, MessageSquare, Phone } from 'lucide-react-native';
 import { useLanguage } from '@/hooks/useLanguage';
 import { t } from '@/lib/i18n';
+=======
+import { Ionicons } from '@expo/vector-icons';
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
 
 export default function TabLayout() {
   const { currentLanguage } = useLanguage();
@@ -10,28 +14,18 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 70,
-        },
-        tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 12,
-          marginTop: 4,
-        },
-        tabBarActiveTintColor: '#2563EB',
-        tabBarInactiveTintColor: '#64748B',
+        tabBarActiveTintColor: '#2563eb',
       }}>
       <Tabs.Screen
-        name="account"
+        name="index"
         options={{
+<<<<<<< HEAD
           title: t('account', currentLanguage),
+=======
+          title: 'Home',
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
           tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
@@ -40,6 +34,7 @@ export default function TabLayout() {
         options={{
           title: t('booking', currentLanguage),
           tabBarIcon: ({ size, color }) => (
+<<<<<<< HEAD
             <Calendar size={size} color={color} />
           ),
         }}
@@ -50,6 +45,9 @@ export default function TabLayout() {
           title: t('home', currentLanguage),
           tabBarIcon: ({ size, color }) => (
             <House size={size} color={color} />
+=======
+            <Ionicons name="train" size={size} color={color} />
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
           ),
         }}
       />
@@ -58,25 +56,23 @@ export default function TabLayout() {
         options={{
           title: t('qa', currentLanguage),
           tabBarIcon: ({ size, color }) => (
-            <MessageSquare size={size} color={color} />
+            <Ionicons name="help-circle" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="contact"
+        name="account"
         options={{
+<<<<<<< HEAD
           title: t('contact', currentLanguage),
+=======
+          title: 'Account',
+>>>>>>> f952c6addf7f745b84b2da32739e57286f46b76d
           tabBarIcon: ({ size, color }) => (
-            <Phone size={size} color={color} />
+            <Ionicons name="person" size={size} color={color} />
           ),
         }}
       />
-      <Tabs.Screen
-      name="settings"
-      options={{
-        href: null, // hides it from the tab bar
-      }}
-    />
     </Tabs>
   );
 }
