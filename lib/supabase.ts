@@ -38,7 +38,7 @@ export const qaService = {
       .from('questions')
       .select(`
         *,
-        answers (*)
+        answers(*)
       `)
       .order('created_at', { ascending: false });
 
@@ -123,6 +123,7 @@ export const qaService = {
       throw new Error(`Failed to delete question: ${error.message}`);
     }
   },
+
   // Subscribe to real-time changes
   subscribeToQuestions(callback: (questions: Question[]) => void) {
     return supabase

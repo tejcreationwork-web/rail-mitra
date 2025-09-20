@@ -1,24 +1,46 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
-import { useState } from 'react';
+import { 
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, Animated, Easing
+} from 'react-native';
+import { useState, useRef } from 'react';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, ZoomIn, ZoomOut, RotateCcw, Check } from 'lucide-react-native';
-import { Image, Dimensions, Platform } from 'react-native';
-import { GestureHandlerRootView, PinchGestureHandler, PanGestureHandler, State } from 'react-native-gesture-handler';
-import Animated, { 
-  useAnimatedStyle, 
-  useSharedValue, 
-  withSpring,
-  runOnJS,
-} from 'react-native-reanimated';
+import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package, X, Phone, Clock, CircleCheck as CheckCircle, Share, Navigation, Brain as Train, Plus } from 'lucide-react-native';
+import { Modal, Image, Linking } from 'react-native';
+import AccessibleDropdown from '@/components/AccessibleDropdown';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+let MapView: any, Marker: any;
+if (Platform.OS !== "web") {
+  try {
+    const RNMaps = require("react-native-maps");
+    MapView = RNMaps.default;
+    Marker = RNMaps.Marker;
+  } catch (error) {
+    console.warn("react-native-maps not available");
+  }
+}
 
 type Station = {
   id: string;
   name: string;
   code: string;
   description: string;
-  image: any;
+  latitude: number;
+  longitude: number;
+};
+
+type Amenity = {
+  id: string;
+  name: string;
+  icon: any;
+  available: boolean;
+  description?: string;
+  detailedInfo?: {
+    about: string;
+    timings: string;
+    facilities: string[];
+    contact?: string;
+    images: string[];
+    location?: string;
+  };
 };
 
 export default function StationLayout() {
@@ -28,238 +50,600 @@ export default function StationLayout() {
       name: 'Thane Railway Station',
       code: 'TNA',
       description: 'Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.',
-      image: require('@/assets/images/thane.png'),
+      latitude: 19.18648,
+      longitude: 72.97577,
     },
     {
       id: 'dadar',
       name: 'Dadar Railway Station',
       code: 'DR',
       description: 'One of the busiest railway stations in Mumbai, serving both Central and Western Railway lines.',
-      image: require('@/assets/images/Dadar Station Layout.png'),
+      latitude: 19.021556,
+      longitude: 72.844065,
+    },
+  ];
+
+  const amenities: Amenity[] = [
+    { 
+      id: 'baby-food', 
+      name: 'Baby Food', 
+      icon: Baby, 
+      available: true, 
+      description: 'Baby care facilities',
+      detailedInfo: {
+        about: 'Dedicated baby care facility with feeding area, changing stations, and baby food options',
+        timings: 'Open: 24 hours',
+        facilities: ['Baby changing stations', 'Feeding area', 'Baby food available', 'Clean and hygienic'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg'],
+        location: 'Platform 1, Near Main Entrance'
+      }
+    },
+    { 
+      id: 'parking', 
+      name: 'Parking', 
+      icon: Car, 
+      available: true, 
+      description: 'Vehicle parking',
+      detailedInfo: {
+        about: 'Multi-level parking facility with spaces for cars, bikes, and auto-rickshaws',
+        timings: 'Open: 24 hours',
+        facilities: ['Car parking (500+ spaces)', 'Two-wheeler parking', 'CCTV surveillance', 'Security guards'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/753876/pexels-photo-753876.jpeg'],
+        location: 'Main entrance, Ground floor'
+      }
+    },
+    { 
+      id: 'catering', 
+      name: 'Food Court', 
+      icon: Utensils, 
+      available: true, 
+      description: 'Dining options',
+      detailedInfo: {
+        about: 'Multi-cuisine food court with 12 restaurants and cafes offering variety of meals',
+        timings: 'Open: 5:00 AM - 11:00 PM',
+        facilities: ['AC seating for 200 people', 'Free WiFi available', 'Wheelchair accessible', 'Multiple cuisines'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg'],
+        location: 'Platform 3, First floor'
+      }
+    },
+    { 
+      id: 'accessibility', 
+      name: 'Accessibility', 
+      icon: Accessibility, 
+      available: true, 
+      description: 'Disabled facilities',
+      detailedInfo: {
+        about: 'Complete accessibility features for differently-abled passengers',
+        timings: 'Available: 24 hours',
+        facilities: ['Wheelchair ramps', 'Accessible restrooms', 'Braille signage', 'Audio announcements'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/7176026/pexels-photo-7176026.jpeg'],
+        location: 'All platforms and facilities'
+      }
+    },
+    { 
+      id: 'waiting-room', 
+      name: 'Waiting Room', 
+      icon: Sofa, 
+      available: true, 
+      description: 'Comfortable seating',
+      detailedInfo: {
+        about: 'Air-conditioned waiting room with comfortable seating and charging points',
+        timings: 'Open: 24 hours',
+        facilities: ['AC seating for 150 people', 'Mobile charging points', 'Clean restrooms nearby', 'Security surveillance'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg'],
+        location: 'Platform 2, Ground floor'
+      }
+    },
+    { 
+      id: 'shopping', 
+      name: 'Shopping', 
+      icon: ShoppingBag, 
+      available: true, 
+      description: 'Retail stores',
+      detailedInfo: {
+        about: 'Shopping complex with various retail stores, pharmacy, and convenience items',
+        timings: 'Open: 6:00 AM - 10:00 PM',
+        facilities: ['Pharmacy', 'Convenience store', 'Clothing shops', 'Electronics store'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg'],
+        location: 'Main concourse, Ground floor'
+      }
+    },
+    { 
+      id: 'ladies-waiting', 
+      name: 'Ladies Waiting Room', 
+      icon: Users, 
+      available: true, 
+      description: 'Women-only area',
+      detailedInfo: {
+        about: 'Exclusive waiting area for women passengers with enhanced security and comfort',
+        timings: 'Open: 24 hours',
+        facilities: ['Women-only seating', 'Enhanced security', 'Clean restrooms', 'Baby care facilities'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg'],
+        location: 'Platform 1, First floor'
+      }
+    },
+    { 
+      id: 'restroom', 
+      name: 'Restrooms', 
+      icon: Restroom, 
+      available: true, 
+      description: 'Clean facilities',
+      detailedInfo: {
+        about: 'Clean and well-maintained restroom facilities with regular cleaning',
+        timings: 'Open: 24 hours',
+        facilities: ['Separate male/female facilities', 'Disabled-accessible', 'Regular cleaning', 'Hand sanitizers'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg'],
+        location: 'All platforms'
+      }
+    },
+    { 
+      id: 'wifi', 
+      name: 'Free WiFi', 
+      icon: Wifi, 
+      available: true, 
+      description: 'Internet access',
+      detailedInfo: {
+        about: 'High-speed free WiFi available throughout the station premises',
+        timings: 'Available: 24 hours',
+        facilities: ['High-speed internet', 'Station-wide coverage', 'Easy login process', 'No time limit'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg'],
+        location: 'Station-wide coverage'
+      }
+    },
+    { 
+      id: 'refreshment', 
+      name: 'Refreshments', 
+      icon: Coffee, 
+      available: true, 
+      description: 'Snacks & beverages',
+      detailedInfo: {
+        about: 'Quick refreshment counters with tea, coffee, snacks and beverages',
+        timings: 'Open: 5:00 AM - 11:00 PM',
+        facilities: ['Tea and coffee', 'Fresh snacks', 'Cold beverages', 'Quick service'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg'],
+        location: 'Multiple locations on all platforms'
+      }
+    },
+    { 
+      id: 'security', 
+      name: 'Security', 
+      icon: ShieldCheck, 
+      available: true, 
+      description: '24/7 security',
+      detailedInfo: {
+        about: '24/7 security surveillance with RPF personnel and CCTV monitoring',
+        timings: 'Available: 24 hours',
+        facilities: ['CCTV surveillance', 'RPF personnel', 'Metal detectors', 'Emergency response'],
+        contact: '1512 (RPF Helpline)',
+        images: ['https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg'],
+        location: 'Station-wide coverage'
+      }
+    },
+    { 
+      id: 'announcement', 
+      name: 'PA System', 
+      icon: Headphones, 
+      available: true, 
+      description: 'Audio announcements',
+      detailedInfo: {
+        about: 'Public address system for train announcements and important information',
+        timings: 'Active: 24 hours',
+        facilities: ['Multi-language announcements', 'Clear audio quality', 'Emergency broadcasts', 'Platform-specific info'],
+        contact: '139 (Railway Helpline)',
+        images: ['https://images.pexels.com/photos/6963944/pexels-photo-6963944.jpeg'],
+        location: 'All platforms and waiting areas'
+      }
+    },
+    { 
+      id: 'cloakroom', 
+      name: 'Cloakroom', 
+      icon: Package, 
+      available: true, 
+      description: 'Luggage storage',
+      detailedInfo: {
+        about: 'Secure luggage storage facility for passengers with proper documentation',
+        timings: 'Open: 6:00 AM - 10:00 PM',
+        facilities: ['Secure storage', 'ID verification required', 'Reasonable charges', 'Insurance coverage'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg'],
+        location: 'Main entrance, Ground floor'
+      }
+    },
+    { 
+      id: 'atm', 
+      name: 'ATM', 
+      icon: Banknote, 
+      available: true, 
+      description: 'Cash withdrawal',
+      detailedInfo: {
+        about: 'Multiple ATM machines from various banks for cash withdrawal and banking services',
+        timings: 'Available: 24 hours',
+        facilities: ['Multiple bank ATMs', 'Cash withdrawal', 'Balance inquiry', 'Security surveillance'],
+        contact: 'Bank customer care',
+        images: ['https://images.pexels.com/photos/164527/pexels-photo-164527.jpeg'],
+        location: 'Main concourse and platforms'
+      }
+    },
+    { 
+      id: 'taxi', 
+      name: 'Taxi Service', 
+      icon: Taxi, 
+      available: true, 
+      description: 'Transportation',
+      detailedInfo: {
+        about: 'Taxi and auto-rickshaw services available outside the station',
+        timings: 'Available: 24 hours',
+        facilities: ['Pre-paid taxi counter', 'Auto-rickshaw stand', 'App-based cabs', 'Fixed rate cards'],
+        contact: '022-XXXX-XXXX',
+        images: ['https://images.pexels.com/photos/1059040/pexels-photo-1059040.jpeg'],
+        location: 'Station exit, Ground level'
+      }
+    },
+    { 
+      id: 'bookstall', 
+      name: 'Book Stall', 
+      icon: Music, 
+      available: false, 
+      description: 'Books & magazines',
+      detailedInfo: {
+        about: 'Book stall with newspapers, magazines, and books (Currently unavailable)',
+        timings: 'Currently closed',
+        facilities: ['Newspapers', 'Magazines', 'Books', 'Stationery items'],
+        contact: 'N/A',
+        images: ['https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg'],
+        location: 'Platform 2 (Currently closed)'
+      }
     },
   ];
 
   const [selectedStationId, setSelectedStationId] = useState('thane');
-  const [showDropdown, setShowDropdown] = useState(false);
-  
-  // Animated values for gestures
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const baseScale = useSharedValue(1);
-  const pinchScale = useSharedValue(1);
-  const lastScale = useSharedValue(1);
+  const [activeTab, setActiveTab] = useState<'layout' | 'amenities'>('layout');
+  const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
+  const [amenityModalVisible, setAmenityModalVisible] = useState(false);
 
   const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
 
-  const handleStationSelect = (stationId: string) => {
-    setSelectedStationId(stationId);
-    setShowDropdown(false);
-    resetZoom();
+  const stationOptions = stations.map(station => ({
+    id: station.id,
+    label: `${station.name} (${station.code})`,
+    value: station.id,
+  }));
+
+  const handleStationSelect = (option: any) => {
+    setSelectedStationId(option.value);
   };
 
-  const onPinchGestureEvent = (event: any) => {
-    'worklet';
-    pinchScale.value = event.scale;
-    scale.value = baseScale.value * pinchScale.value;
-  };
-
-  const onPinchHandlerStateChange = (event: any) => {
-    'worklet';
-    if (event.oldState === State.ACTIVE) {
-      lastScale.value = scale.value;
-      baseScale.value = scale.value;
-      pinchScale.value = 1;
-      
-      // Constrain scale
-      if (scale.value < 0.5) {
-        scale.value = withSpring(0.5);
-        baseScale.value = 0.5;
-        lastScale.value = 0.5;
-      } else if (scale.value > 3) {
-        scale.value = withSpring(3);
-        baseScale.value = 3;
-        lastScale.value = 3;
-      }
-    }
-  };
-
-  const onPanGestureEvent = (event: any) => {
-    'worklet';
-    translateX.value = event.translationX;
-    translateY.value = event.translationY;
-  };
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-    };
-  });
-
-  const resetZoom = () => {
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0);
-    translateY.value = withSpring(0);
-    baseScale.value = 1;
-    pinchScale.value = 1;
-    lastScale.value = 1;
-  };
-
-  const zoomIn = () => {
-    const newScale = Math.min(scale.value * 1.2, 3);
-    scale.value = withSpring(newScale);
-    baseScale.value = newScale;
-    lastScale.value = newScale;
-  };
-
-  const zoomOut = () => {
-    const newScale = Math.max(scale.value * 0.8, 0.5);
-    scale.value = withSpring(newScale);
-    baseScale.value = newScale;
-    lastScale.value = newScale;
-  };
-
-  const renderImageWithGestures = () => {
-    if (Platform.OS === 'web') {
-      // Web fallback - no gestures, just zoom buttons
-      return (
-        <Image
-          source={selectedStation.image}
-          style={styles.stationImage}
-          resizeMode="contain"
-        />
-      );
-    }
-
-    // Mobile - with gesture support
+  const renderAmenityItem = (amenity: Amenity) => {
+    const IconComponent = amenity.icon;
     return (
-      <GestureHandlerRootView style={styles.gestureContainer}>
-        <PanGestureHandler onGestureEvent={onPanGestureEvent}>
-          <Animated.View>
-            <PinchGestureHandler
-              onGestureEvent={onPinchGestureEvent}
-              onHandlerStateChange={onPinchHandlerStateChange}
-            >
-              <Animated.View>
-                <Animated.Image
-                  source={selectedStation.image}
-                  style={[styles.stationImage, animatedStyle]}
-                  resizeMode="contain"
-                />
-              </Animated.View>
-            </PinchGestureHandler>
-          </Animated.View>
-        </PanGestureHandler>
-      </GestureHandlerRootView>
+      <TouchableOpacity 
+        key={amenity.id} 
+        style={[styles.amenityItem, !amenity.available && styles.amenityItemDisabled]}
+        onPress={() => {
+          setSelectedAmenity(amenity);
+          setAmenityModalVisible(true);
+        }}
+        activeOpacity={0.7}
+        accessible={true}
+        accessibilityRole="button"
+        accessibilityLabel={`${amenity.name} ${amenity.available ? 'available' : 'not available'}`}
+        accessibilityHint={amenity.available ? 'Double tap to view details' : 'This amenity is currently not available'}
+        accessibilityState={{ disabled: !amenity.available }}
+      >
+        <View style={[styles.amenityIcon, !amenity.available && styles.amenityIconDisabled]}>
+          <IconComponent size={24} color={amenity.available ? "#2563EB" : "#94A3B8"} />
+        </View>
+        <Text style={[styles.amenityText, !amenity.available && styles.amenityTextDisabled]}>
+          {amenity.name}
+        </Text>
+        {!amenity.available && (
+          <View style={styles.unavailableBadge}>
+            <Text style={styles.unavailableText}>N/A</Text>
+          </View>
+        )}
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-      
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.push('/')} style={styles.backButton}>
-          <ArrowLeft size={26} color="#FFFFFF" />
+        <TouchableOpacity 
+          onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
+          style={styles.backButton}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+          accessibilityHint="Navigate back to previous screen"
+        >
+          <ArrowLeft size={24} color="#1F2937" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Station Layout</Text>
+        <Text style={styles.headerTitle}>Station Info</Text>
         <TouchableOpacity style={styles.infoButton}>
-          <Info size={22} color="#FFFFFF" />
+          <View style={styles.infoButtonCircle}>
+            <Text style={styles.infoButtonText}>Info</Text>
+          </View>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.stationSelector}>
-          <Text style={styles.sectionLabel}>Select Railway Station</Text>
-          <TouchableOpacity 
-            style={styles.dropdown}
-            onPress={() => setShowDropdown(!showDropdown)}
-          >
-            <MapPin size={22} color="#1E40AF" />
-            <Text style={styles.dropdownText}>
-              {selectedStation.name} ({selectedStation.code})
-            </Text>
-            <ChevronDown 
-              size={22} 
-              color="#64748B" 
-              style={[styles.chevron, showDropdown && styles.chevronRotated]}
-            />
-          </TouchableOpacity>
-
-          {showDropdown && (
-            <View style={styles.dropdownMenu}>
-              {stations.map((station) => (
-                <TouchableOpacity
-                  key={station.id}
-                  style={[
-                    styles.dropdownItem,
-                    selectedStationId === station.id && styles.dropdownItemSelected
-                  ]}
-                  onPress={() => handleStationSelect(station.id)}
-                >
-                  <MapPin size={18} color={selectedStationId === station.id ? "#1E40AF" : "#64748B"} />
-                  <Text style={[
-                    styles.dropdownItemText,
-                    selectedStationId === station.id && styles.dropdownItemTextSelected
-                  ]}>
-                    {station.name} ({station.code})
-                  </Text>
-                  {selectedStationId === station.id && (
-                    <Check size={18} color="#1E40AF" />
-                  )}
-                </TouchableOpacity>
-              ))}
+        {/* Station Selector with Background Image */}
+        <View style={styles.stationSelectorContainer}>
+          <Image 
+            source={{ uri: 'https://images.pexels.com/photos/1007410/pexels-photo-1007410.jpeg' }}
+            style={styles.stationBackgroundImage}
+          />
+          <View style={styles.stationSelectorOverlay}>
+            <View style={styles.stationSelector}>
+              <Train size={24} color="#1F2937" />
+              <Text style={styles.stationSelectorText}>
+                {selectedStation.name} ({selectedStation.code})
+              </Text>
+              <ChevronDown size={20} color="#1F2937" />
             </View>
-          )}
-        </View>
-
-        {/* Station Layout Image */}
-        <View style={styles.layoutContainer}>
-          <Text style={styles.layoutTitle}>{selectedStation.name} Layout</Text>
-          
-          <View style={styles.imageContainer}>
-            {renderImageWithGestures()}
-          </View>
-
-          {/* Control Buttons */}
-          <View style={styles.controlButtons}>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={zoomIn}
-            >
-              <ZoomIn size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Zoom In</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={zoomOut}
-            >
-              <ZoomOut size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Zoom Out</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.controlButton}
-              onPress={resetZoom}
-            >
-              <RotateCcw size={16} color="#1E40AF" />
-              <Text style={styles.controlButtonText}>Reset</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={styles.stationInfo}>
-            <Text style={styles.stationInfoTitle}>
-              {selectedStation.name} ({selectedStation.code})
-            </Text>
-            <Text style={styles.stationInfoText}>
-              {selectedStation.description}
-            </Text>
           </View>
         </View>
+
+        {/* Tab Selector */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'layout' && styles.activeTab]}
+            onPress={() => setActiveTab('layout')}
+            accessible={true}
+            accessibilityRole="tab"
+            accessibilityLabel="Station Layout"
+            accessibilityState={{ selected: activeTab === 'layout' }}
+          >
+            <MapPin size={20} color={activeTab === 'layout' ? "#2563EB" : "#6B7280"} />
+            <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
+              Station Map
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'amenities' && styles.activeTab]}
+            onPress={() => setActiveTab('amenities')}
+            accessible={true}
+            accessibilityRole="tab"
+            accessibilityLabel="Amenities"
+            accessibilityState={{ selected: activeTab === 'amenities' }}
+          >
+            <Utensils size={20} color={activeTab === 'amenities' ? "#2563EB" : "#6B7280"} />
+            <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
+              Amenities
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Content based on active tab */}
+        {activeTab === 'layout' ? (
+          /* Station Layout */
+          <View style={styles.layoutContainer}>
+            <Text style={styles.layoutTitle}>
+              {selectedStation.name} Location
+            </Text>
+
+            <View style={styles.mapContainer}>
+              {Platform.OS !== "web" ? (
+                <MapView
+                  style={styles.map}
+                  initialRegion={{
+                    latitude: selectedStation.latitude,
+                    longitude: selectedStation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  region={{
+                    latitude: selectedStation.latitude,
+                    longitude: selectedStation.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                  }}
+                  showsUserLocation
+                  showsMyLocationButton
+                  showsCompass
+                  showsScale
+                  mapType="standard"
+                  accessible={true}
+                  accessibilityLabel={`Map showing ${selectedStation.name} location`}
+                >
+                  <Marker
+                    coordinate={{
+                      latitude: selectedStation.latitude,
+                      longitude: selectedStation.longitude,
+                    }}
+                    title={selectedStation.name}
+                    description={`${selectedStation.code} - ${selectedStation.description}`}
+                    pinColor="#1E40AF"
+                  />
+                </MapView>
+              ) : (
+                <View 
+                  style={{ height: 300, alignItems: "center", justifyContent: "center" }}
+                  accessible={true}
+                  accessibilityLabel="Map not available on web platform"
+                  accessibilityRole="text"
+                >
+                  <Text>🗺️ Map not available on Web</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.stationInfo}>
+              <Text style={styles.stationInfoTitle}>
+                {selectedStation.name} ({selectedStation.code})
+              </Text>
+              <Text style={styles.stationInfoText}>
+                {selectedStation.description}
+              </Text>
+              <View style={styles.coordinatesInfo}>
+                <Text style={styles.coordinatesText}>
+                  Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          /* Amenities Section */
+          <View style={styles.amenitiesContainer}>
+            <Text style={styles.amenitiesTitle}>
+              Station Amenities & Services
+            </Text>
+            
+            <View 
+              style={styles.amenitiesGrid}
+              accessible={true}
+              accessibilityRole="grid"
+              accessibilityLabel={`${amenities.length} amenities available`}
+            >
+              {amenities.map(renderAmenityItem)}
+            </View>
+
+            {/* Additional Section */}
+            <View style={styles.additionalSection}>
+              <Text style={styles.additionalSectionTitle}>Moina Railways</Text>
+              <View style={styles.additionalItem}>
+                <View style={styles.additionalIcon}>
+                  <Train size={20} color="#2563EB" />
+                </View>
+                <Text style={styles.additionalText}>Nidira Railway Consistant</Text>
+              </View>
+            </View>
+
+            {/* Floating Action Button */}
+            <TouchableOpacity style={styles.fab}>
+              <Plus size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
+
+      {/* Amenity Detail Modal */}
+      <Modal
+        visible={amenityModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setAmenityModalVisible(false)}
+        accessible={true}
+        accessibilityViewIsModal={true}
+      >
+        {selectedAmenity && (
+          <View style={styles.modalContainer}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleContainer}>
+                <View style={[styles.modalIcon, { backgroundColor: selectedAmenity.available ? '#2563EB' : '#94A3B8' }]}>
+                  <selectedAmenity.icon size={24} color="#FFFFFF" />
+                </View>
+                <Text style={styles.modalTitle}>
+                  {selectedAmenity.name} - {selectedStation.code}
+                </Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => setAmenityModalVisible(false)}
+                style={styles.closeButton}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Close amenity details"
+              >
+                <X size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {/* Image */}
+              {selectedAmenity.detailedInfo?.images && selectedAmenity.detailedInfo.images[0] && (
+                <Image 
+                  source={{ uri: selectedAmenity.detailedInfo.images[0] }}
+                  style={styles.amenityImage}
+                  resizeMode="cover"
+                  accessible={true}
+                  accessibilityLabel={`Image of ${selectedAmenity.name} facility`}
+                />
+              )}
+
+              {/* About Section */}
+              <View style={styles.infoSection}>
+                <Text style={styles.sectionTitle}>About</Text>
+                <Text style={styles.sectionContent}>
+                  {selectedAmenity.detailedInfo?.about || selectedAmenity.description}
+                </Text>
+              </View>
+
+              {/* Timings Section */}
+              {selectedAmenity.detailedInfo?.timings && (
+                <View style={styles.infoSection}>
+                  <Text style={styles.sectionTitle}>Timings</Text>
+                  <View style={styles.timingContainer}>
+                    <Clock size={16} color="#2563EB" />
+                    <Text style={styles.timingText}>{selectedAmenity.detailedInfo.timings}</Text>
+                  </View>
+                </View>
+              )}
+
+              {/* Facilities Section */}
+              {selectedAmenity.detailedInfo?.facilities && (
+                <View style={styles.infoSection}>
+                  <Text style={styles.sectionTitle}>Facilities</Text>
+                  {selectedAmenity.detailedInfo.facilities.map((facility, index) => (
+                    <View key={index} style={styles.facilityItem}>
+                      <CheckCircle size={16} color="#059669" />
+                      <Text style={styles.facilityText}>{facility}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Contact Section */}
+              {selectedAmenity.detailedInfo?.contact && (
+                <View style={styles.infoSection}>
+                  <Text style={styles.sectionTitle}>Contact</Text>
+                  <TouchableOpacity 
+                    style={styles.contactContainer}
+                    onPress={() => {
+                      if (selectedAmenity.detailedInfo?.contact) {
+                        const phoneNumber = selectedAmenity.detailedInfo.contact.replace(/[^0-9]/g, '');
+                        Linking.openURL(`tel:${phoneNumber}`);
+                      }
+                    }}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Call ${selectedAmenity.detailedInfo.contact}`}
+                    accessibilityHint="Double tap to make a phone call"
+                  >
+                    <Phone size={16} color="#2563EB" />
+                    <Text style={styles.contactText}>{selectedAmenity.detailedInfo.contact}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Location Section */}
+              {selectedAmenity.detailedInfo?.location && (
+                <View style={styles.infoSection}>
+                  <Text style={styles.sectionTitle}>Location</Text>
+                  <View style={styles.locationContainer}>
+                    <MapPin size={16} color="#DC2626" />
+                    <Text style={styles.locationText}>{selectedAmenity.detailedInfo.location}</Text>
+                  </View>
+                </View>
+              )}
+
+            </ScrollView>
+          </View>
+        )}
+      </Modal>
     </View>
   );
 }
@@ -267,255 +651,430 @@ export default function StationLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    backgroundColor: '#1E40AF',
-    paddingTop: 45,
+    backgroundColor: '#FFFFFF',
+    paddingTop: 50,
     paddingHorizontal: 16,
-    paddingBottom: 10,
+    paddingBottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
   },
   backButton: {
-    padding: 12,
-    marginLeft: -12,
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#1F2937',
+    fontFamily: 'Poppins-Bold',
   },
   infoButton: {
-    padding: 12,
-    marginRight: -12,
+    padding: 8,
+  },
+  infoButtonCircle: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  infoButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: 'Inter-SemiBold',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
+  },
+  stationSelectorContainer: {
+    position: 'relative',
+    height: 200,
+    marginBottom: 24,
+  },
+  stationBackgroundImage: {
+    width: '100%',
+    height: '100%',
+  },
+  stationSelectorOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
   },
   stationSelector: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 8,
+    elevation: 4,
   },
-  sectionLabel: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 16,
+  stationSelectorText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginLeft: 12,
+    fontFamily: 'Poppins-SemiBold',
   },
   dropdown: {
+    marginBottom: 0,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 24,
+  },
+  tab: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    paddingHorizontal: 16,
+    justifyContent: 'center',
     paddingVertical: 16,
-    marginBottom: 16,
-  },
-  dropdownText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 16,
-    color: '#1E293B',
-    fontWeight: '500',
-  },
-  chevron: {
-    transition: 'transform 0.2s',
-  },
-  chevronRotated: {
-    transform: [{ rotate: '180deg' }],
-  },
-  dropdownMenu: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    marginTop: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
-  dropdownItemSelected: {
-    backgroundColor: '#EBF4FF',
+  activeTab: {
+    borderBottomColor: '#2563EB',
   },
-  dropdownItemText: {
-    flex: 1,
-    marginLeft: 12,
-    fontSize: 15,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  dropdownItemTextSelected: {
-    color: '#1E40AF',
+  tabText: {
+    fontSize: 14,
     fontWeight: '600',
+    color: '#6B7280',
+    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
   },
-  infoLink: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoLinkText: {
-    marginLeft: 12,
-    fontSize: 15,
-    color: '#1E40AF',
-    fontWeight: '600',
+  activeTabText: {
+    color: '#2563EB',
   },
   layoutContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    paddingHorizontal: 20,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
   },
   layoutTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     textAlign: 'center',
     marginBottom: 20,
+    fontFamily: 'Poppins-Bold',
   },
-  imageContainer: {
-    backgroundColor: '#F8FAFC',
+  mapContainer: {
+    backgroundColor: '#F9FAFB',
     borderRadius: 16,
-    padding: 16,
-    marginBottom: 20,
     overflow: 'hidden',
-    minHeight: 300,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gestureContainer: {
-    flex: 1,
-    width: '100%',
-    height: 300,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  stationImage: {
-    width: '100%',
-    height: 300,
-  },
-  controlButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 20,
+    height: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  controlButton: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
+  map: {
     flex: 1,
-    marginHorizontal: 4,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  controlButtonText: {
-    fontSize: 14,
-    color: '#1E40AF',
-    fontWeight: '600',
-    marginLeft: 6,
+    height: 300,
   },
   stationInfo: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
     padding: 20,
   },
   stationInfoTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Poppins-Bold',
   },
   stationInfoText: {
     fontSize: 14,
-    color: '#64748B',
+    color: '#6B7280',
     lineHeight: 20,
     textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: 'Inter-Regular',
   },
-  platformItem: {
-    flexDirection: 'row',
+  coordinatesInfo: {
     alignItems: 'center',
-    marginBottom: 20,
   },
-  platformIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#1E40AF',
+  coordinatesText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    fontFamily: 'monospace',
+  },
+  amenitiesContainer: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  amenitiesTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 24,
+    fontFamily: 'Poppins-Bold',
+  },
+  amenitiesGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
+    marginBottom: 24,
+  },
+  amenityItem: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 24,
+    padding: 16,
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
+    position: 'relative',
+    minHeight: 100,
+  },
+  amenityItemDisabled: {
+    opacity: 0.6,
+  },
+  amenityIcon: {
+    width: 56,
+    height: 56,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginBottom: 12,
   },
-  platformInfo: {
-    flex: 1,
+  amenityIconDisabled: {
+    backgroundColor: '#F3F4F6',
   },
-  platformTitle: {
+  amenityText: {
+    fontSize: 12,
+    color: '#1F2937',
+    textAlign: 'center',
+    fontWeight: '600',
+    lineHeight: 16,
+    fontFamily: 'Inter-SemiBold',
+  },
+  amenityTextDisabled: {
+    color: '#9CA3AF',
+  },
+  unavailableBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#DC2626',
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  unavailableText: {
+    fontSize: 8,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  additionalSection: {
+    marginTop: 32,
+    marginBottom: 80,
+  },
+  additionalSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
+    marginBottom: 16,
+    fontFamily: 'Poppins-Bold',
   },
-  platformSubtitle: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
+  additionalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 16,
+    borderRadius: 12,
+  },
+  additionalIcon: {
+    width: 40,
+    height: 40,
+    backgroundColor: '#DBEAFE',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  additionalText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 56,
+    height: 56,
+    backgroundColor: '#2563EB',
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  legendContainer: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 16,
+  },
+  legendTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontFamily: 'Poppins-SemiBold',
+  },
+  legendItems: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 24,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  legendText: {
+    fontSize: 14,
+    color: '#6B7280',
     fontWeight: '500',
+    fontFamily: 'Inter-Medium',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  modalIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    flex: 1,
+    fontFamily: 'Poppins-Bold',
   },
   closeButton: {
-    fontSize: 20,
-    color: '#64748B',
+    padding: 8,
+    minWidth: 44, // Minimum touch target
+    minHeight: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  platformDetails: {
-    gap: 20,
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
   },
-  detailSection: {
-    marginBottom: 16,
+  amenityImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginVertical: 20,
   },
-  detailTitle: {
-    fontSize: 16,
+  infoSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: '700',
-    color: '#1E293B',
+    color: '#1F2937',
+    marginBottom: 12,
+    fontFamily: 'Poppins-Bold',
+  },
+  sectionContent: {
+    fontSize: 16,
+    color: '#6B7280',
+    lineHeight: 24,
+    fontFamily: 'Inter-Regular',
+  },
+  timingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timingText: {
+    fontSize: 16,
+    color: '#1F2937',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'Poppins-SemiBold',
+  },
+  facilityItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
-  detailText: {
+  facilityText: {
     fontSize: 15,
-    color: '#64748B',
-    lineHeight: 22,
-    fontWeight: '500',
+    color: '#6B7280',
+    marginLeft: 8,
+    flex: 1,
+    fontFamily: 'Inter-Regular',
   },
-  tipText: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-    marginTop: 4,
-    fontWeight: '500',
+  contactContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 44, // Minimum touch target
+  },
+  contactText: {
+    fontSize: 16,
+    color: '#2563EB',
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'Inter-SemiBold',
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  locationText: {
+    fontSize: 15,
+    color: '#6B7280',
+    marginLeft: 8,
+    flex: 1,
+    fontFamily: 'Inter-Regular',
   },
 });
