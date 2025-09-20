@@ -73,8 +73,8 @@ export default function AccountScreen() {
   const accountOptions = [
     {
       id: 'bookings',
-      title: 'My Bookings',
-      subtitle: 'View all your train bookings',
+      title: 'Saved PNR',
+      subtitle: "View all your Saved PNR's",
       icon: CreditCard,
       onPress: () => {
         router.push('/(tabs)/booking');
@@ -438,8 +438,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
   },
   headerTitle: {
     fontSize: 24,
