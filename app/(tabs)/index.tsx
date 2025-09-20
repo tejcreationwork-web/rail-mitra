@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, TextInput, Image, Alert, Modal, FlatList } from 'react-native';
 import { useState, useEffect } from 'react';
 import { router } from 'expo-router';
-import { Train, MapPin, Ticket, Search, MessageSquare, ChevronRight, CircleHelp, Bell, Mic, X, Clock, TrendingUp } from 'lucide-react-native';
+import { Brain as Train, MapPin, Ticket, Search, MessageSquare, ChevronRight, CircleHelp, Bell, Mic, X, Clock, TrendingUp } from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
