@@ -1,7 +1,9 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Modal } from 'react-native';
 import { useState, useEffect } from 'react';
-import { MessageSquare, ThumbsUp, ThumbsDown, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical } from 'lucide-react-native';
+import { MessageSquare, ThumbsUp, ThumbsDown,ArrowLeft, Share, Search, Plus, User, Clock, Send, X, Trash2, MoveVertical as MoreVertical } from 'lucide-react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
+
 import { supabase, qaService, Question, Answer } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -443,9 +445,9 @@ export default function QAScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={closeAnswersView} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+            <ArrowLeft size={24} color="#FFFFFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Answers</Text>
+          <Text style={styles.headerTitle}>Comments</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -519,13 +521,14 @@ export default function QAScreen() {
             <TouchableOpacity 
               style={styles.addAnswerButton}
               onPress={() => {
-                setSelectedQuestionId(selectedQuestion.id);
-                setShowAnswerModal(true);
+                // setSelectedQuestionId(selectedQuestion.id);
+                openAnswerModal(selectedQuestion.id);
+                // setShowAnswerModal(true);
               }}
               activeOpacity={0.7}
             >
               <Plus size={16} color="#FFFFFF" />
-              <Text style={styles.addAnswerButtonText}>Add Answer</Text>
+              <Text style={styles.addAnswerButtonText}>Add Comment</Text>
             </TouchableOpacity>
           </View>
 
@@ -595,8 +598,14 @@ export default function QAScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Q&A Community</Text>
-        <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
+        <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Q&A Community</Text>
+          <Text style={styles.headerSubtitle}>Ask questions, share knowledge</Text>
+        </View>
+        <View style={{ width: 24 }} /> 
       </View>
 
       <View style={styles.searchContainer}>
@@ -817,6 +826,7 @@ export default function QAScreen() {
         visible={showAnswerModal}
         animationType="slide"
         presentationStyle="pageSheet"
+        onRequestClose={() => setShowAnswerModal(false)}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
@@ -899,11 +909,12 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#2563EB',
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingTop: 45,
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
     fontSize: 24,
@@ -914,9 +925,14 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#BFDBFE',
-    fontFamily: 'Inter-Medium',
+    color: '#FFFFFF',
+    marginTop : 4,
+    fontFamily : 'Inter-Medium',
   },
+    headerCenter: {
+    flex: 1,
+    alignItems: 'center',   // center title + subtitle horizontally
+    },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -1295,7 +1311,8 @@ const styles = StyleSheet.create({
   },
   addAnswerContainer: {
     alignItems: 'flex-end',
-    marginBottom: 24,
+    marginTop: 12,
+    marginBottom: 16,
   },
   addAnswerButton: {
     backgroundColor: '#2563EB',

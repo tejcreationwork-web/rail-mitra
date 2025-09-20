@@ -8,33 +8,70 @@ export default function TrainTimetable() {
   const [timetableData, setTimetableData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const mockTimetableData = {
-    trainNumber: '12951',
-    trainName: 'Mumbai Rajdhani Express',
-    runsOn: 'Daily',
-    stations: [
-      { code: 'MMCT', name: 'Mumbai Central', arrival: '---', departure: '16:55', halt: '5 min', distance: '0 km' },
-      { code: 'BRC', name: 'Vadodara Junction', arrival: '19:43', departure: '19:48', halt: '5 min', distance: '392 km' },
-      { code: 'RTM', name: 'Ratlam Junction', arrival: '22:25', departure: '22:30', halt: '5 min', distance: '589 km' },
-      { code: 'KOTA', name: 'Kota Junction', arrival: '01:40', departure: '01:45', halt: '5 min', distance: '842 km' },
-      { code: 'SWM', name: 'Sawai Madhopur', arrival: '02:48', departure: '02:50', halt: '2 min', distance: '972 km' },
-      { code: 'BKI', name: 'Bandikui Junction', arrival: '04:28', departure: '04:30', halt: '2 min', distance: '1074 km' },
-      { code: 'JP', name: 'Jaipur Junction', arrival: '05:15', departure: '05:20', halt: '5 min', distance: '1157 km' },
-      { code: 'AWR', name: 'Alwar Junction', arrival: '06:43', departure: '06:45', halt: '2 min', distance: '1288 km' },
-      { code: 'RE', name: 'Rewari Junction', arrival: '07:23', departure: '07:25', halt: '2 min', distance: '1345 km' },
-      { code: 'GHH', name: 'Garhi Harsaru', arrival: '08:18', departure: '08:20', halt: '2 min', distance: '1401 km' },
-    ]
+  const handleSearch = async () => {
+    if (!trainNumber.trim()) return;
+
+    setIsLoading(true);
+
+    try {
+      const url = "https://wps.konkanrailway.com/trnschwar/trainschedule/loadTrainDetailList";
+
+      const headers = {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+        Origin: "https://wps.konkanrailway.com",
+        Referer: "https://wps.konkanrailway.com/Website_TrnSch/trainschedule",
+        "User-Agent": "Mozilla/5.0",
+      };
+
+      const body = {
+        trainNumber: trainNumber.padEnd(15, " "), // API expects padded train no
+        category: "Regular",
+      };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      const raw = await res.text(); // sometimes it's plain text
+      let data;
+
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        console.error("Invalid JSON:", raw);
+        data = [];
+      }
+
+      if (Array.isArray(data)) {
+        const mappedData = {
+          trainNumber: trainNumber,
+          trainName: `Train ${trainNumber}`,
+          runsOn: data[0]?.trainRemarks || "N/A",
+          stations: data.map((item: any) => ({
+            code: item.stnNo,
+            name: item.stnName?.trim(),
+            arrival: item.arrival ? item.arrival.substring(0, 5) : "---",
+            departure: item.departure ? item.departure.substring(0, 5) : "---",
+            halt: item.halts ? `${item.halts} min` : "-",
+            distance: item.trainType || "-", // since API doesn’t send distance
+          })),
+        };
+
+        setTimetableData(mappedData);
+      } else {
+        console.warn("Unexpected response:", data);
+        setTimetableData(null);
+      }
+    } catch (error) {
+      console.error("Error fetching train timetable:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSearch = () => {
-    if (!trainNumber.trim()) return;
-    
-    setIsLoading(true);
-    setTimeout(() => {
-      setTimetableData({ ...mockTimetableData, trainNumber: trainNumber });
-      setIsLoading(false);
-    }, 1500);
-  };
 
   const formatTime = (time: string) => {
     if (time === '---') return time;

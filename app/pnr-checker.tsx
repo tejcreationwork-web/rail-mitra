@@ -1,57 +1,117 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, StatusBar, Alert } from 'react-native';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
-import { ArrowLeft, Search, TrainFront as Train, User, MapPin, CircleCheck as CheckCircle, BookmarkPlus } from 'lucide-react-native';
+import fetchPNRStatus from '@/lib/apis';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import {
+  ArrowLeft,
+  BookmarkPlus,
+  Clock,
+  MapPin,
+  Search,
+  TrainFront as Train
+} from 'lucide-react-native';
+import { useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
+/**
+ * Passenger details exactly as returned from API
+ */
 type APIPassenger = {
-  passengerSerialNumber: number;
-  passengerFoodChoice: string;
-  concessionOpted: boolean;
-  forGoConcessionOpted: boolean;
-  passengerIcardFlag: boolean;
-  childBerthFlag: boolean;
-  passengerNationality: string;
-  passengerQuota: string;
-  passengerCoachPosition: number;
-  waitListType: number;
-  bookingStatus: string;
-  bookingBerthNo: number;
-  bookingCoachId : string;
-  bookingBerthCode: string;
-  bookingStatusDetails: string;
-  currentStatus: string;
-  currentCoachId: string;
-  currentBerthNo: number;
-  currentBerthCode: string;
-  currentStatusDetails?: string;
+  ReferenceId: string | null;
+  Pnr: string | null;
+  Number: number;
+  Prediction: string | null;
+  PredictionPercentage: number | null;
+  ConfirmTktStatus: string | null;
+  Coach: string;
+  Berth: number | string;
+  BookingStatus: string;
+  CurrentStatus: string;
+  CoachPosition: string;
+  BookingBerthNo: string;
+  BookingCoachId: string;
+  BookingStatusNew: string;
+  BookingStatusIndex: string;
+  CurrentBerthNo: string;
+  CurrentCoachId: string;
+  BookingBerthCode: string;
+  CurrentBerthCode: string;
+  CurrentStatusNew: string;
+  CurrentStatusIndex: string;
 };
 
+/**
+ * API Response (based on your pasted JSON)
+ */
 type APIResponse = {
-  success: boolean;
+  status: boolean;
+  message: string;
+  timestamp: number;
   data?: {
-    pnrNumber: string;
-    dateOfJourney: string;
-    trainNumber: string;
-    trainName: string;
-    sourceStation: string;
-    destinationStation: string;
-    reservationUpto: string;
-    boardingPoint: string;
-    journeyClass: string;
-    numberOfpassenger: number;
-    chartStatus: string;
-    passengerList: APIPassenger[];
-    bookingFare: number;
-    ticketFare: number;
-    quota: string;
-    bookingDate: string;
-    arrivalDate: string;
-    distance: number;
+    Pnr: string;
+    TrainNo: string;
+    TrainName: string;
+    Doj: string;
+    BookingDate: string;
+    Quota: string;
+    DestinationDoj: string;
+    SourceDoj: string;
+    From: string;
+    To: string;
+    ReservationUpto: string;
+    Class: string;
+    ChartPrepared: boolean;
+    TrainStatus: string;
+    TrainCancelledFlag: boolean;
+    ReservationUptoName: string;
+    PassengerCount: number;
+    PassengerStatus: APIPassenger[];
+    DepartureTime: string;
+    ArrivalTime: string;
+    ExpectedPlatformNo: string;
+    BookingFare: string;
+    TicketFare: string;
+    CoachPosition: string;
+    Rating: number;
+    FoodRating: number;
+    PunctualityRating: number;
+    CleanlinessRating: number;
+    BoardingPoint: string;
+    Duration: string;
+    RatingCount: number;
+    HasPantry: boolean;
+    FromDetails: {
+      category: string;
+      division: string;
+      latitude: string;
+      longitude: string;
+      state: string;
+      stationCode: string;
+      stationName: string;
+    };
+    BoardingPointDetails: {
+      category: string;
+      division: string;
+      latitude: string;
+      longitude: string;
+      state: string;
+      stationCode: string;
+      stationName: string;
+    };
   };
-  message?: string;
 };
 
+/**
+ * Saved PNR structure for AsyncStorage
+ */
 type SavedPNR = {
   id: string;
   pnr: string;
@@ -62,12 +122,13 @@ type SavedPNR = {
   date: string;
   journeyClass: string;
   boardingPoint: string;
+  arrivalTime: string;
   passengers: {
     name: string;
-    age: number;
+    age?: number;
     status: string;
     coach: string;
-    berth : string;
+    berth: string | number;
     seat: number | string;
   }[];
   lastChecked: string;
@@ -82,26 +143,9 @@ export default function PNRChecker() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPNRStatus = async (pnr: string): Promise<APIResponse> => {
-    const url = `https://irctc-indian-railway-pnr-status.p.rapidapi.com/getPNRStatus/${pnr}`;
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': 'dc102d5e60msh5947347b2e8df5bp14ddebjsnd8a83e21de4c',
-        'x-rapidapi-host': 'irctc-indian-railway-pnr-status.p.rapidapi.com'
-      }
-    };
-
-    const response = await fetch(url, options);
-    const result = await response.text();
-    
-    try {
-      return JSON.parse(result);
-    } catch (parseError) {
-      throw new Error('Invalid response format from API');
-    }
-  };
-
+  /**
+   * Search handler
+   */
   const handleSearch = async () => {
     if (!pnrNumber.trim()) {
       Alert.alert('Error', 'Please enter PNR number');
@@ -111,22 +155,24 @@ export default function PNRChecker() {
       Alert.alert('Error', 'PNR number should be 10 digits');
       return;
     }
-    
+
     setIsLoading(true);
     setError(null);
     setPnrData(null);
-    
+
     try {
-      const response = await fetchPNRStatus(pnrNumber);
-      
-      if (response.success && response.data) {
+      const response: APIResponse = await fetchPNRStatus(pnrNumber);
+      // console.log(response);
+
+      if (response.status && response.data) {
         setPnrData(response.data);
       } else {
         setError(response.message || 'Failed to fetch PNR status');
         Alert.alert('Error', response.message || 'Failed to fetch PNR status');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Network error occurred';
       setError(errorMessage);
       Alert.alert('Error', errorMessage);
     } finally {
@@ -134,99 +180,81 @@ export default function PNRChecker() {
     }
   };
 
+  /**
+   * Save PNR to AsyncStorage
+   */
   const handleSavePNR = () => {
     if (!pnrData) return;
-    
+
     setIsSaving(true);
-    
+
     setTimeout(async () => {
       try {
         const savedPNR: SavedPNR = {
           id: Date.now().toString(),
-          pnr: pnrData.pnrNumber,
-          trainNumber: pnrData.trainNumber,
-          trainName: pnrData.trainName,
-          from: pnrData.sourceStation,
-          to: pnrData.destinationStation,
-          date: pnrData.dateOfJourney,
-          journeyClass: pnrData.journeyClass,
-          boardingPoint: pnrData.boardingPoint,
-          passengers: pnrData.passengerList?.map(p => ({
-            name: '',
-            age: 0,
-            status: p.currentStatus || p.bookingStatus || 'Unknown',
-            coach: p.currentCoachId || p.bookingCoachId || '-',
-            berth: p.bookingBerthCode || '-',  // ✅ added
-            seat: p.currentBerthNo || p.bookingBerthNo || '-',
-          })) || '',
+          pnr: pnrData.Pnr,
+          trainNumber: pnrData.TrainNo,
+          trainName: pnrData.TrainName,
+          from: pnrData.BoardingPoint,
+          to: pnrData.ReservationUpto,
+          date: pnrData.Doj,
+          journeyClass: pnrData.Class,
+          boardingPoint: pnrData.BoardingPoint,
+          arrivalTime : pnrData.ArrivalTime,
+          passengers:
+            pnrData.PassengerStatus?.map((p) => ({
+              name: '',
+              age: 0,
+              status: p.CurrentStatus || p.BookingStatus || 'Unknown',
+              coach: p.CurrentCoachId || p.BookingCoachId || '-',
+              berth: p.CurrentBerthCode || p.BookingBerthCode || '-',
+              seat: p.CurrentBerthNo || p.BookingBerthNo || '-',
+            })) || [],
           lastChecked: new Date().toLocaleString(),
           savedAt: new Date().toLocaleString(),
         };
 
-        // Get existing saved PNRs
         const existingSavedPNRs = await AsyncStorage.getItem('savedPNRs');
-        const savedPNRs: SavedPNR[] = existingSavedPNRs ? JSON.parse(existingSavedPNRs) : [];
-        
-        // Check if PNR already exists
-        const existingIndex = savedPNRs.findIndex(p => p.pnr === pnrData.pnrNumber);
-        
+        const savedPNRs: SavedPNR[] = existingSavedPNRs
+          ? JSON.parse(existingSavedPNRs)
+          : [];
+
+        const existingIndex = savedPNRs.findIndex((p) => p.pnr === pnrData.Pnr);
+
         if (existingIndex >= 0) {
-          // Update existing PNR
-          savedPNRs[existingIndex] = { ...savedPNRs[existingIndex], ...savedPNR, lastChecked: savedPNR.lastChecked };
+          savedPNRs[existingIndex] = {
+            ...savedPNRs[existingIndex],
+            ...savedPNR,
+            lastChecked: savedPNR.lastChecked,
+          };
         } else {
-          // Add new PNR
           savedPNRs.unshift(savedPNR);
         }
-        
-        // Save to storage
+
         await AsyncStorage.setItem('savedPNRs', JSON.stringify(savedPNRs));
-        
+
         setIsSaving(false);
         Alert.alert(
           'PNR Saved',
-          '✅ PNR has been successfully saved to your bookings for future reference and status updates.',
+          '✅ PNR has been successfully saved to your bookings.',
           [
             { text: 'OK' },
-            { 
-              text: 'View Bookings', 
+            {
+              text: 'View Bookings',
               onPress: () => {
                 router.back();
                 router.push('/(tabs)/booking');
-              }
-            }
+              },
+            },
           ]
         );
       } catch (error) {
         setIsSaving(false);
         Alert.alert('❌ Save Failed', 'Failed to save PNR. Please try again.');
       }
-    }, 1000); // 1 second delay to show saving animation
-  };
-
-  const handleSavePNROld = () => {
-    if (!pnrData) return;
-    
-    setIsSaving(true);
-    
-    // Simulate saving to storage/database
-    setTimeout(() => {
-      setIsSaving(false);
-      Alert.alert(
-        'PNR Saved',
-        'This PNR has been saved to your bookings for future reference and status updates.',
-        [
-          { text: 'OK' },
-          { 
-            text: 'View Bookings', 
-            onPress: () => {
-              router.back();
-              router.push('/(tabs)/booking');
-            }
-          }
-        ]
-      );
     }, 1000);
   };
+
   const clearData = () => {
     setPnrData(null);
     setPnrNumber('');
@@ -234,229 +262,217 @@ export default function PNRChecker() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'cnf':
-      case 'confirmed':
-        return '#059669';
-      case 'wl':
-      case 'waitlisted':
-        return '#F59E0B';
-      case 'rac':
-        return '#2563EB';
-      case 'can':
-      case 'cancelled':
-        return '#DC2626';
-      default:
-        return '#64748B';
-    }
+    const lower = status.toLowerCase();
+    if (lower.includes('cnf')) return '#059669';
+    if (lower.includes('wl')) return '#F59E0B';
+    if (lower.includes('rac')) return '#2563EB';
+    if (lower.includes('can')) return '#DC2626';
+    return '#64748B';
   };
 
   const formatStatus = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'cnf':
-        return 'Confirmed';
-      case 'wl':
-        return 'Waitlisted';
-      case 'rac':
-        return 'RAC';
-      case 'can':
-        return 'Cancelled';
-      default:
-        return status;
-    }
+    const lower = status.toLowerCase();
+    if (lower.includes('cnf')) return 'Confirmed';
+    if (lower.includes('wl')) return 'Waitlisted';
+    if (lower.includes('rac')) return 'RAC';
+    if (lower.includes('can')) return 'Cancelled';
+    return status;
   };
 
   return (
-  <View style={styles.container}>
-    <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-        <ArrowLeft size={26} color="#FFFFFF" />
-      </TouchableOpacity>
-      <Text style={styles.headerTitle}>PNR Status</Text>
-      <View style={styles.placeholder} />
-    </View>
-    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Input Section */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Enter PNR Number</Text>
-        <View style={styles.inputWrapper}>
-          <Train size={22} color="#525861ff" style={styles.inputIcon} />
-          <TextInput
-            style={styles.textInput}
-            value={pnrNumber}
-            onChangeText={setPnrNumber}
-            placeholder="Enter 10-digit PNR"
-            placeholderTextColor="#94A3B8"
-            keyboardType="numeric"
-            maxLength={10}
-          />
-          {pnrNumber.length > 0 && (
-            <TouchableOpacity onPress={clearData}>
-              <Text style={styles.clearButton}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <TouchableOpacity
-          style={[styles.searchButton, isLoading && styles.searchButtonDisabled]}
-          onPress={handleSearch}
-          disabled={isLoading}
-        >
-          <Search size={22} color="#FFFFFF" />
-          <Text style={styles.searchButtonText}>
-            {isLoading ? 'Checking...' : 'Check Status'}
-          </Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
         </TouchableOpacity>
+        <Text style={styles.headerTitle}>PNR Status</Text>
+        <View style={styles.placeholder} />
       </View>
-
-      {/* PNR Data Section */}
-      {pnrData && (
-        <View style={styles.resultContainer}>
-          {/* Header */}
-          <View style={styles.detailsContainer}>
-            <Text style={styles.sectionTitle}>Journey Details</Text>
-            <View style={styles.journeyRow}>
-              <View style={styles.journeyPoint}>
-                <MapPin size={30} color="#153cb9ff" />
-                <View style={styles.journeyInfo}>
-                  <Text style={styles.journeyLabel}>From</Text>
-                  <Text style={styles.journeyValue}>
-                    {pnrData.sourceStation}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.journeyArrow}>
-                <Text style={styles.arrowText}>→</Text>
-              </View>
-              <View style={styles.journeyPoint}>
-                <MapPin size={30} color="#DC2626" />
-                <View style={styles.journeyInfo}>
-                  <Text style={styles.journeyLabel}>To</Text>
-                  <Text style={styles.journeyValue}>
-                    {pnrData.destinationStation}
-                  </Text>
-                </View>
-              </View>
-            </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Enter PNR Number</Text>
+          <View style={styles.inputWrapper}>
+            <Train size={22} color="#525861ff" style={styles.inputIcon} />
+            <TextInput
+              style={styles.textInput}
+              value={pnrNumber}
+              onChangeText={setPnrNumber}
+              placeholder="Enter 10-digit PNR"
+              placeholderTextColor="#94A3B8"
+              keyboardType="numeric"
+              maxLength={10}
+            />
+            {pnrNumber.length > 0 && (
+              <TouchableOpacity onPress={clearData}>
+                <Text style={styles.clearButton}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
-
-          <View style={styles.pnrHeader}>
-            <Text style={styles.pnrNumber}>PNR : {pnrData.pnrNumber}</Text>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor: getStatusColor(
-                    pnrData.passengerList?.[0]?.currentStatus || ''
-                  ),
-                },
-              ]}
-            >
-              <CheckCircle size={18} color="#FFFFFF" />
-              <Text style={styles.statusText}>
-                {formatStatus(
-                  pnrData.passengerList?.[0]?.currentStatus || 'Unknown'
-                )}
-              </Text>
-            </View>
-          </View>
-
-          {/* Train Info */}
-          <Text style={styles.trainInfo}>
-            Train : {pnrData.trainNumber} - {pnrData.trainName}
-          </Text>
-          <Text style={styles.BoardingInfo}>
-            Boarding Date : {pnrData.dateOfJourney}
-          </Text>
-          <Text style={styles.classInfo}>
-            Boarding: {pnrData.boardingPoint}  | Class : {pnrData.journeyClass}
-          </Text>
-      
-          <Text style={styles.BookingQuota}>
-            Ticket Fare : ₹{pnrData.ticketFare} | Booking Quota : {pnrData.quota}
-          </Text>
-
-          {/* Passenger List */}
-          {pnrData.passengerList?.map((passenger, index) => (
-            <View key={index} style={styles.detailsContainer}>
-              <Text style={styles.sectionTitle}>
-                Passenger {passenger.passengerSerialNumber}
-              </Text>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Booking Status : </Text>
-                <Text style={styles.detailValue}>
-                  {passenger.bookingStatusDetails}
-                </Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Current Status   : </Text>
-                <Text
-                  style={[
-                    styles.detailValue,
-                    { color: getStatusColor(passenger.currentStatus) },
-                  ]}
-                >
-                  {formatStatus(passenger.currentStatus)}
-                </Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Coach                :  </Text>
-                <Text style={styles.detailValue}>
-                  {passenger.currentCoachId || passenger.bookingCoachId || '    -'}
-                </Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Berth                :  </Text>
-                <Text style={styles.detailValue}>
-                  {passenger.currentBerthCode ||  passenger.bookingBerthCode ||'     -'}
-                </Text>
-              </View>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Seat                   :  </Text>
-                <Text style={styles.detailValue}>
-                  {passenger.currentBerthNo ||  passenger.bookingBerthNo ||'     -'}
-                </Text>
-              </View>
-            </View>
-          ))}
-
-          {/* Save Section */}
-          <View style={styles.saveSection}>
-            <TouchableOpacity
-              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
-              onPress={handleSavePNR}
-              disabled={isSaving}
-            >
-              <BookmarkPlus size={20} color="#FFFFFF" />
-              <Text style={styles.saveButtonText}>
-                {isSaving ? 'Saving...' : 'Save to My Bookings'}
-              </Text>
-            </TouchableOpacity>
-            <Text style={styles.saveHint}>
-              Save this PNR to track status changes and access it quickly later
+          <TouchableOpacity
+            style={[
+              styles.searchButton,
+              isLoading && styles.searchButtonDisabled,
+            ]}
+            onPress={handleSearch}
+            disabled={isLoading}
+          >
+            <Search size={22} color="#FFFFFF" />
+            <Text style={styles.searchButtonText}>
+              {isLoading ? 'Checking...' : 'Check Status'}
             </Text>
-          </View>
-        </View>
-      )}
-
-      {/* Error State */}
-      {error && (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Error</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={() => handleSearch()}>
-            <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
-      )}
-    </ScrollView>
-  </View>
-);
+        {/* PNR Data Section */}
+        {pnrData && (
+          <View style={styles.resultContainer}>
+            {/* Journey Details */}
+            <View style={styles.detailsContainer}>
+              <Text style={styles.sectionTitle}>Journey Details</Text>
+              <View style={styles.journeyRow}>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#153cb9ff" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>From</Text>
+                    <Text style={styles.journeyValue}>
+                      {pnrData.BoardingPoint}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.journeyArrow}>
+                  <Text style={styles.arrowText}>→</Text>
+                </View>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#DC2626" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>To</Text>
+                    <Text style={styles.journeyValue}>
+                      {pnrData.ReservationUpto}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* PNR Header */}
+            <View style={styles.pnrHeader}>
+              <Text style={styles.pnrNumber}>PNR : {pnrData.Pnr}</Text>
+            </View>
+
+            {/* Train Info */}
+            <Text style={styles.trainInfo}>
+              Train : {pnrData.TrainNo} - {pnrData.TrainName}
+            </Text>
+            {/* <Text style={styles.BoardingInfo}>
+              DOJ : {pnrData.Doj} | <Clock>Time : {pnrData.ArrivalTime} </Clock>
+            </Text> */}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.BoardingInfo}>DOJ : {pnrData.Doj} | </Text>
+              <Clock size={16} color="#64748B" style={{ marginHorizontal: 4 }} />
+              <Text style={styles.BoardingInfo}>Time : {pnrData.ArrivalTime}</Text>
+            </View>
+            <Text style={styles.classInfo}>
+              Boarding : {pnrData.BoardingPoint}  | Class : {pnrData.Class}
+            </Text>
+
+            <Text style={styles.BookingQuota}>
+              Ticket Fare : ₹{pnrData.TicketFare}  | Booking Quota :{' '}
+              {pnrData.Quota}
+            </Text>
+
+            {/* Passenger List */}
+            {pnrData.PassengerStatus?.map((passenger, index) => (
+              <View key={index} style={styles.detailsContainer}>
+                <Text style={styles.sectionTitle}>
+                  Passenger {passenger.Number}
+                </Text>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Booking Status : </Text>
+                  <Text style={styles.detailValue}>
+                    {passenger.BookingStatus || 'Unknown'}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Current Status : </Text>
+                  <Text
+                    style={[
+                      styles.detailValue,
+                      { color: getStatusColor(passenger.CurrentStatus) },
+                    ]}
+                  >
+                    {formatStatus(passenger.CurrentStatus || 'Unknown')}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Coach : </Text>
+                  <Text style={styles.detailValue}>
+                    {passenger.CurrentCoachId ||
+                      passenger.BookingCoachId ||
+                      '-'}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Berth : </Text>
+                  <Text style={styles.detailValue}>
+                    {passenger.CurrentBerthCode ||
+                      passenger.BookingBerthCode ||
+                      '-'}
+                  </Text>
+                </View>
+
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Seat : </Text>
+                  <Text style={styles.detailValue}>
+                    {passenger.CurrentBerthNo ||
+                      passenger.BookingBerthNo ||
+                      '-'}
+                  </Text>
+                </View>
+              </View>
+            ))}
+
+            {/* Save Section */}
+            <View style={styles.saveSection}>
+              <TouchableOpacity
+                style={[
+                  styles.saveButton,
+                  isSaving && styles.saveButtonDisabled,
+                ]}
+                onPress={handleSavePNR}
+                disabled={isSaving}
+              >
+                <BookmarkPlus size={20} color="#FFFFFF" />
+                <Text style={styles.saveButtonText}>
+                  {isSaving ? 'Saving...' : 'Save to My Bookings'}
+                </Text>
+              </TouchableOpacity>
+              <Text style={styles.saveHint}>
+                Save this PNR to track status changes and access it quickly later
+              </Text>
+            </View>
+          </View>
+        )}
+        {/* Error State */}
+
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorTitle}>Error</Text>
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => handleSearch()}
+            >
+              <Text style={styles.retryButtonText}>Try Again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -465,7 +481,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   header: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: '#2563EB',
     paddingTop: 45,
     paddingHorizontal: 16,
     paddingBottom: 10,
@@ -476,6 +492,7 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 12,
     marginLeft: -12,
+    color: '#FFFFFF',
   },
   headerTitle: {
     fontSize: 22,
@@ -595,7 +612,7 @@ const styles = StyleSheet.create({
   classInfo: {
     fontSize: 14,
     color: '#64748B',
-    marginBottom:8,
+    marginBottom: 8,
     fontWeight: '500',
   },
   BoardingInfo: {
@@ -617,13 +634,14 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   detailsContainer: {
+    marginTop: 16,
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: 'row',
@@ -667,7 +685,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748B',
     fontWeight: '500',
-    marginTop: 0, 
+    marginTop: 0,
   },
   journeyValue: {
     fontSize: 16,

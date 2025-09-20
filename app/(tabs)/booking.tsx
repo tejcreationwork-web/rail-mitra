@@ -1,8 +1,29 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable} from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, TrainFront as Train, MapPin, User, RefreshCw, Trash2, Plus, ChevronDown, ChevronUp, CircleCheck as CheckCircle } from 'lucide-react-native';
-import { router, useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router, useFocusEffect } from 'expo-router';
+import fetchPNRStatus from '@/lib/apis';
+import {
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  RefreshCw,
+  Trash2,
+  MapPin,
+  Train,
+  Clock,
+  ArrowLeft
+} from 'lucide-react-native';
+import { useCallback, useState } from 'react';
+import {
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  StatusBar
+} from 'react-native';
 
 type SavedPNR = {
   id: string;
@@ -11,9 +32,10 @@ type SavedPNR = {
   trainName: string;
   from: string;
   to: string;
-  date: string;
+  doj: string;
   journeyClass: string;
   boardingPoint: string;
+  arrivalTime: string;
   passengers: {
     name: string;
     age: number;
@@ -28,38 +50,29 @@ type SavedPNR = {
 };
 
 type APIResponse = {
-  success: boolean;
+  status: boolean;
+  message: string;
+  timestamp: number;
   data?: {
-    pnrNumber: string;
-    dateOfJourney: string;
-    trainNumber: string;
-    trainName: string;
-    sourceStation: string;
-    destinationStation: string;
-    reservationUpto: string;
-    boardingPoint: string;
-    journeyClass: string;
-    numberOfpassenger: number;
-    chartStatus: string;
-    passengerList: {
-      passengerSerialNumber: number;
-      passengerName: string;
-      passengerAge: number;
-      passengerGender: string;
-      passengerStatus: string;
-      bookingCoachId: string;
-      bookingBerthNo: number;
-      bookingBerthCode : string,
-      passengerQuota: string;
+    Pnr: string;
+    TrainNo: string;
+    TrainName: string;
+    Doj: string;
+    Class: string;
+    ReservationUpto: string;
+    BoardingPoint: string;
+    ArrivalTime: string;
+    PassengerStatus: {
+      BookingStatus?: string;
+      CurrentStatus?: string;
+      BookingCoachId?: string;
+      CurrentCoachId?: string;
+      BookingBerthCode?: string;
+      CurrentBerthCode?: string;
+      BookingBerthNo?: string;
+      CurrentBerthNo?: string;
     }[];
-    bookingFare: number;
-    ticketFare: number;
-    quota: string;
-    bookingDate: string;
-    arrivalDate: string;
-    distance: number;
   };
-  message?: string;
 };
 
 export default function BookingScreen() {
@@ -88,27 +101,6 @@ export default function BookingScreen() {
     }, [])
   );
 
-  // Fetch PNR status from API
-  const fetchPNRStatus = async (pnr: string): Promise<APIResponse> => {
-    const url = `https://irctc-indian-railway-pnr-status.p.rapidapi.com/getPNRStatus/${pnr}`;
-    const options = {
-      method: 'GET',
-      headers: {
-        'x-rapidapi-key': 'dc102d5e60msh5947347b2e8df5bp14ddebjsnd8a83e21de4c',
-        'x-rapidapi-host': 'irctc-indian-railway-pnr-status.p.rapidapi.com'
-      }
-    };
-
-    const response = await fetch(url, options);
-    const result = await response.text();
-    
-    try {
-      return JSON.parse(result);
-    } catch (parseError) {
-      throw new Error('Invalid response format from API');
-    }
-  };
-  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Confirmed':
@@ -128,7 +120,7 @@ export default function BookingScreen() {
   };
 
   const toggleExpanded = (pnrId: string) => {
-    setExpandedPNRs(prev => {
+    setExpandedPNRs((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(pnrId)) {
         newSet.delete(pnrId);
@@ -155,110 +147,86 @@ export default function BookingScreen() {
   };
 
   const handleRefreshPNR = async (pnrId: string) => {
-    const pnrToRefresh = savedPNRs.find(p => p.id === pnrId);
+    const pnrToRefresh = savedPNRs.find((p) => p.id === pnrId);
     if (!pnrToRefresh) return;
 
-    setSavedPNRs(prev => prev.map(pnr => 
-      pnr.id === pnrId ? { ...pnr, isRefreshing: true } : pnr
-    ));
+    setSavedPNRs((prev) =>
+      prev.map((pnr) =>
+        pnr.id === pnrId ? { ...pnr, isRefreshing: true } : pnr
+      )
+    );
 
     try {
-      const response = await fetchPNRStatus(pnrToRefresh.pnr);
-      
-      if (response.success && response.data) {
+      const response: APIResponse = await fetchPNRStatus(pnrToRefresh.pnr);
+
+      if (response.status && response.data) {
         const updatedPNR: SavedPNR = {
           ...pnrToRefresh,
-          trainNumber: response.data.trainNumber,
-          trainName: response.data.trainName,
-          from: response.data.sourceStation,
-          to: response.data.destinationStation,
-          date: response.data.dateOfJourney,
-          journeyClass: response.data.journeyClass,
-          boardingPoint: response.data.boardingPoint,
-          passengers: response.data.passengerList?.map(p => ({
-            name: p.passengerName || '-',
-            age: p.passengerAge || 0,
-            status: p.passengerStatus || 'Unknown',
-            coach: p.bookingCoachId || '-',
-            seat: p.bookingBerthNo?.toString() || '-',
-            berth : p.bookingBerthCode || '-'
-          })) || [],
-
+          trainNumber: response.data.TrainNo,
+          trainName: response.data.TrainName,
+          from: response.data.BoardingPoint,
+          to: response.data.ReservationUpto,
+          doj: response.data.Doj,
+          journeyClass: response.data.Class,
+          boardingPoint: response.data.BoardingPoint,
+          arrivalTime : response.data.ArrivalTime,
+          passengers:
+            response.data.PassengerStatus?.map((p) => ({
+              name: '',
+              age: 0,
+              status: p.CurrentStatus || p.BookingStatus || 'Unknown',
+              coach: p.CurrentCoachId || p.BookingCoachId || '-',
+              berth: p.CurrentBerthCode || p.BookingBerthCode || '-',
+              seat: p.CurrentBerthNo || p.BookingBerthNo || '-',
+            })) || [],
           lastChecked: new Date().toLocaleString(),
           isRefreshing: false,
         };
 
-        // Update in state
-        setSavedPNRs(prev => prev.map(pnr => 
-          pnr.id === pnrId ? updatedPNR : pnr
-        ));
+        setSavedPNRs((prev) => {
+          const updatedPNRs = prev.map((pnr) =>
+            pnr.id === pnrId ? updatedPNR : pnr
+          );
+          AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+          return updatedPNRs;
+        });
 
-        // Update in storage
-        const updatedPNRs = savedPNRs.map(pnr => 
-          pnr.id === pnrId ? updatedPNR : pnr
-        );
-        await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
-
-        Alert.alert('Status Updated', 'PNR status has been refreshed successfully');
+        Alert.alert('✅ Updated', 'PNR status refreshed successfully');
       } else {
         throw new Error(response.message || 'Failed to fetch PNR status');
       }
     } catch (error) {
-      setSavedPNRs(prev => prev.map(pnr => 
-        pnr.id === pnrId ? { ...pnr, isRefreshing: false } : pnr
-      ));
-      
-      const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
-      Alert.alert('Refresh Failed', errorMessage);
+      setSavedPNRs((prev) =>
+        prev.map((pnr) =>
+          pnr.id === pnrId ? { ...pnr, isRefreshing: false } : pnr
+        )
+      );
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Network error';
+      Alert.alert('❌ Refresh Failed', errorMessage);
     }
   };
 
-  const handleRefreshPNROld = async (pnrId: string) => {
-    setSavedPNRs(prev => prev.map(pnr => 
-      pnr.id === pnrId ? { ...pnr, isRefreshing: true } : pnr
-    ));
-
-    // Simulate API call
-    setTimeout(() => {
-      setSavedPNRs(prev => prev.map(pnr => {
-        if (pnr.id === pnrId) {
-          // Simulate status updates
-          const possibleStatuses = ['Confirmed', 'Waitlisted', 'RAC'];
-          const randomStatus = possibleStatuses[Math.floor(Math.random() * possibleStatuses.length)];
-          
-          return {
-            ...pnr,
-            passengers: pnr.passengers.map(p => ({ ...p, status: randomStatus })),
-            lastChecked: new Date().toLocaleString(),
-            isRefreshing: false,
-          };
-        }
-        return pnr;
-      }));
-
-      Alert.alert('Status Updated', 'PNR status has been refreshed successfully');
-    }, 2000);
+  const openDeleteModal = (pnrId: string) => {
+    setSelectedPNR(pnrId);
+    setDeleteModalVisible(true);
   };
 
-const openDeleteModal = (pnrId: string) => {
-  setSelectedPNR(pnrId);
-  setDeleteModalVisible(true);
-};
+  const confirmDeletePNR = async () => {
+    if (!selectedPNR) return;
 
-const confirmDeletePNR = async () => {
-  if (!selectedPNR) return;
+    try {
+      const updatedPNRs = savedPNRs.filter((pnr) => pnr.id !== selectedPNR);
+      setSavedPNRs(updatedPNRs);
+      await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+    } catch (error) {
+      console.error('Failed to delete PNR:', error);
+    }
 
-  try {
-    const updatedPNRs = savedPNRs.filter(pnr => pnr.id !== selectedPNR);
-    setSavedPNRs(updatedPNRs);
-    await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
-  } catch (error) {
-    console.error('Failed to delete PNR:', error);
-  }
-
-  setDeleteModalVisible(false);
-  setSelectedPNR(null);
-};
+    setDeleteModalVisible(false);
+    setSelectedPNR(null);
+  };
 
   const handleAddNewPNR = () => {
     router.push('/pnr-checker');
@@ -266,8 +234,8 @@ const confirmDeletePNR = async () => {
 
   const handleViewDetails = (pnr: SavedPNR) => {
     const primaryPassenger = pnr.passengers[0];
-    const passengerInfo = primaryPassenger 
-      ? `Passenger: ${primaryPassenger.name}\nStatus: ${primaryPassenger.status}\nCoach: ${primaryPassenger.coach},Berth: ${primaryPassenger.berth} Seat: ${primaryPassenger.seat}`
+    const passengerInfo = primaryPassenger
+      ? `Passenger: ${primaryPassenger.name}\nStatus: ${primaryPassenger.status}\nCoach: ${primaryPassenger.coach}, Berth: ${primaryPassenger.berth}, Seat: ${primaryPassenger.seat}`
       : 'No passenger information available';
 
     Alert.alert(
@@ -282,9 +250,12 @@ const confirmDeletePNR = async () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Bookings</Text>
-        <Text style={styles.headerSubtitle}>Saved PNRs and booking history</Text>
+        <TouchableOpacity onPress={() => router.push('/home')} style={styles.backButton}>
+          <ArrowLeft size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Saved PNR</Text>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -296,14 +267,26 @@ const confirmDeletePNR = async () => {
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Confirmed' || p.status === 'CNF')).length}
+              {
+                savedPNRs.filter((pnr) =>
+                  pnr.passengers.some(
+                    (p) => p.status === 'Confirmed' || p.status === 'CNF'
+                  )
+                ).length
+              }
             </Text>
             <Text style={styles.statLabel}>Confirmed</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {savedPNRs.filter(pnr => pnr.passengers.some(p => p.status === 'Waitlisted' || p.status === 'WL')).length}
+              {
+                savedPNRs.filter((pnr) =>
+                  pnr.passengers.some(
+                    (p) => p.status === 'Waitlisted' || p.status === 'WL'
+                  )
+                ).length
+              }
             </Text>
             <Text style={styles.statLabel}>Waitlisted</Text>
           </View>
@@ -319,44 +302,92 @@ const confirmDeletePNR = async () => {
 
         {savedPNRs.map((booking) => (
           <View key={booking.id} style={styles.bookingCard}>
-            <TouchableOpacity
-              onPress={() => handleViewDetails(booking)}
-            >
+            {/* Journey Details */}
+            <View style={styles.journeyContainer}>
+              <View style={styles.journeyHeader}>
+                <Text style={styles.journeyTitle}>Journey Details</Text>
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      booking.isRefreshing && styles.actionButtonDisabled,
+                    ]}
+                    onPress={() => handleRefreshPNR(booking.id)}
+                    disabled={booking.isRefreshing}
+                  >
+                    <RefreshCw
+                      size={16}
+                      color={booking.isRefreshing ? '#94A3B8' : '#2563EB'}
+                    />
+                    <Text
+                      style={[
+                        styles.actionButtonText,
+                        booking.isRefreshing && styles.actionButtonTextDisabled,
+                      ]}
+                    >
+                      {booking.isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => openDeleteModal(booking.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Trash2 size={16} color="#DC2626" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.journeyRow}>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#153cb9ff" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>From</Text>
+                    <Text style={styles.journeyValue}>{booking.from}</Text>
+                  </View>
+                </View>
+                <View style={styles.journeyArrow}>
+                  <Text style={styles.arrowText}>→</Text>
+                </View>
+                <View style={styles.journeyPoint}>
+                  <MapPin size={30} color="#DC2626" />
+                  <View style={styles.journeyInfo}>
+                    <Text style={styles.journeyLabel}>To</Text>
+                    <Text style={styles.journeyValue}>{booking.to}</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <TouchableOpacity onPress={() => handleViewDetails(booking)}>
               <View style={styles.pnrHeader}>
                 <Text style={styles.pnrNumber}>PNR: {booking.pnr}</Text>
-                <View style={[styles.statusBadge, { backgroundColor: getStatusColor(booking.passengers[0]?.status || '') }]}>
-                  <CheckCircle size={14} color="#FFFFFF" />
-                  <Text style={styles.statusText}>
-                    {formatStatus(booking.passengers[0]?.status || 'Unknown')}
-                  </Text>
-                </View>
               </View>
 
               <Text style={styles.trainInfo}>
                 {booking.trainNumber} - {booking.trainName}
               </Text>
-              <Text style={styles.classInfo}>
-                Class: {booking.journeyClass} | Date: {booking.date}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.boardingInfo}>DOJ : {booking.doj} | </Text>
+                <Clock size={16} color="#64748B" style={{ marginHorizontal: 4,alignSelf: 'center' }} />
+                <Text style={styles.boardingInfo}>Time : {booking.arrivalTime}</Text>
+              </View>
               <Text style={styles.boardingInfo}>
-                Boarding: {booking.boardingPoint}
+                Boarding: {booking.boardingPoint} | Class: {booking.journeyClass}
               </Text>
 
               <View style={styles.passengersContainer}>
                 <Text style={styles.sectionTitle}>Passenger Details</Text>
-                
+
                 {/* First passenger - always shown */}
                 <View style={styles.passengerCard}>
-                  <Text style={styles.passengerTitle}>
-                    Passenger 1
-                  </Text>
-                  
+                  <Text style={styles.passengerTitle}>Passenger 1</Text>
+
                   <View style={styles.detailRow}>
                     <Text style={styles.detailLabel}>Status : </Text>
                     <Text
                       style={[
                         styles.detailValue,
-                        { color: getStatusColor(booking.passengers[0]?.status || '') },
+                        { color: getStatusColor(booking.passengers[0]?.status) },
                       ]}
                     >
                       {formatStatus(booking.passengers[0]?.status || 'Unknown')}
@@ -392,9 +423,13 @@ const confirmDeletePNR = async () => {
                     onPress={() => toggleExpanded(booking.id)}
                   >
                     <Text style={styles.toggleText}>
-                      {expandedPNRs.has(booking.id) 
-                        ? `Hide ${booking.passengers.length - 1} other passengers` 
-                        : `Show ${booking.passengers.length - 1} more passengers`}
+                      {expandedPNRs.has(booking.id)
+                        ? `Hide ${
+                            booking.passengers.length - 1
+                          } other passengers`
+                        : `Show ${
+                            booking.passengers.length - 1
+                          } more passengers`}
                     </Text>
                     {expandedPNRs.has(booking.id) ? (
                       <ChevronUp size={16} color="#2563EB" />
@@ -405,99 +440,54 @@ const confirmDeletePNR = async () => {
                 )}
 
                 {/* Additional passengers - shown when expanded */}
-                {expandedPNRs.has(booking.id) && booking.passengers.slice(1).map((passenger, index) => (
-                  <View key={index} style={styles.passengerCard}>
-                    <Text style={styles.passengerTitle}>
-                      Passenger {index + 2}
-                    </Text>
-                    
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Status : </Text>
-                      <Text
-                        style={[
-                          styles.detailValue,
-                          { color: getStatusColor(passenger.status || '') },
-                        ]}
-                      >
-                        {formatStatus(passenger.status || 'Unknown')}
+                {expandedPNRs.has(booking.id) &&
+                  booking.passengers.slice(1).map((passenger, index) => (
+                    <View key={index} style={styles.passengerCard}>
+                      <Text style={styles.passengerTitle}>
+                        Passenger {index + 2}
                       </Text>
-                    </View>
 
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Coach : </Text>
-                      <Text style={styles.detailValue}>
-                        {passenger.coach || '-'}
-                      </Text>
-                    </View>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Status : </Text>
+                        <Text
+                          style={[
+                            styles.detailValue,
+                            { color: getStatusColor(passenger.status || '') },
+                          ]}
+                        >
+                          {formatStatus(passenger.status || 'Unknown')}
+                        </Text>
+                      </View>
 
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Berth : </Text>
-                      <Text style={styles.detailValue}>
-                        {booking.passengers[0]?.berth || '-'}
-                      </Text>
-                    </View>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Coach : </Text>
+                        <Text style={styles.detailValue}>
+                          {passenger.coach || '-'}
+                        </Text>
+                      </View>
 
-                    <View style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Seat : </Text>
-                      <Text style={styles.detailValue}>
-                        {passenger.seat || '-'}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Berth : </Text>
+                        <Text style={styles.detailValue}>
+                          {booking.passengers[0]?.berth || '-'}
+                        </Text>
+                      </View>
 
-              {/* Journey Details */}
-              <View style={styles.journeyContainer}>
-                <Text style={styles.journeyTitle}>Journey Details</Text>
-                <View style={styles.journeyRow}>
-                  <View style={styles.journeyPoint}>
-                    <MapPin size={30} color="#153cb9ff" />
-                    <View style={styles.journeyInfo}>
-                      <Text style={styles.journeyLabel}>From</Text>
-                      <Text style={styles.journeyValue}>
-                        {booking.from}
-                      </Text>
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Seat : </Text>
+                        <Text style={styles.detailValue}>
+                          {passenger.seat || '-'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                  <View style={styles.journeyArrow}>
-                    <Text style={styles.arrowText}>→</Text>
-                  </View>
-                  <View style={styles.journeyPoint}>
-                    <MapPin size={30} color="#DC2626" />
-                    <View style={styles.journeyInfo}>
-                      <Text style={styles.journeyLabel}>To</Text>
-                      <Text style={styles.journeyValue}>
-                        {booking.to}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
+                  ))}
               </View>
             </TouchableOpacity>
 
             <View style={styles.actionBar}>
-              <Text style={styles.lastChecked}>Last checked: {booking.lastChecked}</Text>
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={[styles.actionButton, booking.isRefreshing && styles.actionButtonDisabled]}
-                  onPress={() => handleRefreshPNR(booking.id)}
-                  disabled={booking.isRefreshing}
-                >
-                  <RefreshCw size={16} color={booking.isRefreshing ? "#94A3B8" : "#2563EB"} />
-                  <Text style={[styles.actionButtonText, booking.isRefreshing && styles.actionButtonTextDisabled]}>
-                    {booking.isRefreshing ? 'Refreshing...' : 'Refresh'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => openDeleteModal(booking.id)}
-                  activeOpacity={0.7}
-                >
-                  <Trash2 size={16} color="#DC2626" />
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.lastChecked}>
+                Last checked: {booking.lastChecked}
+              </Text>
             </View>
             <Modal
               animationType="fade"
@@ -505,31 +495,52 @@ const confirmDeletePNR = async () => {
               visible={deleteModalVisible}
               onRequestClose={() => setDeleteModalVisible(false)}
             >
-              <View style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-              }}>
-                <View style={{
-                  backgroundColor: '#fff',
-                  padding: 20,
-                  borderRadius: 12,
-                  width: '80%',
-                }}>
-                  <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12 }}>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                }}
+              >
+                <View
+                  style={{
+                    backgroundColor: '#fff',
+                    padding: 20,
+                    borderRadius: 12,
+                    width: '80%',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 18,
+                      fontWeight: '700',
+                      marginBottom: 12,
+                    }}
+                  >
                     Delete PNR
                   </Text>
                   <Text style={{ marginBottom: 24 }}>
-                    Are you sure you want to remove this PNR from your saved list?
+                    Are you sure you want to remove this PNR from your saved
+                    list?
                   </Text>
 
-                  <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                      gap: 12,
+                    }}
+                  >
                     <Pressable onPress={() => setDeleteModalVisible(false)}>
-                      <Text style={{ color: '#2563EB', fontWeight: '600' }}>Cancel</Text>
+                      <Text style={{ color: '#2563EB', fontWeight: '600' }}>
+                        Cancel
+                      </Text>
                     </Pressable>
                     <Pressable onPress={confirmDeletePNR}>
-                      <Text style={{ color: '#DC2626', fontWeight: '600' }}>Delete</Text>
+                      <Text style={{ color: '#DC2626', fontWeight: '600' }}>
+                        Delete
+                      </Text>
                     </Pressable>
                   </View>
                 </View>
@@ -545,7 +556,10 @@ const confirmDeletePNR = async () => {
             <Text style={styles.emptySubtitle}>
               Use the PNR Checker to search and save your booking details
             </Text>
-            <TouchableOpacity style={styles.emptyButton} onPress={handleAddNewPNR}>
+            <TouchableOpacity
+              style={styles.emptyButton}
+              onPress={handleAddNewPNR}
+            >
               <Text style={styles.emptyButtonText}>Check PNR Status</Text>
             </TouchableOpacity>
           </View>
@@ -562,23 +576,28 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#2563EB',
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
+    paddingTop: 45,
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    fontFamily: 'Poppins-Bold',
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  marginTop :32,
+  textAlign: 'center',
+  fontSize: 22,
+  fontWeight: '700',
+  color: '#FFFFFF',
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#BFDBFE',
-    fontFamily: 'Inter-Medium',
+
+  backButton: {
+    padding: 12,
+    marginLeft: -12,
+    color: '#FFFFFF',
   },
   content: {
     flex: 1,
@@ -629,6 +648,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#1E293B',
     fontFamily: 'Poppins-Bold',
+    marginBottom: 10,
   },
   addButton: {
     backgroundColor: '#2563EB',
@@ -668,14 +688,6 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     fontFamily: 'Poppins-Bold',
   },
-  statusBadge: {
-    backgroundColor: '#059669',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
-  },
   statusText: {
     color: '#FFFFFF',
     fontSize: 14,
@@ -700,7 +712,7 @@ const styles = StyleSheet.create({
   boardingInfo: {
     fontSize: 14,
     color: '#64748B',
-    marginBottom: 24,
+    marginBottom: 15,
     fontWeight: '500',
     fontFamily: 'Inter-Regular',
   },
@@ -760,11 +772,16 @@ const styles = StyleSheet.create({
   journeyContainer: {
     marginBottom: 16,
   },
+  journeyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   journeyTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#1E293B',
-    marginBottom: 16,
     fontFamily: 'Poppins-Bold',
   },
   journeyRow: {

@@ -8,8 +8,8 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash-bg.png",
+      "resizeMode": "cover",
       "backgroundColor": "#1E40AF"
     },
     "ios": {
@@ -28,6 +28,16 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "53697233-ad1f-450b-8779-a15a41d5e4b1"
+      }
+    },
+    "owner": "raillovertej",
+    "android": {
+      "package": "com.raillovertej.boltexponativewind"
     }
   }
 }

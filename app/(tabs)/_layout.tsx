@@ -8,9 +8,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#2563eb',
-      }}>
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: ({ size, color }) => (
@@ -21,7 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="booking"
         options={{
-          title: 'Booking',
+          title: 'Saved PNR',
           tabBarIcon: ({ size, color }) => (
             <Ionicons name="train" size={size} color={color} />
           ),
