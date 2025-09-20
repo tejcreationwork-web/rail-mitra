@@ -90,6 +90,7 @@ export default function ContactScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <>
         {/* Emergency & Helpline Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
@@ -284,6 +285,7 @@ export default function ContactScreen() {
             </View>
           </View>
         </View>
+        </>
       </ScrollView>
     </View>
   );
