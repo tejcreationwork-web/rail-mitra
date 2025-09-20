@@ -17,7 +17,7 @@ export default function HomeScreen() {
     { id: 'track_train', title: 'Train\nTimes', icon: Train, route: '/train-timetable', color: '#3D99C2' },
     { id: 'chart_vacancy', title: 'Chart Vacancy', icon: FileText, route: '/chart_vacancy', color: '#3A8DFF' },
     { id: 'retiring_rooms', title: 'Retiring Rooms', icon: Bed, route: '/retiring_rooms', color: '#F2994A' },
-    { id: 'help_support', title: 'Help &\nSupport', icon: CircleHelp, route: '/emergency_contact', color: '#2E6DA4' },
+    { id: 'help_support', title: 'Help &\nSupport', icon: CircleHelp, route: '/emergency_contact', color: '#3D99C2' },
   ];
 
   // Load latest questions from Q&A
