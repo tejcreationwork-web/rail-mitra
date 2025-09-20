@@ -84,7 +84,7 @@ export default function ContactScreen() {
       </View>
 
       {/* Main Title */}
-      <View style={styles.header}>
+      <View style={styles.titleSection}>
         <Text style={styles.mainTitle}>Contact & Help</Text>
         <Text style={styles.mainSubtitle}>24/7 support for your journey</Text>
       </View>
@@ -180,6 +180,106 @@ export default function ContactScreen() {
                 onPress={() => {}}
               >
                 <Text style={styles.onlineServiceButtonText}>Chat</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
+          {contactOptions.map((option) => {
+            const IconComponent = option.icon;
+            return (
+              <TouchableOpacity
+                key={option.id}
+                style={styles.contactCard}
+                onPress={option.action}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
+                  <IconComponent size={24} color="#FFFFFF" />
+                </View>
+                <View style={styles.contactInfo}>
+                  <Text style={styles.contactTitle}>{option.title}</Text>
+                  <Text style={styles.contactSubtitle}>{option.subtitle}</Text>
+                </View>
+                <Phone size={20} color="#64748B" />
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Online Services</Text>
+          {onlineServices.map((service, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.serviceCard}
+              onPress={() => Linking.openURL(service.url)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.serviceIcon}>
+                <Globe size={20} color="#2563EB" />
+              </View>
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceTitle}>{service.title}</Text>
+                <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
+              </View>
+              <Text style={styles.linkArrow}>→</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Railway Offices</Text>
+          {offices.map((office, index) => (
+            <View key={index} style={styles.officeCard}>
+              <View style={styles.officeHeader}>
+                <MapPin size={20} color="#2563EB" />
+                <Text style={styles.officeName}>{office.name}</Text>
+              </View>
+              <Text style={styles.officeAddress}>{office.address}</Text>
+              <View style={styles.officeDetails}>
+                <View style={styles.officeDetail}>
+                  <Clock size={16} color="#64748B" />
+                  <Text style={styles.officeDetailText}>{office.timings}</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.officeDetail}
+                  onPress={() => Linking.openURL(`tel:${office.phone}`)}
+                >
+                  <Phone size={16} color="#2563EB" />
+                  <Text style={[styles.officeDetailText, styles.phoneText]}>{office.phone}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.emergencyBox}>
+            <Text style={styles.emergencyTitle}>🚨 Emergency Numbers</Text>
+            <View style={styles.emergencyGrid}>
+              <TouchableOpacity
+                style={styles.emergencyButton}
+                onPress={() => Linking.openURL('tel:100')}
+              >
+                <Text style={styles.emergencyNumber}>100</Text>
+                <Text style={styles.emergencyLabel}>Police</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.emergencyButton}
+                onPress={() => Linking.openURL('tel:101')}
+              >
+                <Text style={styles.emergencyNumber}>101</Text>
+                <Text style={styles.emergencyLabel}>Fire</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.emergencyButton}
+                onPress={() => Linking.openURL('tel:108')}
+              >
+                <Text style={styles.emergencyNumber}>108</Text>
+                <Text style={styles.emergencyLabel}>Ambulance</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -339,152 +439,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontFamily: 'Inter-SemiBold',
   },
-});
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
-          {contactOptions.map((option) => {
-            const IconComponent = option.icon;
-            return (
-              <TouchableOpacity
-                key={option.id}
-                style={styles.contactCard}
-                onPress={option.action}
-                activeOpacity={0.7}
-              >
-                <View style={[styles.iconContainer, { backgroundColor: option.color }]}>
-                  <IconComponent size={24} color="#FFFFFF" />
-                </View>
-                <View style={styles.contactInfo}>
-                  <Text style={styles.contactTitle}>{option.title}</Text>
-                  <Text style={styles.contactSubtitle}>{option.subtitle}</Text>
-                </View>
-                <Phone size={20} color="#64748B" />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Online Services</Text>
-          {onlineServices.map((service, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.serviceCard}
-              onPress={() => Linking.openURL(service.url)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.serviceIcon}>
-                <Globe size={20} color="#2563EB" />
-              </View>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
-                <Text style={styles.serviceSubtitle}>{service.subtitle}</Text>
-              </View>
-              <Text style={styles.linkArrow}>→</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Railway Offices</Text>
-          {offices.map((office, index) => (
-            <View key={index} style={styles.officeCard}>
-              <View style={styles.officeHeader}>
-                <MapPin size={20} color="#2563EB" />
-                <Text style={styles.officeName}>{office.name}</Text>
-              </View>
-              <Text style={styles.officeAddress}>{office.address}</Text>
-              <View style={styles.officeDetails}>
-                <View style={styles.officeDetail}>
-                  <Clock size={16} color="#64748B" />
-                  <Text style={styles.officeDetailText}>{office.timings}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.officeDetail}
-                  onPress={() => Linking.openURL(`tel:${office.phone}`)}
-                >
-                  <Phone size={16} color="#2563EB" />
-                  <Text style={[styles.officeDetailText, styles.phoneText]}>{office.phone}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.emergencyBox}>
-            <Text style={styles.emergencyTitle}>🚨 Emergency Numbers</Text>
-            <View style={styles.emergencyGrid}>
-              <TouchableOpacity
-                style={styles.emergencyButton}
-                onPress={() => Linking.openURL('tel:100')}
-              >
-                <Text style={styles.emergencyNumber}>100</Text>
-                <Text style={styles.emergencyLabel}>Police</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.emergencyButton}
-                onPress={() => Linking.openURL('tel:101')}
-              >
-                <Text style={styles.emergencyNumber}>101</Text>
-                <Text style={styles.emergencyLabel}>Fire</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.emergencyButton}
-                onPress={() => Linking.openURL('tel:108')}
-              >
-                <Text style={styles.emergencyNumber}>108</Text>
-                <Text style={styles.emergencyLabel}>Ambulance</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
-  header: {
-    backgroundColor: '#2563EB',
-    paddingTop: 50,
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
-    fontFamily: 'Poppins-Bold',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#BFDBFE',
-    fontFamily: 'Inter-Medium',
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  section: {
-    marginBottom: 32,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 16,
-    fontFamily: 'Poppins-Bold',
-  },
   contactCard: {
     backgroundColor: '#FFFFFF',
     flexDirection: 'row',
@@ -618,18 +572,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 20,
   },
-  emergencyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#DC2626',
-    textAlign: 'center',
-    marginBottom: 16,
-    fontFamily: 'Poppins-SemiBold',
-  },
-  emergencyGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
   emergencyButton: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
@@ -640,13 +582,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     marginHorizontal: 4,
-  },
-  emergencyNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#DC2626',
-    marginBottom: 4,
-    fontFamily: 'Poppins-Bold',
   },
   emergencyLabel: {
     fontSize: 12,
