@@ -31,12 +31,30 @@ type Amenity = {
   id: number;
   stn_code: string;
   ame_name: string;
+  ame_type: string; // e.g., "food", "info", "location", "phone", "timing", "verified"
   ame_desc: string;
   photo_url?: string;
   availability: string; // e.g., "24/7", "6 AM - 10 PM"
   location : string; // e.g., "Near Platform 1"
   hours : string; // e.g., "6 AM - 10 PM"
   rating : Number; // average rating
+};
+
+// mapping amenity types → icon component
+const amenityIcons: Record<string, React.ReactNode> = {
+  food: <Utensils size={24} color="#2563EB" />,
+  info: <Info size={24} color="#2563EB" />,
+  location: <MapPin size={24} color="#2563EB" />,
+  phone: <Phone size={24} color="#2563EB" />,
+  timing: <Clock size={24} color="#2563EB" />,
+  verified: <CheckCircle size={24} color="#2563EB" />
+};
+
+// helper function
+const getAmenityIcon = (type: string) => {
+  return amenityIcons[type.toLowerCase()] ?? (
+    <Info size={24} color="#2563EB" /> // fallback
+  );
 };
 
 export default function StationLayout() {
@@ -114,8 +132,8 @@ export default function StationLayout() {
   };
 
   const renderAmenityItem = (amenity: Amenity) => (
-    <TouchableOpacity 
-      key={amenity.id} 
+    <TouchableOpacity
+      key={amenity.id}
       style={styles.amenityItem}
       onPress={() => {
         setSelectedAmenity(amenity);
@@ -123,13 +141,14 @@ export default function StationLayout() {
       }}
     >
       <View style={styles.amenityIcon}>
-        <Utensils size={24} color="#2563EB" />
+        {getAmenityIcon(amenity.ame_type ?? "")}
       </View>
       <Text style={styles.amenityText}>
         {amenity.ame_name}
       </Text>
     </TouchableOpacity>
   );
+
 
   return (
       <View style={styles.container}>
