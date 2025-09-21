@@ -13,7 +13,11 @@
       "backgroundColor": "#1E40AF"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.raillovertej.boltexponativewind",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "bundler": "metro",
@@ -24,7 +28,16 @@
       "expo-router",
       "expo-font",
       "expo-splash-screen",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "android": {
+            "version": "11.4.1"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
