@@ -4,6 +4,7 @@ import {
 import { useState, useEffect,useRef } from 'react';
 import SearchableDropdown from '@/components/SearchableDropdown';
 import { router } from 'expo-router';
+import StationMap from '@/components/StationMap';
 import { ArrowLeft, MapPin, Info, Utensils, X, Clock, Phone, CheckCircle} from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';  // 👈 Import Supabase client
 
@@ -199,25 +200,12 @@ export default function StationLayout() {
 
               <View style={styles.mapContainer}>
                 {Platform.OS !== "web" && MapView ? (
-                  <MapView
-                    key={selectedStationId}   // ✅ forces remount when station changes
-                    style={styles.map}
-                    initialRegion={{
-                      latitude: Number(selectedStation.lat),
-                      longitude: Number(selectedStation.lon),
-                      latitudeDelta: 0.01,
-                      longitudeDelta: 0.01,
-                    }}
-                  >
-                    <Marker
-                      coordinate={{
-                        latitude: Number(selectedStation.lat),
-                        longitude: Number(selectedStation.lon),
-                      }}
-                      title={selectedStation.stn_name}
-                      description={`${selectedStation.stn_code}`}
+                  <StationMap
+                    lat={Number(selectedStation.lat)}
+                    lon={Number(selectedStation.lon)}
+                    stationName={`${selectedStation.stn_name} (${selectedStation.stn_code})`}
+                    zoom={17} // 👈 closer zoom
                   />
-                  </MapView>
                 ) : (
                   <Text>🗺️ Map not available on Web</Text>
                 )}
