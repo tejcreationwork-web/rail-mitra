@@ -6,9 +6,10 @@ import {
   StatusBar,
   TouchableOpacity,
   FlatList,
+  TextInput,
+  ScrollView,
 } from "react-native";
-import { ArrowLeft, Train, Clock, RefreshCw } from "lucide-react-native";
-import DropDownPicker from "react-native-dropdown-picker";
+import { ArrowLeft, TrainFront as Train, Clock, RefreshCw } from "lucide-react-native";
 import { router } from "expo-router";
 
 // Mock data (replace with your JSON imports)
@@ -21,6 +22,7 @@ export default function TrainTimetable() {
   const [open, setOpen] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState<string | null>(null);
   const [timetableData, setTimetableData] = useState<any>(null);
+  const [query, setQuery] = useState("");
 
   // Trim keys and station names
   const timetables: any = Object.keys(timetablesRaw).reduce((acc: any, key) => {
@@ -38,6 +40,12 @@ export default function TrainTimetable() {
 
   const handleSelect = (trainNumber: string) => {
     setSelectedTrain(trainNumber);
+    setQuery(
+      `${trainNumber} - ${
+        trainList.find((t) => t.number.trim() === trainNumber)?.name.trim() || ""
+      }`
+    );
+    setOpen(false);
 
     const timetable =
       timetables[trainNumber.trim()] || timetables[trainNumber.padEnd(12, " ")];
@@ -63,6 +71,11 @@ export default function TrainTimetable() {
     }
   };
 
+  // filter dropdown results
+  const filteredOptions = trainOptions.filter((item) =>
+    item.label.toLowerCase().includes(query.toLowerCase())
+  );
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#2563EB" />
@@ -81,8 +94,8 @@ export default function TrainTimetable() {
         </TouchableOpacity>
       </View>
 
-      {/* Dropdown */}
-      <View style={{ zIndex: 1000, margin: 20 }}>
+      {/* Input + Dropdown */}
+      <View style={{ zIndex: 1000, margin: 15 }}>
         <View
           style={{
             flexDirection: "row",
@@ -90,7 +103,7 @@ export default function TrainTimetable() {
             backgroundColor: "#FFFFFF",
             borderRadius: 12,
             paddingHorizontal: 12,
-            height: 50, // fixed height to match input
+            height: 50,
             shadowColor: "#000",
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.1,
@@ -100,29 +113,63 @@ export default function TrainTimetable() {
         >
           <Train size={24} color="#64748B" style={{ marginRight: 8 }} />
 
-          <DropDownPicker
-            open={open}
-            value={selectedTrain}
-            items={trainOptions}
-            setOpen={setOpen}
-            setValue={(callback) => {
-              const val = callback(selectedTrain);
-              if (typeof val === "string") handleSelect(val);
+          <TextInput
+            style={{ flex: 1, fontSize: 14, color: "#1E293B" }}
+            placeholder="Enter Train Number or Name"
+            placeholderTextColor="#A1A1AA"
+            value={query}
+            onChangeText={(text) => {
+              setQuery(text);
+              setOpen(true);
             }}
-            searchable={true}
-            placeholder="Search train by number or name"
-            placeholderStyle={{ color: "#A1A1AA", fontSize: 14 }} // lighter color
-            style={{
-              flex: 1,
-              backgroundColor: "transparent",
-              borderWidth: 0,
-              paddingVertical: 0,
-              paddingRight: 20,
-            }}
-            arrowIconStyle={{ marginRight: 8 }}
-            listMode="MODAL"
+            onFocus={() => setOpen(true)}
           />
         </View>
+
+        {/* custom dropdown list */}
+        {open && filteredOptions.length > 0 && (
+          <View
+            style={{
+              marginTop: 4,
+              backgroundColor: "#FFFFFF",
+              borderRadius: 12,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 3.84,
+              elevation: 5,
+              maxHeight: 250,
+              borderWidth: 1,
+              borderColor: "#E5E7EB",
+            }}
+          >
+            <ScrollView keyboardShouldPersistTaps="handled">
+              {filteredOptions.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={{
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#F1F5F9",
+                  }}
+                  onPress={() => handleSelect(item.value)}
+                >
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      color: "#1E293B",
+                      fontWeight:
+                        selectedTrain === item.value ? "600" : "500",
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </View>
 
       {/* Timetable */}
@@ -142,39 +189,40 @@ export default function TrainTimetable() {
                 <Text style={styles.runsOn}>Runs: {timetableData.runsOn}</Text>
               </View>
 
+              {/* Column Header Row */}
               <View style={styles.timetableHeader}>
-                <Text style={styles.columnHeader}>Code</Text>
-                <Text style={[styles.columnHeader, styles.stationColumn]}>
-                  Station
-                </Text>
-                <Text style={styles.columnHeader}>Arrival</Text>
-                <Text style={styles.columnHeader}>Depart</Text>
-                <Text style={styles.columnHeader}>Day</Text>
+                <Text style={[styles.columnHeader, { flex: 0.8 }]}>Code</Text>
+                <Text style={[styles.columnHeader, { flex: 2, textAlign: "left" }]}>Station</Text>
+                <Text style={[styles.columnHeader, { flex: 1 }]}>Arrival</Text>
+                <Text style={[styles.columnHeader, { flex: 1 }]}>Depart</Text>
+                <Text style={[styles.columnHeader, { flex: 0.7 }]}>Day</Text>
               </View>
             </View>
           )}
           stickyHeaderIndices={[0]}
           renderItem={({ item }) => (
             <View style={styles.stationRow}>
-              <Text style={styles.stationCode}>{item.code}</Text>
-              <View style={styles.stationInfo}>
-                <Text style={styles.stationName}>{item.name}</Text>
-              </View>
-              <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{item.arrival}</Text>
-              </View>
-              <View style={styles.timeContainer}>
-                <Text style={styles.timeText}>{item.departure}</Text>
-              </View>
-              <Text style={styles.haltText}>{item.noOfDays}</Text>
+              <Text style={[styles.stationCode, { flex: 0.8, textAlign: "center" }]}>
+                {item.code}
+              </Text>
+              <Text style={[styles.stationName, { flex: 2 }]} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={[styles.timeText, { flex: 1, textAlign: "center" }]}>
+                {item.arrival}
+              </Text>
+              <Text style={[styles.timeText, { flex: 1, textAlign: "center" }]}>
+                {item.departure}
+              </Text>
+              <Text style={[styles.haltText, { flex: 0.7, textAlign: "center" }]}>
+                {item.noOfDays}
+              </Text>
             </View>
           )}
           ListFooterComponent={() => (
             <View style={styles.updateInfo}>
               <Clock size={16} color="#64748B" />
-              <Text style={styles.updateText}>
-                Last updated: 2022-02-11 01:41
-              </Text>
+              <Text style={styles.updateText}>Last updated: 2025-09-20 01:41</Text>
             </View>
           )}
         />
@@ -231,7 +279,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 6,
   },
-  trainNumber: { color: "#FFFFFF", fontSize: 14, fontWeight: "600", marginLeft: 8, flex: 1 },
+  trainNumber: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 8,
+    flex: 1,
+  },
   runsOn: { fontSize: 14, color: "#64748B", marginTop: 2 },
   timetableHeader: {
     flexDirection: "row",
@@ -240,8 +294,13 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E2E8F0",
     backgroundColor: "#F8FAFC",
   },
-  columnHeader: { fontSize: 12, fontWeight: "600", color: "#475569", width: 60, textAlign: "center" },
-  stationColumn: { flex: 1, textAlign: "left", marginLeft: 8 },
+  columnHeader: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+    textAlign: "center",
+  },
+
   stationRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -249,12 +308,32 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  stationCode: { fontSize: 12, fontWeight: "600", color: "#2563EB", width: 90, textAlign: "center" },
-  stationInfo: { flex: 1, marginLeft: 8 },
-  stationName: { fontSize: 13, color: "#1E293B", fontWeight: "500" },
-  timeContainer: { width: 50 },
-  timeText: { fontSize: 12, color: "#1E293B", fontWeight: "500" },
-  haltText: { fontSize: 11, color: "#64748B", width: 50, textAlign: "center" },
-  updateInfo: { flexDirection: "row", alignItems: "center", marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: "#E2E8F0" },
+  stationCode: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#2563EB",
+  },
+  stationName: {
+    fontSize: 13,
+    color: "#1E293B",
+    fontWeight: "500",
+  },
+  timeText: {
+    fontSize: 12,
+    color: "#1E293B",
+    fontWeight: "500",
+  },
+  haltText: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  updateInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E2E8F0",
+  },
   updateText: { fontSize: 12, color: "#64748B", marginLeft: 8 },
 });
