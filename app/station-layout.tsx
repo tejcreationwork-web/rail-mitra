@@ -1,11 +1,11 @@
 import { 
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Platform, Animated, Easing
+  View, Text, StyleSheet, ScrollView,ImageBackground, TouchableOpacity, StatusBar, Platform, Modal, Image, Linking 
 } from 'react-native';
-import { useState, useRef } from 'react';
+import { useState, useEffect,useRef } from 'react';
+import SearchableDropdown from '@/components/SearchableDropdown';
 import { router } from 'expo-router';
-import { ArrowLeft, ChevronDown, MapPin, Info, Check, Baby, Car, Utensils, Accessibility, Sofa, ShoppingBag, Users, ListRestart as Restroom, Wifi, Coffee, ShieldCheck, Headphones, Shirt, Gamepad2, Banknote, CarTaxiFront as Taxi, Music, Package, X, Phone, Clock, CircleCheck as CheckCircle, Share, Navigation } from 'lucide-react-native';
-import { Modal, Image, Linking } from 'react-native';
-import AccessibleDropdown from '@/components/AccessibleDropdown';
+import { ArrowLeft, MapPin, Info, Utensils, X, Clock, Phone, CheckCircle} from 'lucide-react-native';
+import { supabase } from '@/lib/supabase';  // 👈 Import Supabase client
 
 let MapView: any, Marker: any;
 if (Platform.OS !== "web") {
@@ -19,965 +19,454 @@ if (Platform.OS !== "web") {
 }
 
 type Station = {
-  id: string;
-  name: string;
-  code: string;
-  description: string;
-  latitude: number;
-  longitude: number;
+  stn_code: string;
+  stn_name: string;
+  lat: number;
+  lon: number;
+  description?: string;
 };
 
 type Amenity = {
-  id: string;
-  name: string;
-  icon: any;
-  available: boolean;
-  description?: string;
-  detailedInfo?: {
-    about: string;
-    timings: string;
-    facilities: string[];
-    contact?: string;
-    images: string[];
-    location?: string;
-  };
+  id: number;
+  stn_code: string;
+  ame_name: string;
+  ame_desc: string;
+  photo_url?: string;
+  availability: string; // e.g., "24/7", "6 AM - 10 PM"
+  location : string; // e.g., "Near Platform 1"
+  hours : string; // e.g., "6 AM - 10 PM"
+  rating : Number; // average rating
 };
 
 export default function StationLayout() {
-  const stations: Station[] = [
-    {
-      id: 'thane',
-      name: 'Thane Railway Station',
-      code: 'TNA',
-      description: 'Major railway junction on the Central Railway line serving Mumbai suburban and long-distance trains.',
-      latitude: 19.18648,
-      longitude: 72.97577,
-    },
-    {
-      id: 'dadar',
-      name: 'Dadar Railway Station',
-      code: 'DR',
-      description: 'One of the busiest railway stations in Mumbai, serving both Central and Western Railway lines.',
-      latitude: 19.021556,
-      longitude: 72.844065,
-    },
-  ];
-
-  const amenities: Amenity[] = [
-    { 
-      id: 'baby-food', 
-      name: 'Baby Food', 
-      icon: Baby, 
-      available: true, 
-      description: 'Baby care facilities',
-      detailedInfo: {
-        about: 'Dedicated baby care facility with feeding area, changing stations, and baby food options',
-        timings: 'Open: 24 hours',
-        facilities: ['Baby changing stations', 'Feeding area', 'Baby food available', 'Clean and hygienic'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/1648377/pexels-photo-1648377.jpeg'],
-        location: 'Platform 1, Near Main Entrance'
-      }
-    },
-    { 
-      id: 'parking', 
-      name: 'Parking', 
-      icon: Car, 
-      available: true, 
-      description: 'Vehicle parking',
-      detailedInfo: {
-        about: 'Multi-level parking facility with spaces for cars, bikes, and auto-rickshaws',
-        timings: 'Open: 24 hours',
-        facilities: ['Car parking (500+ spaces)', 'Two-wheeler parking', 'CCTV surveillance', 'Security guards'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/753876/pexels-photo-753876.jpeg'],
-        location: 'Main entrance, Ground floor'
-      }
-    },
-    { 
-      id: 'catering', 
-      name: 'Food Court', 
-      icon: Utensils, 
-      available: true, 
-      description: 'Dining options',
-      detailedInfo: {
-        about: 'Multi-cuisine food court with 12 restaurants and cafes offering variety of meals',
-        timings: 'Open: 5:00 AM - 11:00 PM',
-        facilities: ['AC seating for 200 people', 'Free WiFi available', 'Wheelchair accessible', 'Multiple cuisines'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg'],
-        location: 'Platform 3, First floor'
-      }
-    },
-    { 
-      id: 'accessibility', 
-      name: 'Accessibility', 
-      icon: Accessibility, 
-      available: true, 
-      description: 'Disabled facilities',
-      detailedInfo: {
-        about: 'Complete accessibility features for differently-abled passengers',
-        timings: 'Available: 24 hours',
-        facilities: ['Wheelchair ramps', 'Accessible restrooms', 'Braille signage', 'Audio announcements'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/7176026/pexels-photo-7176026.jpeg'],
-        location: 'All platforms and facilities'
-      }
-    },
-    { 
-      id: 'waiting-room', 
-      name: 'Waiting Room', 
-      icon: Sofa, 
-      available: true, 
-      description: 'Comfortable seating',
-      detailedInfo: {
-        about: 'Air-conditioned waiting room with comfortable seating and charging points',
-        timings: 'Open: 24 hours',
-        facilities: ['AC seating for 150 people', 'Mobile charging points', 'Clean restrooms nearby', 'Security surveillance'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/271816/pexels-photo-271816.jpeg'],
-        location: 'Platform 2, Ground floor'
-      }
-    },
-    { 
-      id: 'shopping', 
-      name: 'Shopping', 
-      icon: ShoppingBag, 
-      available: true, 
-      description: 'Retail stores',
-      detailedInfo: {
-        about: 'Shopping complex with various retail stores, pharmacy, and convenience items',
-        timings: 'Open: 6:00 AM - 10:00 PM',
-        facilities: ['Pharmacy', 'Convenience store', 'Clothing shops', 'Electronics store'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/264636/pexels-photo-264636.jpeg'],
-        location: 'Main concourse, Ground floor'
-      }
-    },
-    { 
-      id: 'ladies-waiting', 
-      name: 'Ladies Waiting Room', 
-      icon: Users, 
-      available: true, 
-      description: 'Women-only area',
-      detailedInfo: {
-        about: 'Exclusive waiting area for women passengers with enhanced security and comfort',
-        timings: 'Open: 24 hours',
-        facilities: ['Women-only seating', 'Enhanced security', 'Clean restrooms', 'Baby care facilities'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg'],
-        location: 'Platform 1, First floor'
-      }
-    },
-    { 
-      id: 'restroom', 
-      name: 'Restrooms', 
-      icon: Restroom, 
-      available: true, 
-      description: 'Clean facilities',
-      detailedInfo: {
-        about: 'Clean and well-maintained restroom facilities with regular cleaning',
-        timings: 'Open: 24 hours',
-        facilities: ['Separate male/female facilities', 'Disabled-accessible', 'Regular cleaning', 'Hand sanitizers'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/6585759/pexels-photo-6585759.jpeg'],
-        location: 'All platforms'
-      }
-    },
-    { 
-      id: 'wifi', 
-      name: 'Free WiFi', 
-      icon: Wifi, 
-      available: true, 
-      description: 'Internet access',
-      detailedInfo: {
-        about: 'High-speed free WiFi available throughout the station premises',
-        timings: 'Available: 24 hours',
-        facilities: ['High-speed internet', 'Station-wide coverage', 'Easy login process', 'No time limit'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/4050315/pexels-photo-4050315.jpeg'],
-        location: 'Station-wide coverage'
-      }
-    },
-    { 
-      id: 'refreshment', 
-      name: 'Refreshments', 
-      icon: Coffee, 
-      available: true, 
-      description: 'Snacks & beverages',
-      detailedInfo: {
-        about: 'Quick refreshment counters with tea, coffee, snacks and beverages',
-        timings: 'Open: 5:00 AM - 11:00 PM',
-        facilities: ['Tea and coffee', 'Fresh snacks', 'Cold beverages', 'Quick service'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg'],
-        location: 'Multiple locations on all platforms'
-      }
-    },
-    { 
-      id: 'security', 
-      name: 'Security', 
-      icon: ShieldCheck, 
-      available: true, 
-      description: '24/7 security',
-      detailedInfo: {
-        about: '24/7 security surveillance with RPF personnel and CCTV monitoring',
-        timings: 'Available: 24 hours',
-        facilities: ['CCTV surveillance', 'RPF personnel', 'Metal detectors', 'Emergency response'],
-        contact: '1512 (RPF Helpline)',
-        images: ['https://images.pexels.com/photos/8566473/pexels-photo-8566473.jpeg'],
-        location: 'Station-wide coverage'
-      }
-    },
-    { 
-      id: 'announcement', 
-      name: 'PA System', 
-      icon: Headphones, 
-      available: true, 
-      description: 'Audio announcements',
-      detailedInfo: {
-        about: 'Public address system for train announcements and important information',
-        timings: 'Active: 24 hours',
-        facilities: ['Multi-language announcements', 'Clear audio quality', 'Emergency broadcasts', 'Platform-specific info'],
-        contact: '139 (Railway Helpline)',
-        images: ['https://images.pexels.com/photos/6963944/pexels-photo-6963944.jpeg'],
-        location: 'All platforms and waiting areas'
-      }
-    },
-    { 
-      id: 'cloakroom', 
-      name: 'Cloakroom', 
-      icon: Package, 
-      available: true, 
-      description: 'Luggage storage',
-      detailedInfo: {
-        about: 'Secure luggage storage facility for passengers with proper documentation',
-        timings: 'Open: 6:00 AM - 10:00 PM',
-        facilities: ['Secure storage', 'ID verification required', 'Reasonable charges', 'Insurance coverage'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/1058277/pexels-photo-1058277.jpeg'],
-        location: 'Main entrance, Ground floor'
-      }
-    },
-    { 
-      id: 'atm', 
-      name: 'ATM', 
-      icon: Banknote, 
-      available: true, 
-      description: 'Cash withdrawal',
-      detailedInfo: {
-        about: 'Multiple ATM machines from various banks for cash withdrawal and banking services',
-        timings: 'Available: 24 hours',
-        facilities: ['Multiple bank ATMs', 'Cash withdrawal', 'Balance inquiry', 'Security surveillance'],
-        contact: 'Bank customer care',
-        images: ['https://images.pexels.com/photos/164527/pexels-photo-164527.jpeg'],
-        location: 'Main concourse and platforms'
-      }
-    },
-    { 
-      id: 'taxi', 
-      name: 'Taxi Service', 
-      icon: Taxi, 
-      available: true, 
-      description: 'Transportation',
-      detailedInfo: {
-        about: 'Taxi and auto-rickshaw services available outside the station',
-        timings: 'Available: 24 hours',
-        facilities: ['Pre-paid taxi counter', 'Auto-rickshaw stand', 'App-based cabs', 'Fixed rate cards'],
-        contact: '022-XXXX-XXXX',
-        images: ['https://images.pexels.com/photos/1059040/pexels-photo-1059040.jpeg'],
-        location: 'Station exit, Ground level'
-      }
-    },
-    { 
-      id: 'bookstall', 
-      name: 'Book Stall', 
-      icon: Music, 
-      available: false, 
-      description: 'Books & magazines',
-      detailedInfo: {
-        about: 'Book stall with newspapers, magazines, and books (Currently unavailable)',
-        timings: 'Currently closed',
-        facilities: ['Newspapers', 'Magazines', 'Books', 'Stationery items'],
-        contact: 'N/A',
-        images: ['https://images.pexels.com/photos/1370295/pexels-photo-1370295.jpeg'],
-        location: 'Platform 2 (Currently closed)'
-      }
-    },
-  ];
-
-  const [selectedStationId, setSelectedStationId] = useState('thane');
+  const [stations, setStations] = useState<Station[]>([]);
+  const [amenities, setAmenities] = useState<Amenity[]>([]);
+  const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'layout' | 'amenities'>('layout');
   const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
   const [amenityModalVisible, setAmenityModalVisible] = useState(false);
 
-  const selectedStation = stations.find(station => station.id === selectedStationId) || stations[0];
+  const mapRef = useRef<any>(null); // 🔹 ref to control the map
 
-  const stationOptions = stations.map(station => ({
-    id: station.id,
-    label: `${station.name} (${station.code})`,
-    value: station.id,
+  // 🔹 Fetch stations
+  useEffect(() => {
+    const fetchStations = async () => {
+      const { data, error } = await supabase
+        .from("stations")
+        .select("*");
+      if (error) {
+        console.error("Error fetching stations:", error);
+      } else {
+        setStations(data || []);
+        if (data && data.length > 0) {
+          setSelectedStationId(data[0].stn_code); // default select first station
+        }
+      }
+    };
+    fetchStations();
+  }, []);
+
+  // 🔹 Fetch amenities for selected station
+  useEffect(() => {
+    const fetchAmenities = async () => {
+      if (!selectedStationId) return;
+      const { data, error } = await supabase
+        .from("amenities")
+        .select("*")
+        .eq("stn_code", selectedStationId);
+      if (error) {
+        console.error("Error fetching amenities:", error);
+      } else {
+        setAmenities(data || []);
+      }
+    };
+    fetchAmenities();
+  }, [selectedStationId]);
+
+  const selectedStation = stations.find(st => st.stn_code === selectedStationId) || null;
+
+  // 🔹 Animate map when station changes
+  useEffect(() => {
+    if (selectedStation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: selectedStation.lat,
+          longitude: selectedStation.lon,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+        1000 // 1s smooth animation
+      );
+    }
+  }, [selectedStationId]);
+
+  // Dropdown options
+  const stationOptions = (stations || []).map(station => ({
+    id: station.stn_code,
+    label: station.stn_name ? `${station.stn_name} (${station.stn_code})` : station.stn_code,
+    value: station.stn_code,
   }));
 
+
   const handleStationSelect = (option: any) => {
-    setSelectedStationId(option.value);
+    setSelectedStationId(option?.value || option);
   };
 
-  const renderAmenityItem = (amenity: Amenity) => {
-    const IconComponent = amenity.icon;
-    return (
-      <TouchableOpacity 
-        key={amenity.id} 
-        style={[styles.amenityItem, !amenity.available && styles.amenityItemDisabled]}
-        onPress={() => {
-          setSelectedAmenity(amenity);
-          setAmenityModalVisible(true);
-        }}
-        activeOpacity={0.7}
-        accessible={true}
-        accessibilityRole="button"
-        accessibilityLabel={`${amenity.name} ${amenity.available ? 'available' : 'not available'}`}
-        accessibilityHint={amenity.available ? 'Double tap to view details' : 'This amenity is currently not available'}
-        accessibilityState={{ disabled: !amenity.available }}
-      >
-        <View style={[styles.amenityIcon, !amenity.available && styles.amenityIconDisabled]}>
-          <IconComponent size={24} color={amenity.available ? "#2563EB" : "#94A3B8"} />
-        </View>
-        <Text style={[styles.amenityText, !amenity.available && styles.amenityTextDisabled]}>
-          {amenity.name}
-        </Text>
-        {!amenity.available && (
-          <View style={styles.unavailableBadge}>
-            <Text style={styles.unavailableText}>N/A</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+  const renderAmenityItem = (amenity: Amenity) => (
+    <TouchableOpacity 
+      key={amenity.id} 
+      style={styles.amenityItem}
+      onPress={() => {
+        setSelectedAmenity(amenity);
+        setAmenityModalVisible(true);
+      }}
+    >
+      <View style={styles.amenityIcon}>
+        <Utensils size={24} color="#2563EB" />
+      </View>
+      <Text style={styles.amenityText}>
+        {amenity.ame_name}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" backgroundColor="#1E40AF" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
-          style={styles.backButton}
-          accessible={true}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          accessibilityHint="Navigate back to previous screen"
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            onPress={() => router.canGoBack() ? router.back() : router.push('/')} 
+            style={styles.backButton}
+          >
+            <ArrowLeft size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Station Info</Text>
+          <TouchableOpacity style={styles.infoButton}>
+            <Info size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 🔹 Fixed Banner with Dropdown + Tabs */}
+        <ImageBackground
+          source={require("@/assets/images/station_layout_bg.jpg")} // 👈 place your image here
+          style={styles.banner}
+          resizeMode="cover"
         >
-          <ArrowLeft size={26} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Station Info</Text>
-        <TouchableOpacity style={styles.infoButton}>
-          <Info size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Station Selector */}
-        <View style={styles.stationSelector}>
-          <AccessibleDropdown
-            options={stationOptions}
-            selectedValue={selectedStationId}
-            onSelect={handleStationSelect}
-            label="Select Railway Station"
-            placeholder="Choose a station"
-            style={styles.dropdown}
-          />
-        </View>
-
-        {/* Tab Selector */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'layout' && styles.activeTab]}
-            onPress={() => setActiveTab('layout')}
-            accessible={true}
-            accessibilityRole="tab"
-            accessibilityLabel="Station Layout"
-            accessibilityState={{ selected: activeTab === 'layout' }}
-          >
-            <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
-            <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
-              Station Map
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'amenities' && styles.activeTab]}
-            onPress={() => setActiveTab('amenities')}
-            accessible={true}
-            accessibilityRole="tab"
-            accessibilityLabel="Amenities"
-            accessibilityState={{ selected: activeTab === 'amenities' }}
-          >
-            <Utensils size={20} color={activeTab === 'amenities' ? "#FFFFFF" : "#64748B"} />
-            <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
-              Amenities
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Content based on active tab */}
-        {activeTab === 'layout' ? (
-          /* Station Layout */
-          <View style={styles.layoutContainer}>
-            <Text style={styles.layoutTitle}>
-              {selectedStation.name} Location
-            </Text>
-
-            <View style={styles.mapContainer}>
-              {Platform.OS !== "web" ? (
-                <MapView
-                  style={styles.map}
-                  initialRegion={{
-                    latitude: selectedStation.latitude,
-                    longitude: selectedStation.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  region={{
-                    latitude: selectedStation.latitude,
-                    longitude: selectedStation.longitude,
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                  showsUserLocation
-                  showsMyLocationButton
-                  showsCompass
-                  showsScale
-                  mapType="standard"
-                  accessible={true}
-                  accessibilityLabel={`Map showing ${selectedStation.name} location`}
-                >
-                  <Marker
-                    coordinate={{
-                      latitude: selectedStation.latitude,
-                      longitude: selectedStation.longitude,
-                    }}
-                    title={selectedStation.name}
-                    description={`${selectedStation.code} - ${selectedStation.description}`}
-                    pinColor="#1E40AF"
-                  />
-                </MapView>
-              ) : (
-                <View 
-                  style={{ height: 300, alignItems: "center", justifyContent: "center" }}
-                  accessible={true}
-                  accessibilityLabel="Map not available on web platform"
-                  accessibilityRole="text"
-                >
-                  <Text>🗺️ Map not available on Web</Text>
-                </View>
-              )}
+          <View style={styles.overlay}>
+            {/* Station Selector */}
+            <View style={styles.stationSelector}>
+              <SearchableDropdown
+                options={stationOptions}
+                selectedValue={selectedStationId}
+                onSelect={handleStationSelect}
+                placeholder="Type to search station"
+              />
             </View>
 
-            <View style={styles.stationInfo}>
-              <Text style={styles.stationInfoTitle}>
-                {selectedStation.name} ({selectedStation.code})
-              </Text>
-              <Text style={styles.stationInfoText}>
-                {selectedStation.description}
-              </Text>
-              <View style={styles.coordinatesInfo}>
-                <Text style={styles.coordinatesText}>
-                  Coordinates: {selectedStation.latitude.toFixed(6)}, {selectedStation.longitude.toFixed(6)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          /* Amenities Section */
-          <View style={styles.amenitiesContainer}>
-            <Text style={styles.amenitiesTitle}>
-              Station Amenities & Services
-            </Text>
-            <Text style={styles.amenitiesSubtitle}>
-              Available facilities at {selectedStation.name}
-            </Text>
-            
-            <View 
-              style={styles.amenitiesGrid}
-              accessible={true}
-              accessibilityRole="grid"
-              accessibilityLabel={`${amenities.length} amenities available`}
-            >
-              {amenities.map(renderAmenityItem)}
-            </View>
-          </View>
-        )}
-      </ScrollView>
-
-      {/* Amenity Detail Modal */}
-      <Modal
-        visible={amenityModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setAmenityModalVisible(false)}
-        accessible={true}
-        accessibilityViewIsModal={true}
-      >
-        {selectedAmenity && (
-          <View style={styles.modalContainer}>
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <View style={styles.modalTitleContainer}>
-                <View style={[styles.modalIcon, { backgroundColor: selectedAmenity.available ? '#2563EB' : '#94A3B8' }]}>
-                  <selectedAmenity.icon size={24} color="#FFFFFF" />
-                </View>
-                <Text style={styles.modalTitle}>
-                  {selectedAmenity.name} - {selectedStation.code}
-                </Text>
-              </View>
-              <TouchableOpacity 
-                onPress={() => setAmenityModalVisible(false)}
-                style={styles.closeButton}
-                accessible={true}
-                accessibilityRole="button"
-                accessibilityLabel="Close amenity details"
+            {/* Tab Selector */}
+            <View style={styles.tabContainer}>
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'layout' && styles.activeTab]}
+                onPress={() => setActiveTab('layout')}
               >
-                <X size={24} color="#64748B" />
+                <MapPin size={20} color={activeTab === 'layout' ? "#FFFFFF" : "#64748B"} />
+                <Text style={[styles.tabText, activeTab === 'layout' && styles.activeTabText]}>
+                  Station Map
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tab, activeTab === 'amenities' && styles.activeTab]}
+                onPress={() => setActiveTab('amenities')}
+              >
+                <Utensils size={20} color={activeTab === 'amenities' ? "#FFFFFF" : "#64748B"} />
+                <Text style={[styles.tabText, activeTab === 'amenities' && styles.activeTabText]}>
+                  Amenities
+                </Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </ImageBackground>
 
-            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
-              {/* Image */}
-              {selectedAmenity.detailedInfo?.images && selectedAmenity.detailedInfo.images[0] && (
-                <Image 
-                  source={{ uri: selectedAmenity.detailedInfo.images[0] }}
-                  style={styles.amenityImage}
-                  resizeMode="cover"
-                  accessible={true}
-                  accessibilityLabel={`Image of ${selectedAmenity.name} facility`}
-                />
-              )}
+        {/* 🔹 Scrollable Content BELOW banner */}
+        <ScrollView style={styles.content}>
+          {activeTab === 'layout' && selectedStation ? (
+            <View style={styles.layoutContainer}>
+              <Text style={styles.layoutTitle}>
+                {selectedStation.stn_name} Location
+              </Text>
 
-              {/* About Section */}
-              <View style={styles.infoSection}>
-                <Text style={styles.sectionTitle}>About</Text>
-                <Text style={styles.sectionContent}>
-                  {selectedAmenity.detailedInfo?.about || selectedAmenity.description}
-                </Text>
+              <View style={styles.mapContainer}>
+                {Platform.OS !== "web" && MapView ? (
+                  <MapView
+                    key={selectedStationId}   // ✅ forces remount when station changes
+                    style={styles.map}
+                    initialRegion={{
+                      latitude: Number(selectedStation.lat),
+                      longitude: Number(selectedStation.lon),
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: Number(selectedStation.lat),
+                        longitude: Number(selectedStation.lon),
+                      }}
+                      title={selectedStation.stn_name}
+                      description={`${selectedStation.stn_code}`}
+                  />
+                  </MapView>
+                ) : (
+                  <Text>🗺️ Map not available on Web</Text>
+                )}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.amenitiesContainer}>
+              <Text style={styles.amenitiesTitle}>Station Amenities</Text>
+              <View style={styles.amenitiesGrid}>
+                {amenities.map(renderAmenityItem)}
+              </View>
+            </View>
+          )}
+        </ScrollView>
+
+        {/* Amenity Modal */}
+        <Modal
+          visible={amenityModalVisible}
+          animationType="slide"
+          onRequestClose={() => setAmenityModalVisible(false)}
+        >
+          {selectedAmenity && (
+            <View style={styles.modalContainer}>
+              {/* Header */}
+              <View style={styles.modalHeader}>
+                <TouchableOpacity onPress={() => setAmenityModalVisible(false)}>
+                  <ArrowLeft size={26} color="#FFFFFF" />
+                </TouchableOpacity>
+                <Text style={styles.modalHeaderTitle}>Station Amenities</Text>
+                <View style={{ width: 26 }} /> 
               </View>
 
-              {/* Timings Section */}
-              {selectedAmenity.detailedInfo?.timings && (
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitle}>Timings</Text>
-                  <View style={styles.timingContainer}>
-                    <Clock size={16} color="#2563EB" />
-                    <Text style={styles.timingText}>{selectedAmenity.detailedInfo.timings}</Text>
-                  </View>
-                </View>
-              )}
-
-              {/* Facilities Section */}
-              {selectedAmenity.detailedInfo?.facilities && (
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitle}>Facilities</Text>
-                  {selectedAmenity.detailedInfo.facilities.map((facility, index) => (
-                    <View key={index} style={styles.facilityItem}>
-                      <CheckCircle size={16} color="#059669" />
-                      <Text style={styles.facilityText}>{facility}</Text>
+              <ScrollView>
+                {/* Image Section */}
+                <View style={styles.imageSection}>
+                  {selectedAmenity.photo_url ? (
+                    <Image
+                      source={{ uri: selectedAmenity.photo_url }}
+                      style={styles.amenityImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={[styles.amenityImage, styles.placeholderImage]}>
+                      <Text style={styles.placeholderText}>No Image Available</Text>
                     </View>
-                  ))}
+                  )}
                 </View>
-              )}
 
-              {/* Contact Section */}
-              {selectedAmenity.detailedInfo?.contact && (
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitle}>Contact</Text>
-                  <TouchableOpacity 
-                    style={styles.contactContainer}
-                    onPress={() => {
-                      if (selectedAmenity.detailedInfo?.contact) {
-                        const phoneNumber = selectedAmenity.detailedInfo.contact.replace(/[^0-9]/g, '');
-                        Linking.openURL(`tel:${phoneNumber}`);
-                      }
-                    }}
-                    accessible={true}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Call ${selectedAmenity.detailedInfo.contact}`}
-                    accessibilityHint="Double tap to make a phone call"
-                  >
-                    <Phone size={16} color="#2563EB" />
-                    <Text style={styles.contactText}>{selectedAmenity.detailedInfo.contact}</Text>
-                  </TouchableOpacity>
+                {/* Station + Amenity Title */}
+                <View style={styles.titleSection}>
+                  <Text style={styles.stationName}>
+                    {selectedStation?.stn_name} ({selectedStation?.stn_code})
+                  </Text>
+                  <View style={styles.amenityHeader}>
+                    <Text style={styles.amenityTitle}>{selectedAmenity.ame_name}</Text>
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>
+                        {selectedAmenity.availability ?? "Available"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text style={styles.amenityDesc}>{selectedAmenity.ame_desc}</Text>
                 </View>
-              )}
 
-              {/* Location Section */}
-              {selectedAmenity.detailedInfo?.location && (
-                <View style={styles.infoSection}>
-                  <Text style={styles.sectionTitle}>Location</Text>
-                  <View style={styles.locationContainer}>
-                    <MapPin size={16} color="#DC2626" />
-                    <Text style={styles.locationText}>{selectedAmenity.detailedInfo.location}</Text>
+                {/* Details Section */}
+                <View style={styles.detailsSection}>
+                  <Text style={styles.detailsTitle}>Details Section:</Text>
+
+                  {/* Location */}
+                  <View style={styles.detailRow}>
+                    <MapPin size={18} color="#EF4444" />
+                    <Text style={styles.detailText}>
+                      {selectedAmenity.location ?? "No location info"}
+                    </Text>
+                  </View>
+
+                  {/* Timings */}
+                  <View style={styles.detailRow}>
+                    <Clock size={18} color="#0EA5E9" />
+                    <Text style={styles.detailText}>
+                      {selectedAmenity.hours ?? "Timings not available"}
+                    </Text>
+                  </View>
+
+                  {/* Rating */}
+                  <View style={styles.detailRow}>
+                    <CheckCircle size={18} color="#22C55E" />
+                    <Text style={styles.detailText}>
+                      {(selectedAmenity.rating 
+                        ? Number(selectedAmenity.rating).toFixed(1) 
+                        : "4.0")} / 5
+                    </Text>
+                    <View style={styles.starRow}>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Text
+                          key={i}
+                          style={{
+                            fontSize: 18,
+                            marginLeft: 4,
+                            color:
+                              i <= Math.round(Number(selectedAmenity.rating ?? 4))
+                                ? "#FACC15"
+                                : "#CBD5E1",
+                          }}
+                        >
+                          ★
+                        </Text>
+                      ))}
+                    </View>
                   </View>
                 </View>
-              )}
+                
+              </ScrollView>
+            </View>
+          )}
+        </Modal>
+      </View>
+    );
 
-            </ScrollView>
-          </View>
-        )}
-      </Modal>
-    </View>
-  );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-  },
+  container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: {
-    backgroundColor: '#1E40AF',
-    paddingTop: 45,
+    backgroundColor: '#1E40AF', paddingTop: 45, paddingHorizontal: 16,
+    paddingBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  },
+  banner: {
+    width: "100%",
+  },
+  overlay: {
+    // backgroundColor: "rgba(248, 241, 241, 0.9)", 
     paddingHorizontal: 16,
-    paddingBottom: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingVertical: 20,
+
   },
-  backButton: {
-    padding: 12,
-    marginLeft: -12,
+  backButton: { padding: 12, marginLeft: -12 },
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#FFFFFF' },
+  infoButton: { padding: 12, marginRight: -12 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 20 },
+  stationSelector: { backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 16, padding: 24, marginBottom: 20 },
+  dropdown: { marginBottom: 0 },
+  tabContainer: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 12, padding: 4, marginBottom: 20 },
+  tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12 },
+  activeTab: { backgroundColor: '#2563EB', borderRadius: 8 },
+  tabText: { fontSize: 14, fontWeight: '600', color: '#64748B', marginLeft: 8 },
+  activeTabText: { color: '#FFFFFF' },
+  layoutContainer: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24, marginBottom: 24 },
+  layoutTitle: { fontSize: 20, fontWeight: '700', color: '#1E293B', textAlign: 'center', marginBottom: 20 },
+  mapContainer: { borderRadius: 16, overflow: 'hidden', height: 300, marginBottom: 20 },
+  map: { flex: 1, height: 300 },
+  amenitiesContainer: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 24, marginBottom: 24 },
+  amenitiesTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center', marginBottom: 16 },
+  amenitiesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
+  amenityItem: { width: '30%', alignItems: 'center', marginBottom: 20 },
+  amenityIcon: { backgroundColor: '#EBF4FF', borderRadius: 24, padding: 12, marginBottom: 8 },
+  amenityText: { fontSize: 12, textAlign: 'center' },
+  modalTitle: { fontSize: 18, fontWeight: '700' },
+  modalContent: { padding: 20 },
+  infoSection: { 
+  marginTop: 20, 
+  backgroundColor: '#F1F5F9', 
+  padding: 16, 
+  borderRadius: 12 
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  infoTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    marginBottom: 8, 
+    color: '#1E293B' 
   },
-  infoButton: {
-    padding: 12,
-    marginRight: -12,
+  infoText: { 
+    fontSize: 14, 
+    lineHeight: 20, 
+    color: '#475569' 
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
-  },
-  stationSelector: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  dropdown: {
-    marginBottom: 0,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  activeTab: {
-    backgroundColor: '#2563EB',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748B',
-    marginLeft: 8,
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-  },
-  layoutContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  layoutTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  mapContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 20,
-    height: 300,
-  },
-  map: {
-    flex: 1,
-    height: 300,
-  },
-  stationInfo: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 20,
-  },
-  stationInfoTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  stationInfoText: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  coordinatesInfo: {
-    alignItems: 'center',
-  },
-  coordinatesText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontFamily: 'monospace',
-  },
-  amenitiesContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  amenitiesTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1E293B',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  amenitiesSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  amenitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  amenityItem: {
-    width: '23%',
-    alignItems: 'center',
-    marginBottom: 24,
-    padding: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    position: 'relative',
-    minHeight: 88, // Minimum touch target
-  },
-  amenityItemDisabled: {
-    opacity: 0.6,
-  },
-  amenityIcon: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#EBF4FF',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  amenityIconDisabled: {
-    backgroundColor: '#F1F5F9',
-  },
-  amenityText: {
-    fontSize: 11,
-    color: '#1E293B',
-    textAlign: 'center',
-    fontWeight: '500',
-    lineHeight: 14,
-  },
-  amenityTextDisabled: {
-    color: '#94A3B8',
-  },
-  unavailableBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: '#DC2626',
-    borderRadius: 8,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
-  unavailableText: {
-    fontSize: 8,
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
-  legendContainer: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 16,
-  },
-  legendTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1E293B',
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  legendItems: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+  modalContainer: { flex: 1, backgroundColor: "#FFFFFF" },
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
+    backgroundColor: "#1E40AF",
+    paddingTop: 30,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  modalTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  modalHeaderTitle: { color: "#FFF", fontSize: 20, fontWeight: "700" },
+  modalImage: { width: "100%", height: 200 },
+  titleSection: { padding: 16 },
+  stationName: { fontSize: 14, fontWeight: "600", color: "#64748B" },
+  amenityHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 8,
   },
-  modalIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+  amenityTitle: { fontSize: 20, fontWeight: "700", color: "#111827" },
+  badge: {
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    flex: 1,
+  badgeText: { color: "#22C55E", fontWeight: "600" },
+  amenityDesc: {
+    fontSize: 14,
+    color: "#475569",
+    marginTop: 6,
+    lineHeight: 20,
   },
-  closeButton: {
-    padding: 8,
-    minWidth: 44, // Minimum touch target
-    minHeight: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
+  detailsSection: {
+    backgroundColor: "#F8FAFC",
+    marginHorizontal: 16,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
   },
-  modalContent: {
-    flex: 1,
-    paddingHorizontal: 20,
+  detailsTitle: { fontSize: 16, fontWeight: "700", marginBottom: 10 },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  detailText: { fontSize: 14, color: "#334155", marginLeft: 8 },
+  starRow: { flexDirection: "row", marginLeft: 8, alignItems: "center" },
+  extraImage: {
+    width: 120,
+    height: 90,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  imageSection: {
+  marginBottom: 20,
   },
   amenityImage: {
     width: '100%',
     height: 200,
     borderRadius: 12,
-    marginVertical: 20,
   },
-  infoSection: {
-    marginBottom: 24,
+  placeholderImage: {
+    backgroundColor: '#E2E8F0', // light gray background
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#1E293B',
-    marginBottom: 12,
-  },
-  sectionContent: {
-    fontSize: 16,
+  placeholderText: {
     color: '#64748B',
-    lineHeight: 24,
+    fontSize: 14,
+    fontStyle: 'italic',
   },
-  timingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  timingText: {
-    fontSize: 16,
-    color: '#1E293B',
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  facilityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  facilityText: {
-    fontSize: 15,
-    color: '#64748B',
-    marginLeft: 8,
-    flex: 1,
-  },
-  contactContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 44, // Minimum touch target
-  },
-  contactText: {
-    fontSize: 16,
-    color: '#2563EB',
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  locationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationText: {
-    fontSize: 15,
-    color: '#64748B',
-    marginLeft: 8,
-    flex: 1,
-  },
+
+
 });

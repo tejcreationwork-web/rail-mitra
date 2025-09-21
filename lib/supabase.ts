@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { Float } from 'react-native/Libraries/Types/CodegenTypes';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
@@ -28,6 +29,29 @@ export type Answer = {
   dislikes: number;
   created_at: string;
   updated_at: string;
+};
+
+/* ---------- Station Types ---------- */
+export type Station = {
+  stn_code: string; // Station code is the ID
+  stn_name: string;
+  stn_des?: string;
+  lat: Float;
+  lon: Float;
+  amenities?: Amenity[];
+};
+
+export type Amenity = {
+  id: string;
+  stn_code: string; // FK to Station
+  ame_name: string;
+  ame_desc?: string;
+  photo_url?: string | null;
+  availability: string; // e.g., "24/7", "6 AM - 10 PM"
+  location : string; // e.g., "Near Platform 1"
+  hours : string; // e.g., "6 AM - 10 PM"
+  rating : Number; // average rating
+  // you can add detailedInfo JSON later if needed
 };
 
 // Database functions
@@ -144,4 +168,61 @@ export const qaService = {
       )
       .subscribe();
   }
+
 };
+
+/* ---------- Station Service ---------- */
+export const stationService = {
+  // Fetch all stations with their amenities
+  async getStations(): Promise<Station[]> {
+    const { data, error } = await supabase
+      .from('stations')
+      .select(`
+        *,
+        amenities(*)
+      `);
+
+    if (error) throw new Error(`Failed to fetch stations: ${error.message}`);
+    return data || [];
+  },
+
+  // Fetch a single station by code
+  async getStationByCode(stn_code: string): Promise<Station | null> {
+    const { data, error } = await supabase
+      .from('stations')
+      .select(`*, amenities(*)`)
+      .eq('stn_code', stn_code)
+      .single();
+
+    if (error && error.code !== "PGRST116") { // PGRST116 = no rows found
+      throw new Error(`Failed to fetch station: ${error.message}`);
+    }
+
+    return data;
+  },
+
+  // Add a station
+  async createStation(stationData: Omit<Station, 'amenities'>): Promise<Station> {
+    const { data, error } = await supabase
+      .from('stations')
+      .insert([stationData])
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to create station: ${error.message}`);
+    return data;
+  },
+
+  // Add an amenity
+  async createAmenity(amenityData: Omit<Amenity, 'id'>): Promise<Amenity> {
+    const { data, error } = await supabase
+      .from('amenities')
+      .insert([amenityData])
+      .select()
+      .single();
+
+    if (error) throw new Error(`Failed to create amenity: ${error.message}`);
+    return data;
+  },
+};
+
