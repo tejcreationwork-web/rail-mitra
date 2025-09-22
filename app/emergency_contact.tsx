@@ -18,7 +18,7 @@ export default function ContactScreen() {
     {
       title: 'UTS Mobile',
       subtitle: 'Unreserved ticketing system',
-      url: 'https://www.uts.indianrail.gov.in',
+      url: 'https://utsonmobile.indianrail.gov.in',
     },
   ];
 

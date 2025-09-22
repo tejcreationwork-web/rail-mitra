@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "bolt-expo-nativewind",
-    "slug": "bolt-expo-nativewind",
+    "name": "RailEase",
+    "slug": "railease",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "",
+    "icon": "./assets/logo/app_logo.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-bg.png",
-      "resizeMode": "cover",
+      "resizeMode": "native",
       "backgroundColor": "#1E40AF"
     },
     "ios": {
@@ -22,22 +22,13 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo/app_logo.png"
     },
     "plugins": [
       "expo-router",
       "expo-font",
       "expo-splash-screen",
-      "expo-web-browser",
-      [
-        "@rnmapbox/maps",
-        {
-          "RNMapboxMapsImpl": "mapbox",
-          "android": {
-            "version": "11.4.1"
-          }
-        }
-      ]
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

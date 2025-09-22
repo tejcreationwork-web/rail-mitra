@@ -51,6 +51,9 @@ export type Amenity = {
   location : string; // e.g., "Near Platform 1"
   hours : string; // e.g., "6 AM - 10 PM"
   rating : Number; // average rating
+  ame_short_name : string; // short name for quick reference
+  ame_type : string; // e.g., "Restroom", "Food", "ATM"
+  icon_name : string; // name of the icon to represent the amenity
   // you can add detailedInfo JSON later if needed
 };
 

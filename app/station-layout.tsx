@@ -1,6 +1,9 @@
 import { 
   View, Text, StyleSheet, ScrollView,ImageBackground, TouchableOpacity, StatusBar, Platform, Modal, Image, Linking 
 } from 'react-native';
+// import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+
 import { useState, useEffect,useRef } from 'react';
 import SearchableDropdown from '@/components/SearchableDropdown';
 import { router } from 'expo-router';
@@ -31,31 +34,55 @@ type Amenity = {
   id: number;
   stn_code: string;
   ame_name: string;
-  ame_type: string; // e.g., "food", "info", "location", "phone", "timing", "verified"
   ame_desc: string;
   photo_url?: string;
   availability: string; // e.g., "24/7", "6 AM - 10 PM"
   location : string; // e.g., "Near Platform 1"
   hours : string; // e.g., "6 AM - 10 PM"
-  rating : Number; // average rating
+  rating : number; // average rating
+  ame_short_name : string; // short name for quick reference
+  ame_type : string; // e.g., "Restroom", "Food", "ATM"
+  icon_name : string; // name of the icon to represent the amenity
+  // you can add detailedInfo JSON later if needed
 };
 
-// mapping amenity types → icon component
-const amenityIcons: Record<string, React.ReactNode> = {
-  food: <Utensils size={24} color="#2563EB" />,
-  info: <Info size={24} color="#2563EB" />,
-  location: <MapPin size={24} color="#2563EB" />,
-  phone: <Phone size={24} color="#2563EB" />,
-  timing: <Clock size={24} color="#2563EB" />,
-  verified: <CheckCircle size={24} color="#2563EB" />
-};
 
-// helper function
-const getAmenityIcon = (type: string) => {
-  return amenityIcons[type.toLowerCase()] ?? (
-    <Info size={24} color="#2563EB" /> // fallback
-  );
-};
+const getAmenityIcon = (
+  iconName: string,
+  size: number = 24,
+  color: string = "#2563EB"
+  ) => {
+    if (!iconName) return <FontAwesome5 name="question-circle" size={size} color={color} />;
+
+    const cleanName = iconName.replace(/^fa-/, ""); // remove fa- prefix if exists
+
+    // ✅ Known mapping adjustments
+    const nameMap: Record<string, string> = {
+      ticket: "ticket-alt", // FA5 expects ticket-alt
+      water: "tint",        // FA5 tint = water drop
+      info: "info-circle",
+      location: "map-marker-alt",
+    };
+
+    const finalName = nameMap[cleanName] || cleanName;
+
+    // Check if it's a FA5 icon
+    const fa5Icons = ["utensils", "ticket-alt", "shield-alt", "restroom", "tint", "clock", "info-circle", "phone", "map-marker-alt", "concierge-bell"];
+    if (fa5Icons.includes(finalName)) {
+      return <FontAwesome5 name={finalName as any} size={size} color={color} solid />;
+    }
+
+    // Check if it's a MaterialCommunityIcon
+    const mciIcons = ["elevator", "ticket-confirmation", "credit-card", "parking", "baby-carriage", "locker", "wheelchair-accessibility"];
+    if (mciIcons.includes(finalName)) {
+      return <MaterialCommunityIcons name={finalName as keyof typeof MaterialCommunityIcons.glyphMap} size={size} color={color} />;
+    }
+
+    // Fallback icon
+    return <FontAwesome5 name="question-circle" size={size} color={color} />;
+  };
+
+
 
 export default function StationLayout() {
   const [stations, setStations] = useState<Station[]>([]);
@@ -64,7 +91,6 @@ export default function StationLayout() {
   const [activeTab, setActiveTab] = useState<'layout' | 'amenities'>('layout');
   const [selectedAmenity, setSelectedAmenity] = useState<Amenity | null>(null);
   const [amenityModalVisible, setAmenityModalVisible] = useState(false);
-
   const mapRef = useRef<any>(null); // 🔹 ref to control the map
 
   // 🔹 Fetch stations
@@ -141,10 +167,10 @@ export default function StationLayout() {
       }}
     >
       <View style={styles.amenityIcon}>
-        {getAmenityIcon(amenity.ame_type ?? "")}
+        {getAmenityIcon(amenity.icon_name ?? "question-circle")}
       </View>
-      <Text style={styles.amenityText}>
-        {amenity.ame_name}
+      <Text style={{ fontSize: 12, color: "#64748B",fontWeight: "bold",alignItems:"center", textAlign:"center"}}>
+        {amenity.ame_short_name}
       </Text>
     </TouchableOpacity>
   );
@@ -254,10 +280,10 @@ export default function StationLayout() {
                   <ArrowLeft size={26} color="#FFFFFF" />
                 </TouchableOpacity>
                 <Text style={styles.modalHeaderTitle}>Station Amenities</Text>
-                <View style={{ width: 26 }} /> 
+                <View style={{ width: 26 }} />
               </View>
 
-              <ScrollView>
+              <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Image Section */}
                 <View style={styles.imageSection}>
                   {selectedAmenity.photo_url ? (
@@ -273,31 +299,21 @@ export default function StationLayout() {
                   )}
                 </View>
 
-                {/* Station + Amenity Title */}
-                <View style={styles.titleSection}>
-                  <Text style={styles.stationName}>
-                    {selectedStation?.stn_name} ({selectedStation?.stn_code})
-                  </Text>
-                  <View style={styles.amenityHeader}>
-                    <Text style={styles.amenityTitle}>{selectedAmenity.ame_name}</Text>
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>
-                        {selectedAmenity.availability ?? "Available"}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.amenityDesc}>{selectedAmenity.ame_desc}</Text>
-                </View>
-
                 {/* Details Section */}
-                <View style={styles.detailsSection}>
-                  <Text style={styles.detailsTitle}>Details Section:</Text>
+                <View style={styles.detailsContainer}>
+                  {/* Station + Amenity Title */}
+                  <View style={styles.detailRow}>
+                    <FontAwesome5 name="tag" size={18} color="#6366F1" />
+                    <Text style={styles.detailText}>
+                      {selectedAmenity.ame_name}
+                    </Text>
+                  </View>
 
                   {/* Location */}
                   <View style={styles.detailRow}>
                     <MapPin size={18} color="#EF4444" />
                     <Text style={styles.detailText}>
-                      {selectedAmenity.location ?? "No location info"}
+                      {selectedAmenity.location || "No location info"}
                     </Text>
                   </View>
 
@@ -305,30 +321,40 @@ export default function StationLayout() {
                   <View style={styles.detailRow}>
                     <Clock size={18} color="#0EA5E9" />
                     <Text style={styles.detailText}>
-                      {selectedAmenity.hours ?? "Timings not available"}
+                      {selectedAmenity.hours || "Timings not available"}
+                    </Text>
+                  </View>
+
+                  {/* Availability */}
+                  <View style={styles.detailRow}>
+                    <CheckCircle size={18} color="#22C55E" />
+                    <Text style={styles.detailText}>
+                      {selectedAmenity.availability || "Available"}
                     </Text>
                   </View>
 
                   {/* Rating */}
                   <View style={styles.detailRow}>
-                    <CheckCircle size={18} color="#22C55E" />
+                    <FontAwesome5 name="star" size={18} color="#FACC15" />
                     <Text style={styles.detailText}>
-                      {(selectedAmenity.rating 
-                        ? Number(selectedAmenity.rating).toFixed(1) 
-                        : "4.0")} / 5
+                      {(selectedAmenity.rating
+                        ? Number(selectedAmenity.rating).toFixed(1)
+                        : "4.0")}{" "}
+                      / 5
                     </Text>
                     <View style={styles.starRow}>
                       {[1, 2, 3, 4, 5].map((i) => (
                         <Text
                           key={i}
-                          style={{
-                            fontSize: 18,
-                            marginLeft: 4,
-                            color:
-                              i <= Math.round(Number(selectedAmenity.rating ?? 4))
-                                ? "#FACC15"
-                                : "#CBD5E1",
-                          }}
+                          style={[
+                            styles.star,
+                            {
+                              color:
+                                i <= Math.round(Number(selectedAmenity.rating ?? 4))
+                                  ? "#FACC15"
+                                  : "#CBD5E1",
+                            },
+                          ]}
                         >
                           ★
                         </Text>
@@ -336,7 +362,6 @@ export default function StationLayout() {
                     </View>
                   </View>
                 </View>
-                
               </ScrollView>
             </View>
           )}
@@ -390,6 +415,9 @@ const styles = StyleSheet.create({
   padding: 16, 
   borderRadius: 12 
   },
+   detailsContainer: {
+    padding: 20,
+  },
   infoTitle: { 
     fontSize: 16, 
     fontWeight: '700', 
@@ -411,8 +439,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
   },
-  modalHeaderTitle: { color: "#FFF", fontSize: 20, fontWeight: "700" },
-  modalImage: { width: "100%", height: 200 },
+  modalHeaderTitle: { color: "#FFF", fontSize: 20, fontWeight: "bold" },
+  modalImage: { width: "100%", height: 200,backgroundColor: "#E5E7EB",},
+  scrollContent: {
+    paddingBottom: 20,
+  },
   titleSection: { padding: 16 },
   stationName: { fontSize: 14, fontWeight: "600", color: "#64748B" },
   amenityHeader: {
@@ -438,7 +469,8 @@ const styles = StyleSheet.create({
   detailsSection: {
     backgroundColor: "#F8FAFC",
     marginHorizontal: 16,
-    padding: 16,
+    padding: 20,
+    justifyContent: "space-between",
     borderRadius: 12,
     marginTop: 12,
   },
@@ -448,8 +480,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  detailText: { fontSize: 14, color: "#334155", marginLeft: 8 },
+  detailText: { fontSize: 14, color: "#334155", marginLeft: 18,fontWeight: "600" },
   starRow: { flexDirection: "row", marginLeft: 8, alignItems: "center" },
+  star: {
+    fontSize: 16,
+    marginHorizontal: 1,
+  },
   extraImage: {
     width: 120,
     height: 90,

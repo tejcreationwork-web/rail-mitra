@@ -133,9 +133,21 @@ export default function HomeScreen() {
               style={styles.newsImage}
             />
             <View style={styles.newsText}>
-              <Text style={styles.newsTitle}>Indian Railway.</Text>
+              <Text style={styles.newsTitle}>Aadhaar-linked train ticket booking mandate from October 1</Text>
               <Text style={styles.newsSubtitle} numberOfLines={2}>
-                Trains and announcements, alerts, and important updates for travelers.
+                From Oct 1, only Aadhaar-linked IRCTC accounts can book train tickets in the first 15 mins of reservations.
+              </Text>
+            </View>
+          </TouchableOpacity>
+           <TouchableOpacity style={styles.newsCard}>
+            <Image
+              source={require("../../assets/images/rail_neer.png")}
+              style={styles.newsImage}
+            />
+            <View style={styles.newsText}>
+              <Text style={styles.newsTitle}>Railways slashes ‘Rail Neer’ and bottled water prices after GST reforms.</Text>
+              <Text style={styles.newsSubtitle} numberOfLines={2}>
+                Railways cuts “Rail Neer” price to ₹14 (1-litre) & ₹9 (500 ml), applying same reduction to other bottled water brands in stations from Sept 22 after GST reforms.
               </Text>
             </View>
           </TouchableOpacity>
@@ -282,8 +294,8 @@ const styles = StyleSheet.create({
   newsCard: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 12, overflow: 'hidden' },
   newsImage: { width: 100, height: 80 },
   newsText: { flex: 1, padding: 10 },
-  newsTitle: { fontSize: 16, fontWeight: '700', color: '#1E293B' },
-  newsSubtitle: { fontSize: 14, color: '#64748B' },
+  newsTitle: { fontSize: 12, fontWeight: '700', color: '#1E293B' },
+  newsSubtitle: { fontSize: 12, color: '#64748B' },
 
   loadingText: { textAlign: 'center', color: '#64748B' },
   questionCard: { backgroundColor: '#FFFFFF', borderRadius: 12, padding: 12, marginBottom: 8 },

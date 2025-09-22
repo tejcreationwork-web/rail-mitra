@@ -29,46 +29,6 @@ export default function AccountScreen() {
     { code: 'te', name: 'తెలుగు' },
   ];
 
-  const contactOptions = [
-    {
-      id: 'helpline',
-      title: 'Railway Helpline',
-      subtitle: '139 - General Enquiry & Reservation',
-      icon: Phone,
-      action: () => Linking.openURL('tel:139'),
-      color: '#059669',
-    },
-    {
-      id: 'complaint',
-      title: 'Rail Madad',
-      subtitle: 'Customer Care & Complaints',
-      icon: MessageCircle,
-      action: () => Linking.openURL('tel:139'),
-      color: '#DC2626',
-    },
-    {
-      id: 'security',
-      title: 'Railway Security',
-      subtitle: '1512 - RPF/GRP Helpline',
-      icon: Phone,
-      action: () => Linking.openURL('tel:1512'),
-      color: '#2563EB',
-    },
-    {
-      id: 'medical',
-      title: 'Medical Emergency',
-      subtitle: '108 - Emergency Medical Services',
-      icon: Phone,
-      action: () => Linking.openURL('tel:108'),
-      color: '#DC2626',
-    },
-  ];
-
-  const emergencyNumbers = [
-    { number: '100', label: 'Police', action: () => Linking.openURL('tel:100') },
-    { number: '101', label: 'Fire', action: () => Linking.openURL('tel:101') },
-    { number: '108', label: 'Ambulance', action: () => Linking.openURL('tel:108') },
-  ];
 
   const accountOptions = [
     {
@@ -80,15 +40,15 @@ export default function AccountScreen() {
         router.push('/(tabs)/booking');
       },
     },
-    {
-      id: 'settings',
-      title: 'App Settings',
-      subtitle: 'Customize your app experience',
-      icon: Settings,
-      onPress: () => {
-        setSettingsModalVisible(true);
-      },
-    },
+    // {
+    //   id: 'settings',
+    //   title: 'App Settings',
+    //   subtitle: 'Customize your app experience',
+    //   icon: Settings,
+    //   onPress: () => {
+    //     setSettingsModalVisible(true);
+    //   },
+    // },
     {
       id: 'language',
       title: 'Language',
@@ -297,116 +257,6 @@ export default function AccountScreen() {
                 )}
               </TouchableOpacity>
             ))}
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Contact Modal */}
-      <Modal
-        visible={contactModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setContactModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Contact & Support</Text>
-            <TouchableOpacity onPress={() => setContactModalVisible(false)}>
-              <X size={24} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            <Text style={styles.sectionTitle}>Emergency & Helpline</Text>
-            {contactOptions.map((option) => {
-              const IconComponent = option.icon;
-              return (
-                <TouchableOpacity
-                  key={option.id}
-                  style={styles.contactCard}
-                  onPress={option.action}
-                  activeOpacity={0.7}
-                >
-                  <View style={[styles.contactIcon, { backgroundColor: option.color }]}>
-                    <IconComponent size={24} color="#FFFFFF" />
-                  </View>
-                  <View style={styles.contactInfo}>
-                    <Text style={styles.contactTitle}>{option.title}</Text>
-                    <Text style={styles.contactSubtitle}>{option.subtitle}</Text>
-                  </View>
-                  <Phone size={20} color="#64748B" />
-                </TouchableOpacity>
-              );
-            })}
-
-            <Text style={[styles.sectionTitle, { marginTop: 32 }]}>Emergency Numbers</Text>
-            <View style={styles.emergencyGrid}>
-              {emergencyNumbers.map((emergency) => (
-                <TouchableOpacity
-                  key={emergency.number}
-                  style={styles.emergencyButton}
-                  onPress={emergency.action}
-                >
-                  <Text style={styles.emergencyNumber}>{emergency.number}</Text>
-                  <Text style={styles.emergencyLabel}>{emergency.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Privacy Modal */}
-      <Modal
-        visible={privacyModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setPrivacyModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Privacy & Security</Text>
-            <TouchableOpacity onPress={() => setPrivacyModalVisible(false)}>
-              <X size={24} color="#64748B" />
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView style={styles.modalContent}>
-            <View style={styles.privacyItem}>
-              <Shield size={20} color="#059669" />
-              <View style={styles.privacyText}>
-                <Text style={styles.privacyTitle}>Data Protection</Text>
-                <Text style={styles.privacyStatus}>Enabled</Text>
-              </View>
-            </View>
-
-            <View style={styles.privacyItem}>
-              <Shield size={20} color="#DC2626" />
-              <View style={styles.privacyText}>
-                <Text style={styles.privacyTitle}>Two-factor Authentication</Text>
-                <Text style={styles.privacyStatus}>Disabled</Text>
-              </View>
-            </View>
-
-            <View style={styles.privacyItem}>
-              <Globe size={20} color="#F59E0B" />
-              <View style={styles.privacyText}>
-                <Text style={styles.privacyTitle}>Data Sharing</Text>
-                <Text style={styles.privacyStatus}>Limited</Text>
-              </View>
-            </View>
-
-            <View style={styles.privacyItem}>
-              <MapPin size={20} color="#059669" />
-              <View style={styles.privacyText}>
-                <Text style={styles.privacyTitle}>Location Services</Text>
-                <Text style={styles.privacyStatus}>Enabled</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity style={styles.manageButton}>
-              <Text style={styles.manageButtonText}>Manage Privacy Settings</Text>
-            </TouchableOpacity>
           </ScrollView>
         </View>
       </Modal>

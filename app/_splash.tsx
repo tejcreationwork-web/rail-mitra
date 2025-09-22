@@ -1,9 +1,6 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, ImageBackground, ActivityIndicator, Dimensions } from "react-native";
+import { View, StyleSheet, ImageBackground, ActivityIndicator} from "react-native";
 import { useRouter } from "expo-router";
-
-
-const { width, height } = Dimensions.get("window");
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -31,13 +28,12 @@ export default function SplashScreen() {
 
 const styles = StyleSheet.create({
   background: {
-    flex: 1,           
-    width: width,     
-    height: height,    
+    flex: 1,             
   },
   spinnerContainer: {
-    position: "absolute",
-    bottom: 80,
-    alignSelf: "center",
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 80,
   },
 });
