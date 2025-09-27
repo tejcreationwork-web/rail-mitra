@@ -37,7 +37,7 @@ export default function AccountScreen() {
       subtitle: "View all your Saved PNR's",
       icon: CreditCard,
       onPress: () => {
-        router.push('/(tabs)/booking');
+        router.push('/(tabs)/savedPNR');
       },
     },
     // {

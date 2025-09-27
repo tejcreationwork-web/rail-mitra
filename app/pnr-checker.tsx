@@ -119,12 +119,22 @@ type SavedPNR = {
   trainName: string;
   from: string;
   to: string;
-  date: string;
+  sourceDoj: string;
+  destinationDoj: string;
   journeyClass: string;
   boardingPoint: string;
+  reservationUpto : string;
   arrivalTime: string;
+  departureTime: string;
+  expectedPlatformNumber : number | string;
+  ticketFare : number;
+  hasPantry : boolean;
+  bookingDate : Date;
+  quota : string;
+  coachPosition : string;
+  passengerCount : number;
   passengers: {
-    name: string;
+    number: string;
     age?: number;
     status: string;
     coach: string;
@@ -197,15 +207,24 @@ export default function PNRChecker() {
           trainName: pnrData.TrainName,
           from: pnrData.BoardingPoint,
           to: pnrData.ReservationUpto,
-          date: pnrData.Doj,
+          sourceDoj: pnrData.SourceDoj,
+          destinationDoj: pnrData.DestinationDoj,
           journeyClass: pnrData.Class,
           boardingPoint: pnrData.BoardingPoint,
+          reservationUpto : pnrData.ReservationUpto,
           arrivalTime : pnrData.ArrivalTime,
+          departureTime : pnrData.DepartureTime,
+          expectedPlatformNumber : pnrData.ExpectedPlatformNo,
+          ticketFare : pnrData.TicketFare ? parseFloat(pnrData.TicketFare) : 0,
+          hasPantry : pnrData.HasPantry,
+          bookingDate : pnrData.BookingDate ? new Date(pnrData.BookingDate) : new Date(),
+          quota : pnrData.Quota,
+          coachPosition : pnrData.CoachPosition,
+          passengerCount : pnrData.PassengerCount,
           passengers:
             pnrData.PassengerStatus?.map((p) => ({
-              name: '',
-              age: 0,
-              status: p.CurrentStatus || p.BookingStatus || 'Unknown',
+              number: p.Number.toString(),
+              status: p.CurrentStatusNew || p.BookingStatusNew || 'Unknown',
               coach: p.CurrentCoachId || p.BookingCoachId || '-',
               berth: p.CurrentBerthCode || p.BookingBerthCode || '-',
               seat: p.CurrentBerthNo || p.BookingBerthNo || '-',
@@ -367,7 +386,7 @@ export default function PNRChecker() {
               DOJ : {pnrData.Doj} | <Clock>Time : {pnrData.ArrivalTime} </Clock>
             </Text> */}
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.BoardingInfo}>DOJ : {pnrData.Doj} | </Text>
+              <Text style={styles.BoardingInfo}>DOJ : {pnrData.SourceDoj} | </Text>
               <Clock size={16} color="#64748B" style={{ marginHorizontal: 4 }} />
               <Text style={styles.BoardingInfo}>Time : {pnrData.ArrivalTime}</Text>
             </View>

@@ -20,11 +20,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="booking"
+        name="savedPNR"
         options={{
           title: 'Saved PNR',
           tabBarIcon: ({ size, color }) => (
-            <Ionicons name="train" size={size} color={color} />
+            <Ionicons name="bookmark" size={size} color={color} />
           ),
         }}
       />
@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Q&A',
           tabBarIcon: ({ size, color }) => (
-            <Ionicons name="help-circle" size={size} color={color} />
+            <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
           ),
         }}
       />
