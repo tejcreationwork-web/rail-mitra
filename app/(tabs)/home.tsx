@@ -96,7 +96,9 @@ export default function HomeScreen() {
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  const chartNotPrepared = nextJourney?.chartPrepared === false;
+  // const chartNotPrepared = nextJourney?.chartPrepared === false;
+  const chartNotPrepared = String(nextJourney?.chartPrepared) === "false";
+
 
   const handleRefreshPNR = async (pnrId: string) => {
     const pnrToRefresh = savedPNRs.find((p) => p.id === pnrId);
@@ -124,7 +126,7 @@ export default function HomeScreen() {
           boardingPoint: response.data.BoardingPoint || "-",
           arrivalTime: response.data.ArrivalTime || "-",
           departureTime: response.data.DepartureTime || "-",
-          chartPrepared: response.data.ChartPrepared || false,
+          chartPrepared: String(response.data.ChartPrepared).toLowerCase() === "true",
           passengers: response.data.PassengerStatus?.map((p, index) => ({
             number: pnrToRefresh.passengers[index]?.number || `P${index+1}`,
             status: p.CurrentStatusNew || p.BookingStatusNew || "Unknown",
@@ -345,32 +347,49 @@ export default function HomeScreen() {
                     <Text style={styles.nextJourneySectionTitle}>👤 Passenger Details</Text> 
                     
                     {/* Passgenger 1 Details */}
-                    <View style={styles.nextJourneyFirstPassenger}>
-                      <View style={styles.passengerInfoDetails}>
-                        <Text style={styles.passengerName}>
-                          Passenger : {nextJourney.passengers[0]?.number || 'Passenger 1'} {/* Use 'name' property */}
-                        </Text>
+                    {nextJourney.passengers?.map((passenger, index) => (
+                      <View key={index} style={{ marginBottom: 20 ,width:"100%"}}>
+                        {/* Passenger Name & Status */}
+                        <View style={styles.nextJourneyFirstPassenger}>
+                          <View style={styles.passengerInfoDetails}>
+                            <Text style={styles.passengerName}>
+                              Passenger : {passenger.number || `Passenger ${index + 1}`} {/* or passenger.name if available */}
+                            </Text>
+                          </View>
+                          <View style={[
+                            styles.statusTagSmall, 
+                            { backgroundColor: getStatusColor(passenger.status || 'Unknown') }
+                          ]}>
+                            <Text style={styles.statusTagTextSmall}>
+                              {passenger.status || 'N/A'}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Labels */}
+                        <View style={{ 
+                          flexDirection: 'row', 
+                          marginTop: 10,
+                          marginHorizontal: 16 ,
+                        }}>
+                          <Text style={{ flex: 1, textAlign: 'left', color: '#64748B', fontWeight: '600' }}>Coach</Text>
+                          <Text style={{ flex: 1, textAlign: 'center', color: '#64748B', fontWeight: '600' }}>Berth</Text>
+                          <Text style={{ flex: 1, textAlign: 'right', color: '#64748B', fontWeight: '600' }}>Seat</Text>
+                        </View>
+
+                        {/* Values */}
+                        <View style={{ 
+                          flexDirection: 'row', 
+                          marginTop: 5,
+                          marginHorizontal: 20  
+                        }}>
+                          <Text style={{ flex: 1, textAlign: 'left', color: '#1E293B', fontWeight: '600' }}>{passenger.coach || '-'}</Text>
+                          <Text style={{ flex: 1, textAlign: 'center', color: '#1E293B', fontWeight: '600' }}>{passenger.berth || '-'}</Text>
+                          <Text style={{ flex: 1, textAlign: 'right', color: '#1E293B', fontWeight: '600'}}>{passenger.seat || '-'}</Text>
+                        </View>
                       </View>
-                      <View style={[
-                        styles.statusTagSmall, 
-                        { backgroundColor: getStatusColor(nextJourney.passengers[0]?.status || 'Unknown') }
-                      ]}>
-                        <Text style={styles.statusTagTextSmall}>
-                          {nextJourney.passengers[0]?.status || 'N/A'}
-                        </Text>
-                      </View>
-                    </View>
-                    {/* New: Two-row layout for Coach, Berth, Seat */}
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10,marginHorizontal:16 }}>
-                        <Text style={{ flex: 1, textAlign: 'left', color: '#64748B', fontWeight: '600' }}>Coach</Text>
-                        <Text style={{ flex: 1, textAlign: 'center', color: '#64748B', fontWeight: '600' }}>Berth</Text>
-                        <Text style={{ flex: 1, textAlign: 'right', color: '#64748B', fontWeight: '600' }}>Seat</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 5,marginHorizontal:20  }}>
-                        <Text style={{ flex: 1, textAlign: 'left', color: '#1E293B',fontWeight: '600' }}>{nextJourney.passengers[0]?.coach || '-'}</Text>
-                        <Text style={{ flex: 1, textAlign: 'center', color: '#1E293B',fontWeight: '600' }}>{nextJourney.passengers[0]?.berth || '-'}</Text>
-                        <Text style={{ flex: 1, textAlign: 'right', color: '#1E293B',fontWeight: '600'}}>{nextJourney.passengers[0]?.seat || '-'}</Text>
-                    </View>
+                    ))}
+
                     
                     {/* Booking Details Section */}
                     <View style={styles.nextJourneySectionSeparator} />
@@ -378,22 +397,22 @@ export default function HomeScreen() {
                     
                     <View style={styles.bookingDetailsRow}>
                       <View style={styles.bookingDetailItem}>
-                        <Text style={styles.bookingDetailLabel}>Class:</Text>
+                        <Text style={styles.bookingDetailLabel}>Class</Text>
                         <Text style={styles.bookingDetailValue}>{nextJourney.journeyClass}</Text>
                       </View>
                       <View style={styles.bookingDetailItem}>
-                        <Text style={styles.bookingDetailLabel}>Quota:</Text>
+                        <Text style={styles.bookingDetailLabel}>Quota</Text>
                         <Text style={styles.bookingDetailValue}>{nextJourney.quota || 'GN'}</Text>
                       </View>
                     </View>
                     
                     <View style={styles.bookingDetailsRow}>
                       <View style={styles.bookingDetailItem}>
-                        <Text style={styles.bookingDetailLabel}>Expected PF:</Text>
+                        <Text style={styles.bookingDetailLabel}>Expected PF</Text>
                         <Text style={styles.bookingDetailValue}>{nextJourney.expectedPlatformNumber}</Text>
                       </View>
                       <View style={styles.bookingDetailItem}>
-                        <Text style={styles.bookingDetailLabel}>Total Fare:</Text>
+                        <Text style={styles.bookingDetailLabel}>Total Fare</Text>
                         <Text style={styles.bookingDetailValue}>₹{nextJourney.ticketFare}</Text>
                       </View>
         
@@ -771,19 +790,19 @@ const styles = StyleSheet.create({
   bookingDetailItem: {
     flex: 1,
     flexDirection: 'column',
-    paddingRight: 10,   // ✅ spacing between columns
   },
 
   bookingDetailLabel: {
     fontSize: 14,
     color: '#64748B',
+    marginLeft:15
   },
   bookingDetailValue: {
     fontSize: 16,
     fontWeight: '700',
     color: '#1E293B',
     marginTop: 2,
-    marginLeft:10
+    marginLeft:30
   },
   pnrRow: {
     flexDirection: "row",
