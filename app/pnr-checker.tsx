@@ -262,7 +262,7 @@ export default function PNRChecker() {
               text: 'View Bookings',
               onPress: () => {
                 router.back();
-                router.push('/(tabs)/booking');
+                router.push('/(tabs)/savedPNR');
               },
             },
           ]
@@ -296,6 +296,45 @@ export default function PNRChecker() {
     if (lower.includes('rac')) return 'RAC';
     if (lower.includes('can')) return 'Cancelled';
     return status;
+  };
+
+  // Format journey date similar to SavedPNR display
+  const formatJourneyDate = (dateString: string): string => {
+    if (!dateString) return 'Date Not Found';
+    const dateParts = dateString.split(/[-/]/);
+    let date: Date;
+
+    if (dateParts.length === 3) {
+      const [p1, p2, p3] = dateParts;
+      if (p1.length === 4) {
+        date = new Date(Number(p1), Number(p2) - 1, Number(p3));
+      } else {
+        date = new Date(Number(p3), Number(p2) - 1, Number(p1));
+      }
+    } else {
+      date = new Date(dateString);
+    }
+
+    if (isNaN(date.getTime())) return 'Date Not Found';
+
+    const day = date.getDate();
+    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const month = date.toLocaleDateString('en-US', { month: 'short' });
+    const getOrdinal = (d: number): string => {
+      if (d > 3 && d < 21) return 'th';
+      switch (d % 10) {
+        case 1:
+          return 'st';
+        case 2:
+          return 'nd';
+        case 3:
+          return 'rd';
+        default:
+          return 'th';
+      }
+    };
+
+    return `${dayOfWeek}, ${month} ${day}${getOrdinal(day)}`;
   };
 
   return (
@@ -345,114 +384,73 @@ export default function PNRChecker() {
         {/* PNR Data Section */}
         {pnrData && (
           <View style={styles.resultContainer}>
-            {/* Journey Details */}
-            <View style={styles.detailsContainer}>
-              <Text style={styles.sectionTitle}>Journey Details</Text>
-              <View style={styles.journeyRow}>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={30} color="#153cb9ff" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>From</Text>
-                    <Text style={styles.journeyValue}>
-                      {pnrData.BoardingPoint}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.journeyArrow}>
-                  <Text style={styles.arrowText}>→</Text>
-                </View>
-                <View style={styles.journeyPoint}>
-                  <MapPin size={30} color="#DC2626" />
-                  <View style={styles.journeyInfo}>
-                    <Text style={styles.journeyLabel}>To</Text>
-                    <Text style={styles.journeyValue}>
-                      {pnrData.ReservationUpto}
-                    </Text>
+            {/* Ticket-style visual matching SavedPNR card */}
+            <View style={styles.ticketCard}>
+              <View style={styles.ticketCardTopHeader}>
+                <View style={{ flexShrink: 1 }}>
+                  <Text style={styles.ticketPnrNumber}>PNR: {pnrData.Pnr}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
+                    <Text style={styles.ticketTrainInfo}>{pnrData.TrainNo} - {pnrData.TrainName}</Text>
+                    <View style={styles.ticketChartStatusBlock}>
+                      <Text style={[styles.ticketChartText, { color: pnrData.ChartPrepared ? '#059669' : '#DC2626' }]}>
+                        {pnrData.ChartPrepared ? 'Chart Prepared' : 'Chart Not Prepared'}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
 
-            {/* PNR Header */}
-            <View style={styles.pnrHeader}>
-              <Text style={styles.pnrNumber}>PNR : {pnrData.Pnr}</Text>
-            </View>
-
-            {/* Train Info */}
-            <Text style={styles.trainInfo}>
-              Train : {pnrData.TrainNo} - {pnrData.TrainName}
-            </Text>
-            {/* <Text style={styles.BoardingInfo}>
-              DOJ : {pnrData.Doj} | <Clock>Time : {pnrData.ArrivalTime} </Clock>
-            </Text> */}
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.BoardingInfo}>DOJ : {pnrData.SourceDoj} | </Text>
-              <Clock size={16} color="#64748B" style={{ marginHorizontal: 4 }} />
-              <Text style={styles.BoardingInfo}>Time : {pnrData.ArrivalTime}</Text>
-            </View>
-            <Text style={styles.classInfo}>
-              Boarding : {pnrData.BoardingPoint}  | Class : {pnrData.Class}
-            </Text>
-
-            <Text style={styles.BookingQuota}>
-              Ticket Fare : ₹{pnrData.TicketFare}  | Booking Quota :{' '}
-              {pnrData.Quota}
-            </Text>
-
-            {/* Passenger List */}
-            {pnrData.PassengerStatus?.map((passenger, index) => (
-              <View key={index} style={styles.detailsContainer}>
-                <Text style={styles.sectionTitle}>
-                  Passenger {passenger.Number}
-                </Text>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Booking Status : </Text>
-                  <Text style={styles.detailValue}>
-                    {passenger.BookingStatus || 'Unknown'}
-                  </Text>
+              <View style={styles.ticketJourneySection}>
+                <View style={styles.ticketStationBlock}>
+                  <Text style={styles.ticketStationDateText}>{formatJourneyDate(pnrData.SourceDoj || pnrData.Doj || '')}</Text>
+                  <Text style={styles.ticketStationCode}>{(pnrData.BoardingPoint || '').substring(0, 4)}</Text>
+                  <Text style={styles.ticketTimeText}>{pnrData.ArrivalTime}</Text>
                 </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Current Status : </Text>
-                  <Text
-                    style={[
-                      styles.detailValue,
-                      { color: getStatusColor(passenger.CurrentStatus) },
-                    ]}
-                  >
-                    {formatStatus(passenger.CurrentStatus || 'Unknown')}
-                  </Text>
+                <View style={styles.ticketJourneyLineContainer}>
+                  <Text style={[styles.ticketDojText, styles.ticketJourneyArrow]}>{'→'}</Text>
                 </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Coach : </Text>
-                  <Text style={styles.detailValue}>
-                    {passenger.CurrentCoachId ||
-                      passenger.BookingCoachId ||
-                      '-'}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Berth : </Text>
-                  <Text style={styles.detailValue}>
-                    {passenger.CurrentBerthCode ||
-                      passenger.BookingBerthCode ||
-                      '-'}
-                  </Text>
-                </View>
-
-                <View style={styles.detailRow}>
-                  <Text style={styles.detailLabel}>Seat : </Text>
-                  <Text style={styles.detailValue}>
-                    {passenger.CurrentBerthNo ||
-                      passenger.BookingBerthNo ||
-                      '-'}
-                  </Text>
+                <View style={styles.ticketStationBlock}>
+                  <Text style={styles.ticketStationDateText}>{formatJourneyDate(pnrData.DestinationDoj || pnrData.Doj || '')}</Text>
+                  <Text style={styles.ticketStationCode}>{(pnrData.ReservationUpto || '').substring(0, 4)}</Text>
+                  <Text style={styles.ticketTimeText}>{pnrData.DepartureTime}</Text>
                 </View>
               </View>
-            ))}
+
+              <View style={styles.ticketStatusRow}>
+                <Text style={styles.ticketClassText}>Class : {pnrData.Class}</Text>
+                <Text style={styles.ticketPlatformText}>PF : {pnrData.ExpectedPlatformNo || 'N/A'}</Text>
+                <Text style={styles.ticketQuotaText}>Quota : {pnrData.Quota || 'N/A'}</Text>
+              </View>
+
+              {/* Passenger details inside ticket visual */}
+              <View style={styles.passengersDetailsContainer}>
+                <Text style={styles.passengerDetailsTitle}>👤 Passenger Details</Text>
+
+                {pnrData.PassengerStatus?.map((p, i) => (
+                  <View key={i} style={i === 0 ? styles.firstPassengerCard : styles.additionalPassengerCard}>
+                    <View style={styles.passengerInfoRow}>
+                      <Text style={styles.passengerName}>Passenger {p.Number ?? i + 1}</Text>
+                      <View style={[styles.statusTagSmall, { backgroundColor: getStatusColor(p.CurrentStatusNew || p.CurrentStatus || p.BookingStatusNew || p.BookingStatus || '') }]}>
+                        <Text style={styles.statusTagTextSmall}>{formatStatus(p.CurrentStatusNew || p.CurrentStatus || p.BookingStatusNew || p.BookingStatus || 'Unknown')}</Text>
+                      </View>
+                    </View>
+
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6, marginHorizontal: 16 }}>
+                      <Text style={{ flex: 1, textAlign: 'left', color: '#64748B', fontWeight: '600' }}>Coach</Text>
+                      <Text style={{ flex: 1, textAlign: 'center', color: '#64748B', fontWeight: '600' }}>Berth</Text>
+                      <Text style={{ flex: 1, textAlign: 'right', color: '#64748B', fontWeight: '600' }}>Seat</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 2, marginHorizontal: 20 }}>
+                      <Text style={{ flex: 1, textAlign: 'left', color: '#1E293B', fontWeight: '600' }}>{p.CurrentCoachId || p.BookingCoachId || '-'}</Text>
+                      <Text style={{ flex: 1, textAlign: 'center', color: '#1E293B', fontWeight: '600' }}>{p.CurrentBerthCode || p.BookingBerthCode || '-'}</Text>
+                      <Text style={{ flex: 1, textAlign: 'right', color: '#1E293B', fontWeight: '600' }}>{p.CurrentBerthNo || p.BookingBerthNo || '-'}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+
+              <Text style={styles.ticketLastChecked}>Last checked: {new Date().toLocaleString()}</Text>
+            </View>
 
             {/* Save Section */}
             <View style={styles.saveSection}>
@@ -568,7 +566,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   searchButton: {
-    backgroundColor: '#1E40AF',
+    backgroundColor: '#2d5aecff',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -791,5 +789,175 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  // Ticket-style visual (matches SavedPNR card styles)
+  ticketCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  ticketCardTopHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  ticketPnrNumber: {
+    fontSize: 16,
+    color: '#64748B',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  ticketTrainInfo: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 10,
+  },
+  ticketChartStatusBlock: {
+    marginLeft: 10,
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
+  ticketChartText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textAlign: 'right',
+    marginTop: 4,
+  },
+  ticketJourneySection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 10,
+  },
+  ticketStationBlock: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  ticketStationDateText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  ticketStationCode: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 2,
+  },
+  ticketTimeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#334155',
+  },
+  ticketJourneyLineContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 2,
+  },
+  ticketDojText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748B',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    zIndex: 1,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  ticketJourneyArrow: {
+    fontSize: 35,
+    fontWeight: '700',
+    color: 'Black',
+    paddingHorizontal: 4,
+    paddingVertical: 0,
+    borderWidth: 0,
+  },
+  ticketStatusRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 12,
+  },
+  ticketClassText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 10,
+    color: '#1E293B',
+    flex: 1,
+  },
+  ticketPlatformText: {
+    fontSize: 16,
+    fontWeight: '500',
+    alignContent: 'center',
+    marginRight: 45,
+  },
+  ticketQuotaText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginRight: 8,
+  },
+  ticketLastChecked: {
+    fontSize: 12,
+    color: '#94A3B8',
+    textAlign: 'left',
+  },
+  passengersDetailsContainer: {
+    paddingBottom: 4,
+  },
+  passengerDetailsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginBottom: 8,
+  },
+  firstPassengerCard: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  additionalPassengerCard: {
+    padding: 10,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 6,
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  passengerInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  passengerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1E293B',
+  },
+  statusTagSmall: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+    alignItems: 'center',
+  },
+  statusTagTextSmall: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });

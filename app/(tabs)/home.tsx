@@ -4,7 +4,9 @@ import {
   StatusBar, TextInput, Image, 
   Alert
 } from 'react-native';
+import { useNotifications } from '../../components/notifications';
 import { useState, useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { router } from 'expo-router';
 import { ChevronDown,ChevronUp,ChevronRight,Train,Trash2,RefreshCw, MapPin, Bell, Ticket, Search, Mic, FileText,CircleHelp,Bed} from 'lucide-react-native';
@@ -51,6 +53,8 @@ interface SavedPNR {
 };
 
 export default function HomeScreen() {
+  const { unreadCount } = useNotifications();
+
   const [latestQuestions, setLatestQuestions] = useState<Question[]>([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(true);
   
@@ -58,39 +62,38 @@ export default function HomeScreen() {
   const [nextJourneyPNR, setNextJourneyPNR] = useState<string | null>(null);
   const [nextJourney, setNextJourney] = useState<SavedPNR | null>(null);
   
-  useEffect(() => {
-    loadPNRs();
-    loadNextJourney();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadData = async () => {
+        try {
+          // Load both saved PNRs and next journey
+          const [savedData, nextJourneyData] = await Promise.all([
+            AsyncStorage.getItem('savedPNRs'),
+            AsyncStorage.getItem('nextJourney')
+          ]);
 
-   // Load saved PNRs list
-  const loadPNRs = async () => {
-    try {
-      const data = await AsyncStorage.getItem("savedPNRs");
-      if (data) {
-        setSavedPNRs(JSON.parse(data));
-      }
-    } catch (error) {
-      console.error("Error loading saved PNRs:", error);
-    } finally {
-      setIsDataLoaded(true);  // ✅ ensures UI loads
-    }
-  };
+          if (savedData) {
+            setSavedPNRs(JSON.parse(savedData));
+          }
+          
+          if (nextJourneyData) {
+            const parsed = JSON.parse(nextJourneyData);
+            setNextJourneyPNR(parsed.pnr);
+            setNextJourney(parsed);
+          } else {
+            setNextJourneyPNR(null);
+            setNextJourney(null);
+          }
+        } catch (error) {
+          console.error('Error loading data:', error);
+        } finally {
+          setIsDataLoaded(true);
+        }
+      };
 
-
-  // Load Next Journey booking
-  const loadNextJourney = async () => {
-    try {
-      const data = await AsyncStorage.getItem("nextJourney");
-      if (data) {
-        const parsed = JSON.parse(data) as SavedPNR;
-        setNextJourneyPNR(parsed.pnr);   // store PNR id
-        setNextJourney(parsed);          // store full object
-      }
-    } catch (error) {
-      console.error("Error loading next journey:", error);
-    }
-  };
+      loadData();
+    }, [])
+  );
 
   const [isNextJourneyExpanded, setIsNextJourneyExpanded] = useState(false);
 
@@ -176,20 +179,32 @@ export default function HomeScreen() {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: async () => {
-          // --- 2. Remove the PNR from the main list ---
-          const updatedPNRs = savedPNRs.filter((p) => p.id !== pnrId);
-          setSavedPNRs(updatedPNRs);
-          await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
-          
-          if (nextJourneyPNR === pnrToDelete.pnr) {
-            await AsyncStorage.removeItem('nextJourney');
-            setNextJourneyPNR(null);
-            // Optional: Add a subtle confirmation for the user
-            // Toast.show({ type: 'success', text1: 'Next Journey removed' });
-          }
-          // Optional: Confirmation for the main deletion
-          // Toast.show({ type: 'info', text1: `PNR ${pnrToDelete.pnr} deleted` });
+        onPress: () => {
+          // Second confirm - final destructive action
+          Alert.alert(
+            'Confirm Delete',
+            `This will permanently delete PNR ${pnrToDelete.pnr}. Do you want to continue?`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete',
+                style: 'destructive',
+                onPress: async () => {
+                  // --- 2. Remove the PNR from the main list ---
+                  const updatedPNRs = savedPNRs.filter((p) => p.id !== pnrId);
+                  setSavedPNRs(updatedPNRs);
+                  await AsyncStorage.setItem('savedPNRs', JSON.stringify(updatedPNRs));
+
+                  // If the deleted PNR was marked as Next Journey, clear it immediately
+                  if (nextJourneyPNR === pnrToDelete.pnr) {
+                    await AsyncStorage.removeItem('nextJourney');
+                    setNextJourneyPNR(null);
+                    setNextJourney(null); // ensure UI hides the widget immediately
+                  }
+                },
+              },
+            ]
+          );
         },
       },
     ]);
@@ -225,6 +240,22 @@ export default function HomeScreen() {
     loadLatestQuestions();
   }, []);
 
+  useEffect(() => {
+    const loadLatestQuestions = async () => {
+      try {
+        setIsLoadingQuestions(true);
+        const questions = await qaService.getQuestions();
+        // Normalize to array before setting state
+        setLatestQuestions(Array.isArray(questions) ? questions.slice(0, 3) : []);
+      } catch (error) {
+        console.error('Error loading latest questions:', error);
+      } finally {
+        setIsLoadingQuestions(false);
+      }
+    };
+    loadLatestQuestions();
+  }, []);
+
   const handleServicePress = (route: string) => router.push(route as any);
   if (!isDataLoaded) {
     return <View style={styles.container}><Text>Loading...</Text></View>;
@@ -246,11 +277,16 @@ export default function HomeScreen() {
             <Text style={styles.headerTitle}>RailEase</Text>
             <Text style={styles.headerSubtitle}>Your Railway Travel Companion</Text>
           </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Bell size={24} color="#0e0d0dff" />
-            <View style={styles.notificationDot} /> 
-          </TouchableOpacity>
-        </View>
+          <TouchableOpacity style={styles.notificationButton}
+          onPress={() => router.push('../notification_screen')}>
+            <Bell size={24} color="#0F172A" />
+            {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
 
         {/* Search Bar */}
         <View style={styles.searchContainer}>
@@ -490,6 +526,56 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
+        
+        <View style={styles.qaSection}>
+          <View style={styles.qaHeaderRow}>
+            <Text style={styles.sectionTitle}>Latest Q&A</Text>
+            <TouchableOpacity onPress={() => router.push('/qa')}>
+              <Text style={styles.viewAllText}>View all</Text>
+            </TouchableOpacity>
+          </View>
+
+          {isLoadingQuestions ? (
+            <Text style={styles.qaLoading}>Loading...</Text>
+          ) : (Array.isArray(latestQuestions) && latestQuestions.length === 0) ? (
+            <Text style={styles.qaEmpty}>No questions yet</Text>
+          ) : (
+            (Array.isArray(latestQuestions) ? latestQuestions : []).map((question) => {
+              const id = question.id ?? question.id;
+              return (
+                <TouchableOpacity
+                  key={id ?? JSON.stringify(question)}
+                  style={styles.qaCard}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    if (!id) {
+                      Alert.alert('Error', 'Could not open this question');
+                      return;
+                    }
+                    // Navigate to the question detail screen
+                    router.push({
+                      pathname: '/(tabs)/qa',
+                      params: { selectedQuestionId: id }
+                    });
+                  }}
+                >
+                  <Text style={styles.qaQuestion} numberOfLines={2}>
+                    {question.title || question.id || 'Untitled Question'}
+                  </Text>
+                  <View style={styles.qaMetaContainer}>
+                    <Text style={styles.qaMeta}>
+                      {question.created_at 
+                        ? new Date(question.created_at).toLocaleDateString() 
+                        : ''}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
+
+
 
       </ScrollView>
     </View>
@@ -530,6 +616,22 @@ const styles = StyleSheet.create({
   newsText: { flex: 1, padding: 10 },
   newsTitle: { fontSize: 12, fontWeight: '700', color: '#1E293B' },
   newsSubtitle: { fontSize: 12, color: '#64748B' },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+  },
   //quick Actions
   quickActionsScroll: {
     paddingHorizontal: 10,
@@ -823,5 +925,52 @@ const styles = StyleSheet.create({
     color: '#DC2626', // Default to red
     textAlign: 'right',
     marginTop: 4,
+  },
+  // ...existing code...
+  qaSection: {
+    marginBottom: 20,
+    paddingHorizontal: 4,
+  },
+  qaHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  qaCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  qaQuestion: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#0F172A',
+    marginBottom: 6,
+  },
+  qaMetaContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  qaMeta: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  qaLoading: {
+    fontSize: 13,
+    color: '#64748B',
+    paddingVertical: 8,
+  },
+  qaEmpty: {
+    fontSize: 13,
+    color: '#64748B',
+    paddingVertical: 8,
+    textAlign: 'center',
   },
 });

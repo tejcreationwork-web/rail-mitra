@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import SplashScreen from './_splash';
 import { useFonts } from 'expo-font';
+import { NotificationProvider } from '../components/notifications';
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -34,12 +35,12 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <NotificationProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </NotificationProvider>
   );
 }

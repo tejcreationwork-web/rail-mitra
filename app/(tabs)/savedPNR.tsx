@@ -401,10 +401,13 @@ export default function BookingScreen() {
         setNextJourneyPNR(null);
         Alert.alert('✅ Success', 'Removed from Next Journey');
       } else {
+        // Save the FULL booking object
         await AsyncStorage.setItem('nextJourney', JSON.stringify(booking));
         setNextJourneyPNR(booking.pnr);
         Alert.alert('✅ Success', 'Marked as your Next Journey');
       }
+      // Force reload home screen data by setting a flag
+      await AsyncStorage.setItem('nextJourneyUpdated', Date.now().toString());
     } catch (error) {
       console.error('Failed to save next journey:', error);
       Alert.alert('❌ Failed', 'Could not save Next Journey status.');
