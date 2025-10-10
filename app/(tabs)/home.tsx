@@ -9,13 +9,12 @@ import { useState, useEffect } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { router } from 'expo-router';
-import { ChevronDown,ChevronUp,ChevronRight,Train,Trash2,RefreshCw, MapPin, Bell, Ticket, Search, Mic, FileText,CircleHelp,Bed} from 'lucide-react-native';
+import { ChevronDown,ChevronUp,ChevronRight,Train,Trash2,RefreshCw, MapPin, Bell, Ticket, Search, Mic, FileText,CircleHelp,Bed, TrainFront} from 'lucide-react-native';
 import { qaService, Question } from '@/lib/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';  //get next journey pnr from async storage
 import { getStatusColor ,formatJourneyDate} from './savedPNR';
 import { APIResponse} from '@/components/types';
-import fetchPNRStatus from '@/lib/apis';
-
+import { fetchPNRStatus } from '@/lib/apis';
 
 // Define type for SavedPNR
 interface SavedPNR {
@@ -218,6 +217,7 @@ export default function HomeScreen() {
 
   const services = [
     { id: 'pnr_status', title: 'PNR\nStatus', icon: Ticket, route: '/pnr-checker', color: '#3A8DFF' },
+    { id: 'live_train_status', title: 'Live Train\nStatus', icon: TrainFront, route: '/live-train-status', color: '#FF6347' }, // Added Live Train Status
     { id: 'nearby_stations', title: 'Nearby\nStations', icon: MapPin, route: '/station-layout', color: '#F2994A' },
     { id: 'track_train', title: 'Train\nTimes', icon: Train, route: '/train-timetable', color: '#3D99C2' },
     { id: 'find_trains', title: 'Find\nTrains', icon: Search, route: '/train-between', color: '#10B981' },
