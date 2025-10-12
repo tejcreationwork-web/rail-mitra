@@ -221,8 +221,7 @@ export default function HomeScreen() {
     { id: 'nearby_stations', title: 'Nearby\nStations', icon: MapPin, route: '/station-layout', color: '#F2994A' },
     { id: 'track_train', title: 'Train\nTimes', icon: Train, route: '/train-timetable', color: '#3D99C2' },
     { id: 'find_trains', title: 'Find\nTrains', icon: Search, route: '/train-between', color: '#10B981' },
-    { id: 'chart_vacancy', title: 'Chart Vacancy', icon: FileText, route: '/chart_vacancy', color: '#3A8DFF' },
-    { id: 'retiring_rooms', title: 'Retiring Rooms', icon: Bed, route: '/retiring_rooms', color: '#F2994A' },
+    { id: 'chatbot', title: 'RailEase\nBot', icon:Search, route: '/chatbot', color: '#3A8DFF' },
     { id: 'help_support', title: 'Help &\nSupport', icon: CircleHelp, route: '/emergency_contact', color: '#3D99C2' },
   ];
 

@@ -1,4 +1,4 @@
-import fetchPNRStatus from '@/lib/apis';
+import {fetchPNRStatus} from '@/lib/apis';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import {
@@ -88,24 +88,6 @@ type APIResponse = {
     Duration: string;
     RatingCount: number;
     HasPantry: boolean;
-    FromDetails: {
-      category: string;
-      division: string;
-      latitude: string;
-      longitude: string;
-      state: string;
-      stationCode: string;
-      stationName: string;
-    };
-    BoardingPointDetails: {
-      category: string;
-      division: string;
-      latitude: string;
-      longitude: string;
-      state: string;
-      stationCode: string;
-      stationName: string;
-    };
   };
 };
 
@@ -157,34 +139,25 @@ export default function PNRChecker() {
    * Search handler
    */
   const handleSearch = async () => {
-    if (!pnrNumber.trim()) {
-      Alert.alert('Error', 'Please enter PNR number');
-      return;
-    }
-    if (pnrNumber.length !== 10) {
-      Alert.alert('Error', 'PNR number should be 10 digits');
+    if (!pnrNumber || pnrNumber.length !== 10) {
+      Alert.alert("Invalid PNR", "Please enter a valid 10-digit PNR number");
       return;
     }
 
     setIsLoading(true);
-    setError(null);
+    setError("");
     setPnrData(null);
 
     try {
-      const response: APIResponse = await fetchPNRStatus(pnrNumber);
-      // console.log(response);
-
+      const response = await fetchPNRStatus(pnrNumber);
+      
       if (response.status && response.data) {
-        setPnrData(response.data);
+        setPnrData(response.data); // ✅ extract "data" part only
       } else {
-        setError(response.message || 'Failed to fetch PNR status');
-        Alert.alert('Error', response.message || 'Failed to fetch PNR status');
+        setError("PNR not found or invalid");
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Network error occurred';
-      setError(errorMessage);
-      Alert.alert('Error', errorMessage);
+      setError("Something went wrong. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -300,41 +273,13 @@ export default function PNRChecker() {
 
   // Format journey date similar to SavedPNR display
   const formatJourneyDate = (dateString: string): string => {
-    if (!dateString) return 'Date Not Found';
-    const dateParts = dateString.split(/[-/]/);
-    let date: Date;
-
-    if (dateParts.length === 3) {
-      const [p1, p2, p3] = dateParts;
-      if (p1.length === 4) {
-        date = new Date(Number(p1), Number(p2) - 1, Number(p3));
-      } else {
-        date = new Date(Number(p3), Number(p2) - 1, Number(p1));
-      }
-    } else {
-      date = new Date(dateString);
-    }
-
+  const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'Date Not Found';
-
     const day = date.getDate();
-    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+    const suffix = ['th','st','nd','rd'][(day%10>3||Math.floor(day/10)==1)?0:day%10];
+    const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
     const month = date.toLocaleDateString('en-US', { month: 'short' });
-    const getOrdinal = (d: number): string => {
-      if (d > 3 && d < 21) return 'th';
-      switch (d % 10) {
-        case 1:
-          return 'st';
-        case 2:
-          return 'nd';
-        case 3:
-          return 'rd';
-        default:
-          return 'th';
-      }
-    };
-
-    return `${dayOfWeek}, ${month} ${day}${getOrdinal(day)}`;
+    return `${weekday}, ${month} ${day}${suffix}`;
   };
 
   return (
@@ -387,24 +332,20 @@ export default function PNRChecker() {
             {/* Ticket-style visual matching SavedPNR card */}
             <View style={styles.ticketCard}>
               <View style={styles.ticketCardTopHeader}>
-                <View style={{ flexShrink: 1 }}>
+                <View style={{ flexDirection: 'row',justifyContent: 'space-between'}}>
                   <Text style={styles.ticketPnrNumber}>PNR: {pnrData.Pnr}</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-                    <Text style={styles.ticketTrainInfo}>{pnrData.TrainNo} - {pnrData.TrainName}</Text>
-                    <View style={styles.ticketChartStatusBlock}>
-                      <Text style={[styles.ticketChartText, { color: pnrData.ChartPrepared ? '#059669' : '#DC2626' }]}>
-                        {pnrData.ChartPrepared ? 'Chart Prepared' : 'Chart Not Prepared'}
-                      </Text>
-                    </View>
-                  </View>
+                  <Text style={[styles.ticketChartText, { color: pnrData.ChartPrepared ? '#059669' : '#DC2626' }]}>
+                    {pnrData.ChartPrepared ? 'Chart Prepared' : 'Chart Not Prepared'}
+                  </Text>
                 </View>
+                <Text style={styles.ticketTrainInfo}>{pnrData.TrainNo} - {pnrData.TrainName}</Text>
               </View>
 
               <View style={styles.ticketJourneySection}>
                 <View style={styles.ticketStationBlock}>
                   <Text style={styles.ticketStationDateText}>{formatJourneyDate(pnrData.SourceDoj || pnrData.Doj || '')}</Text>
                   <Text style={styles.ticketStationCode}>{(pnrData.BoardingPoint || '').substring(0, 4)}</Text>
-                  <Text style={styles.ticketTimeText}>{pnrData.ArrivalTime}</Text>
+                  <Text style={styles.ticketTimeText}>{pnrData.DepartureTime}</Text>
                 </View>
                 <View style={styles.ticketJourneyLineContainer}>
                   <Text style={[styles.ticketDojText, styles.ticketJourneyArrow]}>{'→'}</Text>
@@ -412,13 +353,13 @@ export default function PNRChecker() {
                 <View style={styles.ticketStationBlock}>
                   <Text style={styles.ticketStationDateText}>{formatJourneyDate(pnrData.DestinationDoj || pnrData.Doj || '')}</Text>
                   <Text style={styles.ticketStationCode}>{(pnrData.ReservationUpto || '').substring(0, 4)}</Text>
-                  <Text style={styles.ticketTimeText}>{pnrData.DepartureTime}</Text>
+                  <Text style={styles.ticketTimeText}>{pnrData.ArrivalTime}</Text>
                 </View>
               </View>
 
               <View style={styles.ticketStatusRow}>
                 <Text style={styles.ticketClassText}>Class : {pnrData.Class}</Text>
-                <Text style={styles.ticketPlatformText}>PF : {pnrData.ExpectedPlatformNo || 'N/A'}</Text>
+                <Text style={styles.ticketPlatformText}>PF : {pnrData.ExpectedPlatformNo ?? 'N/A'}</Text>
                 <Text style={styles.ticketQuotaText}>Quota : {pnrData.Quota || 'N/A'}</Text>
               </View>
 
@@ -803,33 +744,33 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   ticketCardTopHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column', // stack children vertically
     alignItems: 'flex-start',
     marginBottom: 10,
+  },
+  ticketTrainInfo: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: '#64748B',
+      marginTop: 4, // optional spacing
+      textAlign: 'left',
   },
   ticketPnrNumber: {
     fontSize: 16,
     color: '#64748B',
-    fontWeight: '700',
+    fontWeight: '600',
     marginTop: 2,
   },
-  ticketTrainInfo: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#64748B',
-    marginTop: 10,
-  },
   ticketChartStatusBlock: {
-    marginLeft: 10,
+    marginLeft: 14,
     marginTop: 6,
-    alignSelf: 'flex-start',
   },
   ticketChartText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     textAlign: 'right',
     marginTop: 4,
+    marginLeft : 10
   },
   ticketJourneySection: {
     flexDirection: 'row',
