@@ -8,8 +8,8 @@
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash-bg.png",
-      "resizeMode": "native",
+      "image": "./assets/logo/app_logo.png",
+      "resizeMode": "cover",
       "backgroundColor": "#1E40AF"
     },
     "ios": {
@@ -28,20 +28,21 @@
       "expo-router",
       "expo-font",
       "expo-splash-screen",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-maps"
     ],
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "53697233-ad1f-450b-8779-a15a41d5e4b1"
-      }
-    },
     "owner": "raillovertej",
     "android": {
       "package": "com.raillovertej.railease"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "41d7bab4-0fa4-417c-ae18-6ea7639ad7bf"
+      }
     }
   }
 }
